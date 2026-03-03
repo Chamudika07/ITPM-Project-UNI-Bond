@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 import enum
@@ -33,3 +34,7 @@ class User(Base):
     education_status = Column(String(100), nullable=True)
     access_status = Column(Enum(AccessStatus), default=AccessStatus.pending)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    #--relationship --#
+    posts = relationship("Post", back_populates="user")
+
