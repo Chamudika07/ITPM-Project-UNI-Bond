@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from uuid import UUID
 from datetime import datetime
 from enum import Enum
 
@@ -28,7 +27,7 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: UUID
+    id: int
     first_name: str
     last_name: str
     username: str

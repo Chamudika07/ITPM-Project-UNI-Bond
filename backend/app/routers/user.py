@@ -17,6 +17,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     # Check username
     existing_username = db.query(User).filter(User.username == user.username).first()
+    
     if existing_username:
         raise HTTPException( status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
 
@@ -24,9 +25,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+    
+    user.password = hash_password(user.password)
+    
 
     new_user = User(**user.dict())
-
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -54,12 +57,14 @@ def get_user(user_id : str , db : Session = Depends(get_db)
 def update_user(user_id : str , user_update : UserCreate , db : Session = Depends(get_db)
                 , current_user : int = Depends(get_current_user)):
     
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+    user = db.query(User).filter(User.id == user_id)
+    user_obj = user.first()
+    if not user_obj:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND , detail = "User not found")
     
-    updated_user = user_update.dict(exclude_unset=True)
-    user.update(updated_user)
+    update_data = user_update.dict(exclude_unset=True)
+    user.update(update_data, synchronize_session=False)
+    
     db.commit()
     db.refresh(user)
     return user
