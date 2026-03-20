@@ -42,7 +42,7 @@ export default function Register() {
 
         for (const field of requiredFields) {
             if (!form[field]) {
-                setError(`Field '${field}' is required.`);
+                setError(`Field '${String(field)}' is required.`);
                 return false;
             }
         }

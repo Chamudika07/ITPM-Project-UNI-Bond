@@ -13,11 +13,11 @@ export const createPost = async (
   return await mockCreatePost(data);
 };
 
-export const getPosts = async () => {
+export const getPosts = async (): Promise<Post[]> => {
   return await mockGetPosts();
 };
 
-export const likePost = async (postId: string) => {
+export const likePost = async (postId: string): Promise<Post> => {
   return await mockLikePost(postId);
 };
 
@@ -25,10 +25,10 @@ export const addComment = async (
   postId: string,
   commentText: string,
   username: string
-) => {
+): Promise<Post> => {
   return await mockAddComment(postId, commentText, username);
 };
 
-export const repostPost = async (postId: string) => {
+export const repostPost = async (postId: string): Promise<Post> => {
   return await mockRepostPost(postId);
 };

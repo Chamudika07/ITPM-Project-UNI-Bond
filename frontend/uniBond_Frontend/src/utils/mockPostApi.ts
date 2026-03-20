@@ -1,4 +1,4 @@
-import type { Post, Comment } from "../types/post";
+import type { Post, Comment } from "@/types/post";
 
 let posts: Post[] = [
   {
@@ -33,29 +33,24 @@ export const mockCreatePost = (
         reposts: 0,
         createdAt: new Date().toISOString(),
       };
-
       posts = [post, ...posts];
       resolve({ message: "Post created successfully", post });
-    }, 500);
+    }, 300);
   });
 };
 
 export const mockGetPosts = (): Promise<Post[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(posts);
-    }, 500);
-  });
+  return Promise.resolve(posts);
 };
 
-export const mockLikePost = (postId: string): Promise<Post[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      posts = posts.map((post) =>
-        post.id === postId ? { ...post, likes: post.likes + 1 } : post
-      );
-      resolve(posts);
-    }, 300);
+export const mockLikePost = (postId: string): Promise<Post> => {
+  return new Promise((resolve, reject) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return reject(new Error("Post not found"));
+
+    const updated = { ...post, likes: post.likes + 1 };
+    posts = posts.map((p) => (p.id === postId ? updated : p));
+    resolve(updated);
   });
 };
 
@@ -63,34 +58,31 @@ export const mockAddComment = (
   postId: string,
   commentText: string,
   username: string
-): Promise<Post[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newComment: Comment = {
-        id: crypto.randomUUID(),
-        username,
-        text: commentText,
-        createdAt: new Date().toISOString(),
-      };
+): Promise<Post> => {
+  return new Promise((resolve, reject) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return reject(new Error("Post not found"));
 
-      posts = posts.map((post) =>
-        post.id === postId
-          ? { ...post, comments: [...post.comments, newComment] }
-          : post
-      );
+    const newComment: Comment = {
+      id: crypto.randomUUID(),
+      username,
+      text: commentText,
+      createdAt: new Date().toISOString(),
+    };
 
-      resolve(posts);
-    }, 300);
+    const updated = { ...post, comments: [...post.comments, newComment] };
+    posts = posts.map((p) => (p.id === postId ? updated : p));
+    resolve(updated);
   });
 };
 
-export const mockRepostPost = (postId: string): Promise<Post[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      posts = posts.map((post) =>
-        post.id === postId ? { ...post, reposts: post.reposts + 1 } : post
-      );
-      resolve(posts);
-    }, 300);
+export const mockRepostPost = (postId: string): Promise<Post> => {
+  return new Promise((resolve, reject) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return reject(new Error("Post not found"));
+
+    const updated = { ...post, reposts: post.reposts + 1 };
+    posts = posts.map((p) => (p.id === postId ? updated : p));
+    resolve(updated);
   });
 };

@@ -1,28 +1,28 @@
-import { createContext, useState, useContext, ReactNode, FC } from 'react';
+import { createContext, useContext, useState, type ReactNode } from "react";
 import type { User } from "@/types/user";
 
-interface AuthContextType {
+type AuthContextType = {
     user: User | null;
     login: (userData: User) => void;
     logout: () => void;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem('user');
+        const savedUser = localStorage.getItem("user");
         return savedUser ? (JSON.parse(savedUser) as User) : null;
     });
 
     const login = (userData: User) => {
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
     };
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('user');
+        localStorage.removeItem("user");
     };
 
     return (
@@ -30,12 +30,14 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
-};
+}
 
-export const useAuth = (): AuthContextType => {
+export function useAuth() {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error("useAuth must be used within AuthProvider");
     }
     return context;
-};
+}
+
+

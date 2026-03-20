@@ -16,46 +16,29 @@ export const handleCreatePost = async (
     setLoading(true);
     return await createPost(postData);
   } catch (error: unknown) {
-    setError(error as string || "Failed to create post");
+    setError(error instanceof Error ? error.message : "Failed to create post");
+    return null;
   } finally {
     setLoading(false);
   }
 };
 
-export const handleGetPosts = async (
-  setPosts: (posts: Post[]) => void,
-  setError: (value: string) => void
-) => {
-  try {
-    const posts = await getPosts();
-    setPosts(posts);
-  } catch (error: unknown) {
-    setError(error as string || "Failed to load posts");
-  }
+export const handleGetPosts = async (): Promise<Post[]> => {
+  return await getPosts();
 };
 
-export const handleLikePost = async (
-  postId: string,
-  setPosts: (posts: Post[]) => void
-) => {
-  const updatedPosts = await likePost(postId);
-  setPosts(updatedPosts);
+export const handleLikePost = async (postId: string): Promise<Post> => {
+  return await likePost(postId);
 };
 
 export const handleAddComment = async (
   postId: string,
   commentText: string,
-  username: string,
-  setPosts: (posts: Post[]) => void
-) => {
-  const updatedPosts = await addComment(postId, commentText, username);
-  setPosts(updatedPosts);
+  username: string
+): Promise<Post> => {
+  return await addComment(postId, commentText, username);
 };
 
-export const handleRepostPost = async (
-  postId: string,
-  setPosts: (posts: Post[]) => void
-) => {
-  const updatedPosts = await repostPost(postId);
-  setPosts(updatedPosts);
+export const handleRepostPost = async (postId: string): Promise<Post> => {
+  return await repostPost(postId);
 };

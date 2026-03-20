@@ -55,7 +55,7 @@ export default function App() {
         path="/register"
         element={<PublicRoute><AuthLayout><Register /></AuthLayout></PublicRoute>}
       />
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="" element={<Navigate to="/" />} />
     </Routes>
   );
 }
