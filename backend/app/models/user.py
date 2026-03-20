@@ -1,7 +1,6 @@
-from sqlalchemy import Column, String, DateTime, Enum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, Enum , Integer
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import uuid
 import enum
 from app.db.base import Base
 
@@ -22,7 +21,7 @@ class AccessStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     username = Column(String(100), unique=True, nullable=False, index=True)
@@ -33,3 +32,7 @@ class User(Base):
     education_status = Column(String(100), nullable=True)
     access_status = Column(Enum(AccessStatus), default=AccessStatus.pending)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    #--relationship --#
+    posts = relationship("Post", back_populates="user")
+
