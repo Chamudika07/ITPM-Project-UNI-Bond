@@ -4,7 +4,7 @@ import Avatar from "@/components/common/Avatar";
 import SidebarButton from "@/components/common/SidebarButton";
 import SectionCard from "@/components/common/SectionCard";
 import { ROUTES } from "@/utils/constants";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hook/useAuthHook";
 
 export default function LeftSidebar() {
   const { user } = useAuth();

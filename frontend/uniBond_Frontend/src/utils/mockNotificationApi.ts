@@ -1,6 +1,6 @@
 import type { Notification } from "@/types/notification";
 
-let notifications: Notification[] = [
+const notifications: Notification[] = [
   {
     id: "not1",
     type: "like",

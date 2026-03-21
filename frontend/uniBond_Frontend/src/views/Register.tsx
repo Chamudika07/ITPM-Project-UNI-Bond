@@ -41,7 +41,7 @@ export default function Register() {
         }
 
         for (const field of requiredFields) {
-            if (!(form as any)[field]) {
+            if (!(form as Record<string, string | undefined>)[field]) {
                 setError(`Field '${field}' is required.`);
                 return false;
             }
