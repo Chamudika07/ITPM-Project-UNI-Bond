@@ -1,6 +1,6 @@
 import type { Notice } from "@/types/notice";
 
-let notices: Notice[] = [
+const notices: Notice[] = [
   {
     id: "notice1",
     title: "Exam Schedule Update",

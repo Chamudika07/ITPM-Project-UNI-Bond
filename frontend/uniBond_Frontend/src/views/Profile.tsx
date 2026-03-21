@@ -1,7 +1,7 @@
 import { User, Mail, GraduationCap } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import Avatar from "@/components/common/Avatar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hook/useAuthHook";
 
 export default function Profile() {
   const { user } = useAuth();
