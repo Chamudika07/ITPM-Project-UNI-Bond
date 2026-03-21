@@ -4,4 +4,5 @@ export type SearchResult = {
   title: string;
   description: string;
   avatar?: string;
+  isStudyRelated?: boolean;
 };

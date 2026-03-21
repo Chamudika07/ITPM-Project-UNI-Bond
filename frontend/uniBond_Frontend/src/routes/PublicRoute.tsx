@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hook/useAuthHook';
+import { useAuth } from '@/hooks/useAuthHook';
 
 type Props = {
     children: React.ReactNode;
