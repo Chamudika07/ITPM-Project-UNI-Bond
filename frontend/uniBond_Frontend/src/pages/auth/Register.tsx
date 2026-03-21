@@ -41,6 +41,9 @@ export default function Register() {
             case "company":
                 requiredFields.push("companyName", "industry", "companySize");
                 break;
+            case "tech_lead":
+                requiredFields.push("industryExpertise", "yearsOfExperience");
+                break;
         }
 
         for (const field of requiredFields) {
@@ -107,6 +110,13 @@ export default function Register() {
                     <Input label="Company Name" name="companyName" onChange={handleChange} />
                     <Input label="Industry" name="industry" onChange={handleChange} />
                     <Input label="Company Size" name="companySize" onChange={handleChange} />
+                </>
+            )}
+
+            {form.role === "tech_lead" && (
+                <>
+                    <Input label="Industry Expertise" name="industryExpertise" onChange={handleChange} />
+                    <Input label="Years Of Experience" name="yearsOfExperience" type="number" onChange={handleChange} />
                 </>
             )}
 

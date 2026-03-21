@@ -2,18 +2,29 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import MainLayout from "@/components/layout/MainLayout";
-import Home from "@/views/Home";
-import SearchResults from "@/views/SearchResults";
-import Groups from "@/views/Groups";
-import Notices from "@/views/Notices";
-import Notifications from "@/views/Notifications";
-import Profile from "@/views/Profile";
-import ProfessionalCommunication from "@/views/ProfessionalCommunication";
-import CompanyTasks from "@/views/CompanyTasks";
-import KuppySessions from "@/views/KuppySessions";
-import CreatePost from "@/views/CreatePost";
-import Login from "@/views/Login";
-import Register from "@/views/Register";
+import Home from "@/pages/home/Home";
+import SearchResults from "@/pages/search/SearchResults";
+import Groups from "@/pages/groups/Groups";
+import GroupDetails from "@/pages/groups/GroupDetails";
+import Notices from "@/pages/notices/Notices";
+import Notifications from "@/pages/notifications/Notifications";
+import Profile from "@/pages/profile/Profile";
+import ClassroomList from "@/pages/classrooms/ClassroomList";
+import CreateClassroom from "@/pages/classrooms/CreateClassroom";
+import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
+import TaskList from "@/pages/tasks/TaskList";
+import CreateTask from "@/pages/tasks/CreateTask";
+import TaskDetails from "@/pages/tasks/TaskDetails";
+import KuppySessions from "@/pages/kuppy/KuppySessions";
+import CreateKuppy from "@/pages/kuppy/CreateKuppy";
+import CreatePost from "@/pages/home/CreatePost";
+import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
+import AdminRoute from "@/routes/AdminRoute";
+import AdminLayout from "@/components/layout/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminContent from "@/pages/admin/AdminContent";
 import { ROUTES } from "@/utils/constants";
 
 export default function AppRoutes() {
@@ -69,6 +80,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/groups/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <GroupDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.NOTICES}
         element={
           <ProtectedRoute>
@@ -99,21 +120,61 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path={ROUTES.PROFESSIONAL_COMMUNICATION}
+        path="/classrooms"
         element={
           <ProtectedRoute>
             <MainLayout>
-              <ProfessionalCommunication />
+              <ClassroomList />
             </MainLayout>
           </ProtectedRoute>
         }
       />
       <Route
-        path={ROUTES.COMPANY_TASKS}
+        path="/classrooms/create"
         element={
           <ProtectedRoute>
             <MainLayout>
-              <CompanyTasks />
+              <CreateClassroom />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/classrooms/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ClassroomDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TaskList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateTask />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TaskDetails />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -129,6 +190,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/kuppy/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateKuppy />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.CREATE_POST}
         element={
           <ProtectedRoute>
@@ -136,6 +207,38 @@ export default function AppRoutes() {
               <CreatePost />
             </MainLayout>
           </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/content"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminContent />
+            </AdminLayout>
+          </AdminRoute>
         }
       />
 

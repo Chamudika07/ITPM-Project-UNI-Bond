@@ -5,7 +5,7 @@ import SectionCard from "@/components/common/SectionCard";
 import { handleCreatePost } from "@/controllers/postController";
 import { validatePost } from "@/utils/validators";
 import { ROUTES } from "@/utils/constants";
-import { useAuth } from "@/hook/useAuthHook";
+import { useAuth } from "@/hooks/useAuthHook";
 
 const mediaTypeOptions = [
   { value: "image", label: "Image" },

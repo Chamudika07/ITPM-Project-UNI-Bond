@@ -1,4 +1,4 @@
-import { mockRegister, mockLogin } from "@/utils/mockApi";
+import { mockRegister, mockLogin } from "@/services/mock/mockApi";
 import type { User } from "@/types/user";
 
 export const registerUser = async (data: User) => {
