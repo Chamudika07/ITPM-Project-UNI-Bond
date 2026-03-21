@@ -3,7 +3,7 @@ export type Post = {
   authorId: string;
   authorName: string;
   authorAvatar: string;
-  authorRole: "student" | "lecturer" | "company";
+  authorRole: "student" | "lecturer" | "company" | "tech_lead";
   content: string;
   mediaType?: "image" | "video";
   mediaUrl?: string;

@@ -1,39 +1,54 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { handleLogin } from "@/controllers/authController";
 import { useAuth } from "@/hook/useAuthHook";
-import Input from "@/components/Input";
+import RoleSelector from "@/components/RoleSelector";
+import type { Role, User } from "@/types/user";
 import { ROUTES } from "@/utils/constants";
-
 
 export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [role, setRole] = useState<Role>("student");
 
-    const onSubmit = async () => {
-        if (!email || !password) {
-            setError("Please fill in all fields");
-            return;
+    const onSubmit = () => {
+        let dummyUser: User;
+        const baseUser = {
+            firstname: "Dummy",
+            lastname: "User",
+            email: "dummy@example.com",
+            password: "password123",
+        };
+
+        switch (role) {
+            case "student":
+                dummyUser = { ...baseUser, role: "student", studentID: "STU001", education: "Bachelor" };
+                break;
+            case "lecturer":
+                dummyUser = { ...baseUser, role: "lecturer", lecturerUsername: "lec_dummy", education: "Master" };
+                break;
+            case "company":
+                dummyUser = { ...baseUser, role: "company", companyName: "Dummy Corp", industry: "IT", companySize: "100-500" };
+                break;
+            case "tech_lead":
+                dummyUser = { ...baseUser, role: "tech_lead", industryExpertise: "Software Engineering", yearsOfExperience: "10" };
+                break;
+            default:
+                dummyUser = { ...baseUser, role: "student", studentID: "STU001", education: "Bachelor" };
         }
-        const res = await handleLogin(email, password, setLoading, setError);
-        if (res) {
-            login(res.user);
-        }
+
+        login(dummyUser);
+        navigate("/");
     };
 
     return (
         <div className="p-6 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Login</h2>
+            <h2 className="text-xl font-bold mb-4">Login (Mock Mode)</h2>
+            <p className="text-sm text-gray-500 mb-4">Select a role below to instantly log in with dummy data.</p>
 
-            <Input label="Email" name="email" onChange={(e) => setEmail(e.target.value)} value={email} />
-            <Input label="Password" name="password" type="password" onChange={(e) => setPassword(e.target.value)} value={password} />
+            <RoleSelector value={role} onChange={(e) => setRole(e.target.value as Role)} />
 
-            <button onClick={onSubmit} disabled={loading} className="bg-green-500 text-white p-2 mt-3 w-full disabled:opacity-50">
-                {loading ? "Logging in..." : "Login"}
+            <button onClick={onSubmit} className="bg-green-500 text-white p-2 mt-3 w-full hover:bg-green-600 transition rounded">
+                Mock Login as {role}
             </button>
 
             <p className="text-sm mt-3 text-center">
@@ -45,8 +60,6 @@ export default function Login() {
                     Register here
                 </button>
             </p>
-
-            {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
     );
 }

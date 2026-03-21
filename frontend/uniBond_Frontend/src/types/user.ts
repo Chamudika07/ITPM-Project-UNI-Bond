@@ -1,4 +1,4 @@
-export type Role = "student" | "lecturer" | "company";
+export type Role = "student" | "lecturer" | "company" | "tech_lead";
 
 
 export interface BaseUser {
@@ -28,4 +28,10 @@ export interface CompanyUser extends BaseUser {
   companySize: string;
 }
 
-export type User = StudentUser | LecturerUser | CompanyUser;
+export interface TechLeadUser extends BaseUser {
+  role: "tech_lead";
+  industryExpertise: string;
+  yearsOfExperience: string;
+}
+
+export type User = StudentUser | LecturerUser | CompanyUser | TechLeadUser;

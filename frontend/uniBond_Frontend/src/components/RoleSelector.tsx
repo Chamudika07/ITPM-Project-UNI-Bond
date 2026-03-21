@@ -10,6 +10,7 @@ const roleOptions = [
     { value: "student", label: "🎓 Student" },
     { value: "lecturer", label: "🧑‍🏫 Lecturer" },
     { value: "company", label: "🏢 Company" },
+    { value: "tech_lead", label: "👨‍💻 Tech Lead" },
 ];
 
 export default function RoleSelector({ value, onChange }: Props) {

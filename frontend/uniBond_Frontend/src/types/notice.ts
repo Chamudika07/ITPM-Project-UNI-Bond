@@ -5,5 +5,5 @@ export type Notice = {
   category: "study" | "task" | "position";
   createdAt: string;
   authorName: string;
-  authorRole: "student" | "lecturer" | "company";
+  authorRole: "student" | "lecturer" | "company" | "tech_lead";
 };
