@@ -1,27 +1,34 @@
-import type { Post, Comment } from "@/types/post";
+import type { Post } from "@/types/post";
 
 let posts: Post[] = [
   {
     id: "1",
+    authorId: "user1",
     authorName: "Chamudika",
+    authorAvatar: "https://via.placeholder.com/40",
     authorRole: "student",
     content: "Welcome to UniBond! This is my first post.",
     likes: 2,
-    comments: [
-      {
-        id: "c1",
-        username: "Nimal",
-        text: "Nice post!",
-        createdAt: new Date().toISOString(),
-      },
-    ],
+    commentsCount: 1,
     reposts: 0,
     createdAt: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    authorId: "user2",
+    authorName: "Dr. Nimal",
+    authorAvatar: "https://via.placeholder.com/40",
+    authorRole: "lecturer",
+    content: "Excited to share knowledge with students.",
+    likes: 5,
+    commentsCount: 0,
+    reposts: 1,
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
   },
 ];
 
 export const mockCreatePost = (
-  newPost: Omit<Post, "id" | "likes" | "comments" | "reposts" | "createdAt">
+  newPost: Omit<Post, "id" | "likes" | "commentsCount" | "reposts" | "createdAt">
 ): Promise<{ message: string; post: Post }> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -29,7 +36,7 @@ export const mockCreatePost = (
         id: crypto.randomUUID(),
         ...newPost,
         likes: 0,
-        comments: [],
+        commentsCount: 0,
         reposts: 0,
         createdAt: new Date().toISOString(),
       };
@@ -56,21 +63,14 @@ export const mockLikePost = (postId: string): Promise<Post> => {
 
 export const mockAddComment = (
   postId: string,
-  commentText: string,
-  username: string
+  _commentText: string,
+  _username: string
 ): Promise<Post> => {
   return new Promise((resolve, reject) => {
     const post = posts.find((p) => p.id === postId);
     if (!post) return reject(new Error("Post not found"));
 
-    const newComment: Comment = {
-      id: crypto.randomUUID(),
-      username,
-      text: commentText,
-      createdAt: new Date().toISOString(),
-    };
-
-    const updated = { ...post, comments: [...post.comments, newComment] };
+    const updated = { ...post, commentsCount: post.commentsCount + 1 };
     posts = posts.map((p) => (p.id === postId ? updated : p));
     resolve(updated);
   });
