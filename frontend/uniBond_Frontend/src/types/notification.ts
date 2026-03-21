@@ -1,6 +1,6 @@
 export type Notification = {
   id: string;
-  type: "like" | "comment" | "friend_request" | "notice";
+  type: "like" | "comment" | "friend_request" | "notice" | "kuppy" | "group";
   message: string;
   isRead: boolean;
   createdAt: string;

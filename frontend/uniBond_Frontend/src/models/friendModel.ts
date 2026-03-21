@@ -3,7 +3,7 @@ import {
   mockConfirmFriendRequest,
   mockDeleteFriendRequest,
   mockGetOnlineContacts,
-} from "@/utils/mockFriendApi";
+} from "@/services/mock/mockFriendApi";
 import type { FriendRequest, Friend } from "@/types/friend";
 
 export const getFriendRequests = async (): Promise<FriendRequest[]> => {

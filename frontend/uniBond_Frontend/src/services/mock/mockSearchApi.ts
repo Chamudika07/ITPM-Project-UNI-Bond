@@ -10,6 +10,10 @@ export const mockSearchAll = async (query: string): Promise<SearchResult[]> => {
   // Search posts
   const posts = await mockGetPosts();
   posts.forEach((post: Post) => {
+    const isStudy = post.content.toLowerCase().includes("study") || 
+                    post.content.toLowerCase().includes("solution") || 
+                    post.content.toLowerCase().includes("exam") ||
+                    query.toLowerCase().includes("study");
     if (
       post.content.toLowerCase().includes(query.toLowerCase()) ||
       post.authorName.toLowerCase().includes(query.toLowerCase())
@@ -20,6 +24,7 @@ export const mockSearchAll = async (query: string): Promise<SearchResult[]> => {
         title: post.authorName,
         description: post.content.substring(0, 100) + "...",
         avatar: post.authorAvatar,
+        isStudyRelated: isStudy,
       });
     }
   });
@@ -27,6 +32,9 @@ export const mockSearchAll = async (query: string): Promise<SearchResult[]> => {
   // Search notices
   const notices = await mockGetNotices();
   notices.forEach((notice: Notice) => {
+    const isStudy = notice.title.toLowerCase().includes("study") || 
+                    notice.content.toLowerCase().includes("study") ||
+                    query.toLowerCase().includes("study");
     if (
       notice.title.toLowerCase().includes(query.toLowerCase()) ||
       notice.content.toLowerCase().includes(query.toLowerCase())
@@ -36,6 +44,7 @@ export const mockSearchAll = async (query: string): Promise<SearchResult[]> => {
         id: notice.id,
         title: notice.title,
         description: notice.content.substring(0, 100) + "...",
+        isStudyRelated: isStudy,
       });
     }
   });

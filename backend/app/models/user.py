@@ -10,6 +10,7 @@ class UserRole(str, enum.Enum):
     student = "student"
     instructor = "instructor"
     company_admin = "company_admin"
+    tech_lead = "tech_lead"
 
 
 class AccessStatus(str, enum.Enum):

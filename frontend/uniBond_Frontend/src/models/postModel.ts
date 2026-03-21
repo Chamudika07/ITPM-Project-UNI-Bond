@@ -4,7 +4,7 @@ import {
   mockLikePost,
   mockAddComment,
   mockRepostPost,
-} from "@/utils/mockPostApi";
+} from "@/services/mock/mockPostApi";
 import type { Post } from "@/types/post";
 
 export const createPost = async (

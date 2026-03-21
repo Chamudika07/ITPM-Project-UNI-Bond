@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import TopNavbar from "./TopNavbar";
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
@@ -7,26 +8,28 @@ type Props = {
 };
 
 export default function MainLayout({ children }: Props) {
+  const location = useLocation();
+  const isProfilePage = location.pathname.startsWith('/profile');
+
   return (
     <div className="min-h-screen bg-gray-100">
       <TopNavbar />
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Left Sidebar */}
-          <div className="col-span-3">
-            <LeftSidebar />
+        {isProfilePage ? (
+          children
+        ) : (
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-3">
+              <LeftSidebar />
+            </div>
+            <div className="col-span-6">
+              {children}
+            </div>
+            <div className="col-span-3">
+              <RightSidebar />
+            </div>
           </div>
-
-          {/* Main Content */}
-          <div className="col-span-6">
-            {children}
-          </div>
-
-          {/* Right Sidebar */}
-          <div className="col-span-3">
-            <RightSidebar />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
