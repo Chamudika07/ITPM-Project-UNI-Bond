@@ -1,19 +1,14 @@
-export interface Comment {
+export type Post = {
   id: string;
-  username: string;
-  text: string;
-  createdAt: string;
-}
-
-export interface Post {
-  id: string;
+  authorId: string;
   authorName: string;
+  authorAvatar: string;
   authorRole: "student" | "lecturer" | "company";
   content: string;
-  mediaUrl?: string;
   mediaType?: "image" | "video";
+  mediaUrl?: string;
   likes: number;
-  comments: Comment[];
+  commentsCount: number;
   reposts: number;
   createdAt: string;
-}
+};
