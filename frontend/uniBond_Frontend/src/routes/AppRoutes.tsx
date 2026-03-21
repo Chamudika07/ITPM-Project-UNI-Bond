@@ -139,11 +139,8 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Redirect root to home */}
-      <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
-
-      {/* Catch all */}
-      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+      {/* Catch all - redirect unknown routes to home */}
+      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
     </Routes>
   );
 }

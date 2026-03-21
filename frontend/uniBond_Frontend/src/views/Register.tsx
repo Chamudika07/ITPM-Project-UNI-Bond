@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { handleRegister } from "@/controllers/authController";
 import Input from "@/components/Input";
 import RoleSelector from "@/components/RoleSelector";
 import Select from "@/components/Select";
 import type { Role, User } from "@/types/user";
+import { ROUTES } from "@/utils/constants";
 
 const educationOptions = [
     { value: "", label: "Select Education Level..." },
@@ -14,6 +16,7 @@ const educationOptions = [
 ];
 
 export default function Register() {
+    const navigate = useNavigate();
     const [form, setForm] = useState<Partial<User>>({ role: "student" });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -107,9 +110,19 @@ export default function Register() {
                 </>
             )}
 
-            <button onClick={onSubmit} className="bg-blue-500 text-white p-2 mt-4">
+            <button onClick={onSubmit} disabled={loading} className="bg-blue-500 text-white p-2 mt-4 w-full disabled:opacity-50">
                 {loading ? "Registering..." : "Register"}
             </button>
+
+            <p className="text-sm mt-3 text-center">
+                Already have an account?{" "}
+                <button
+                    onClick={() => navigate(ROUTES.LOGIN)}
+                    className="text-blue-500 hover:underline"
+                >
+                    Login here
+                </button>
+            </p>
 
             {error && <p className="text-red-500 mt-2">{error}</p>}
             {success && <p className="text-green-500 mt-2">{success}</p>}
