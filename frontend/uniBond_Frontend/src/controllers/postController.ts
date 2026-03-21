@@ -8,7 +8,7 @@ import {
 import type { Post } from "@/types/post";
 
 export const handleCreatePost = async (
-  postData: Omit<Post, "id" | "likes" | "comments" | "reposts" | "createdAt">,
+  postData: Omit<Post, "id" | "likes" | "commentsCount" | "reposts" | "createdAt">,
   setLoading: (value: boolean) => void,
   setError: (value: string) => void
 ) => {
