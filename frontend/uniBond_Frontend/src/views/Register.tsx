@@ -26,7 +26,7 @@ export default function Register() {
     };
 
     const validateForm = (): boolean => {
-        const requiredFields: Array<keyof User> = ["firstname", "lastname", "email", "password", "role"];
+        const requiredFields: string[] = ["firstname", "lastname", "email", "password", "role"];
 
         switch (form.role) {
             case "student":
@@ -41,8 +41,8 @@ export default function Register() {
         }
 
         for (const field of requiredFields) {
-            if (!form[field]) {
-                setError(`Field '${String(field)}' is required.`);
+            if (!(form as any)[field]) {
+                setError(`Field '${field}' is required.`);
                 return false;
             }
         }

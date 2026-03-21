@@ -8,7 +8,7 @@ import {
 import type { Post } from "@/types/post";
 
 export const createPost = async (
-  data: Omit<Post, "id" | "likes" | "comments" | "reposts" | "createdAt">
+  data: Omit<Post, "id" | "likes" | "commentsCount" | "reposts" | "createdAt">
 ) => {
   return await mockCreatePost(data);
 };
