@@ -23,9 +23,12 @@ export const handleRegister = async (
 export const handleLogin = async (
     email: string,
     password: string,
+    setLoading: (v: boolean) => void,
     setError: (msg: string) => void
 ) => {
     try {
+        setLoading(true);
+        setError("");
         return await loginUser(email, password);
     } catch (err: unknown) {
         if (err instanceof Error) {
@@ -33,5 +36,7 @@ export const handleLogin = async (
         } else {
             setError("An unknown error occurred");
         }
+    } finally {
+        setLoading(false);
     }
 };
