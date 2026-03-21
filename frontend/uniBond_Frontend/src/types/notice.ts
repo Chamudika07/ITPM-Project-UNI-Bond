@@ -1,9 +1,10 @@
-export type Notice = {
+export interface Notice {
   id: string;
   title: string;
   content: string;
-  category: "study" | "task" | "position";
+  authorId?: string;
+  authorName?: string;
   createdAt: string;
-  authorName: string;
-  authorRole: "student" | "lecturer" | "company" | "tech_lead";
-};
+  type?: "official" | "department" | "general";
+  isPinned?: boolean;
+}

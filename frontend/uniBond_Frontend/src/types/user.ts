@@ -1,7 +1,8 @@
-export type Role = "student" | "lecturer" | "company" | "tech_lead";
+export type Role = "student" | "lecturer" | "company" | "tech_lead" | "admin";
 
 
 export interface BaseUser {
+  id: string;
   firstname: string;
   lastname: string;
   email: string;
@@ -34,4 +35,9 @@ export interface TechLeadUser extends BaseUser {
   yearsOfExperience: string;
 }
 
-export type User = StudentUser | LecturerUser | CompanyUser | TechLeadUser;
+export interface AdminUser extends BaseUser {
+  role: "admin";
+  adminLevel: string;
+}
+
+export type User = StudentUser | LecturerUser | CompanyUser | TechLeadUser | AdminUser;

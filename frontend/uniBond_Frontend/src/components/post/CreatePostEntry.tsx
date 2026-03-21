@@ -3,7 +3,7 @@ import { Image, Video, Plus } from "lucide-react";
 import Avatar from "@/components/common/Avatar";
 import SectionCard from "@/components/common/SectionCard";
 import { ROUTES } from "@/utils/constants";
-import { useAuth } from "@/hook/useAuthHook";
+import { useAuth } from "@/hooks/useAuthHook";
 
 export default function CreatePostEntry() {
   const { user } = useAuth();

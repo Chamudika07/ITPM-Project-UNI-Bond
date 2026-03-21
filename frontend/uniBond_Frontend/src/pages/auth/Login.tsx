@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hook/useAuthHook";
+import { useAuth } from "@/hooks/useAuthHook";
 import RoleSelector from "@/components/RoleSelector";
 import type { Role, User } from "@/types/user";
 import { ROUTES } from "@/utils/constants";
@@ -13,6 +13,7 @@ export default function Login() {
     const onSubmit = () => {
         let dummyUser: User;
         const baseUser = {
+            id: "u-" + Math.random().toString(36).substring(2, 9),
             firstname: "Dummy",
             lastname: "User",
             email: "dummy@example.com",
@@ -31,6 +32,9 @@ export default function Login() {
                 break;
             case "tech_lead":
                 dummyUser = { ...baseUser, role: "tech_lead", industryExpertise: "Software Engineering", yearsOfExperience: "10" };
+                break;
+            case "admin":
+                dummyUser = { ...baseUser, role: "admin", adminLevel: "SuperAdmin" };
                 break;
             default:
                 dummyUser = { ...baseUser, role: "student", studentID: "STU001", education: "Bachelor" };
