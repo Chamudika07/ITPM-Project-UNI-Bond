@@ -11,6 +11,7 @@ export const ROUTES = {
   COMPANY_TASKS: "/company-tasks",
   KUPPY_SESSIONS: "/kuppy-sessions",
   CREATE_POST: "/create-post",
+  EDIT_POST: "/edit-post/:id",
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;

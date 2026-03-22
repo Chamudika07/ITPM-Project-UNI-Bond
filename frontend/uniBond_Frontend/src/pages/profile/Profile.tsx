@@ -7,7 +7,7 @@ import ProfileLeftColumn from "./ProfileLeftColumn";
 import RoleSpecificSection from "./RoleSpecificSection";
 import CreatePostEntry from "@/components/post/CreatePostEntry";
 import PostList from "@/components/post/PostList";
-import { handleGetPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
+import { handleGetUserPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
 import type { Post } from "@/types/post";
 
 export default function Profile() {
@@ -17,11 +17,16 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
 
   const fetchPosts = async () => {
+    if (!user) return;
     setLoading(true);
-    const data = await handleGetPosts();
-    // mock filtering for user
-    setPosts(data.slice(0, 2));
-    setLoading(false);
+    try {
+      const data = await handleGetUserPosts(user.id);
+      setPosts(data);
+    } catch (error) {
+      console.error("Failed to load user posts", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -53,21 +58,40 @@ export default function Profile() {
           
           <div className="mt-4">
              <h3 className="font-bold text-gray-900 mb-4 px-2 tracking-tight">Recent Posts</h3>
-             <PostList 
-                posts={posts}
-                loading={loading}
-                onLike={async (postId) => {
-                    const updatedPost = await handleLikePost(postId);
-                    setPosts(posts.map(p => p.id === postId ? updatedPost : p));
-                }}
-                onRepost={async (postId) => {
-                    await handleRepostPost(postId);
-                }}
-                onComment={async (postId, commentText) => {
-                    const updatedPost = await handleAddComment(postId, commentText, "Current User");
-                    setPosts(posts.map(p => p.id === postId ? updatedPost : p));
-                }}
-             />
+             {posts.length > 0 ? (
+                 <PostList 
+                    posts={posts}
+                    loading={loading}
+                    onLike={async (postId) => {
+                        const { status, count } = await handleLikePost(postId);
+                        setPosts(posts.map(p => {
+                            if (p.id === postId) {
+                                return { ...p, likes: count, isLikedByUser: status === "liked" };
+                            }
+                            return p;
+                        }));
+                    }}
+                    onRepost={async (postId) => {
+                        const { status, count } = await handleRepostPost(postId);
+                        setPosts(posts.map(p => {
+                            if (p.id === postId) {
+                                return { ...p, reposts: count, isRepostedByUser: status === "reposted" };
+                            }
+                            return p;
+                        }));
+                        await fetchPosts();
+                    }}
+                    onComment={async (postId, commentText) => {
+                        const updatedPost = await handleAddComment(postId, commentText);
+                        setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+                    }}
+                 />
+             ) : (
+                <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
+                    <p className="text-gray-600 font-medium">No posts to display yet.</p>
+                    <p className="text-gray-400 text-sm mt-1">When you publish or repost something, it will appear here on your timeline.</p>
+                </div>
+             )}
           </div>
         </div>
       </div>

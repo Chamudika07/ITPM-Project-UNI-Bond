@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 // import { Image, Video } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import { handleCreatePost } from "@/controllers/postController";
@@ -19,13 +19,23 @@ function isMediaType(value: string): value is MediaType {
 }
 
 export default function CreatePost() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+
   const [content, setContent] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaType, setMediaType] = useState<MediaType>("image");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
-  const { user } = useAuth();
+
+  useEffect(() => {
+    if (location.state?.defaultMediaType) {
+      if (isMediaType(location.state.defaultMediaType)) {
+        setMediaType(location.state.defaultMediaType);
+      }
+    }
+  }, [location.state]);
 
   if (!user) return null;
 
@@ -42,7 +52,7 @@ export default function CreatePost() {
       {
         authorId: "currentUserId", // TODO: get from user context
         authorName: `${user.firstname} ${user.lastname}`,
-        authorAvatar: "https://via.placeholder.com/40", // TODO: get from user
+        authorAvatar: `https://ui-avatars.com/api/?name=${user.firstname}&background=random`, // TODO: get from user
         authorRole: user.role,
         content,
         mediaUrl: mediaUrl || undefined,

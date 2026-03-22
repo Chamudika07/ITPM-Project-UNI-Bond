@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import CreatePostEntry from "@/components/post/CreatePostEntry";
 import PostList from "@/components/post/PostList";
-import { handleGetPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
+import { handleGetPosts, handleLikePost, handleAddComment, handleRepostPost, handleDeletePost } from "@/controllers/postController";
 import type { Post } from "@/types/post";
 
 export default function Home() {
@@ -36,16 +36,26 @@ export default function Home() {
                 loading={loading}
                 onLike={async (postId) => {
                     try {
-                        const updatedPost = await handleLikePost(postId);
-                        setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+                        const { status, count } = await handleLikePost(postId);
+                        setPosts(posts.map(p => {
+                            if (p.id === postId) {
+                                return { ...p, likes: count, isLikedByUser: status === "liked" };
+                            }
+                            return p;
+                        }));
                     } catch (err) {
                         console.error(err);
                     }
                 }}
                 onRepost={async (postId) => {
                     try {
-                        await handleRepostPost(postId);
-                        await loadPosts(); // Reposting might create a new post, so reload all
+                        const { status, count } = await handleRepostPost(postId);
+                        setPosts(posts.map(p => {
+                            if (p.id === postId) {
+                                return { ...p, reposts: count, isRepostedByUser: status === "reposted" };
+                            }
+                            return p;
+                        }));
                     } catch (err) {
                         console.error(err);
                     }
@@ -56,6 +66,12 @@ export default function Home() {
                         setPosts(posts.map(p => p.id === postId ? updatedPost : p));
                     } catch (err) {
                         console.error(err);
+                    }
+                }}
+                onDelete={async (postId) => {
+                    const success = await handleDeletePost(postId, () => {}, setError);
+                    if (success) {
+                        setPosts(posts.filter(p => p.id !== postId));
                     }
                 }}
             />

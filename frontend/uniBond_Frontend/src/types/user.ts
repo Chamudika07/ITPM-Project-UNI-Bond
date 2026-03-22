@@ -1,24 +1,31 @@
 export type Role = "student" | "lecturer" | "company" | "tech_lead" | "admin";
 
-
 export interface BaseUser {
   id: string;
+  user_code?: string;
   firstname: string;
   lastname: string;
   email: string;
   password: string;
   role: Role;
+  // Common new fields
+  city: string;
+  country: string;
+  mobile: string;
+  school?: string;       // student & lecturer
+  cv_path?: string;
+  access_status?: "active" | "pending" | "suspended";
 }
 
 export interface StudentUser extends BaseUser {
   role: "student";
-  studentID: string;
+  school: string;
   education: "Diploma" | "Higher Diploma" | "Bachelor" | "Master";
 }
 
 export interface LecturerUser extends BaseUser {
   role: "lecturer";
-  lecturerUsername: string;
+  school: string;
   education: "Diploma" | "Higher Diploma" | "Bachelor" | "Master";
 }
 
@@ -37,7 +44,7 @@ export interface TechLeadUser extends BaseUser {
 
 export interface AdminUser extends BaseUser {
   role: "admin";
-  adminLevel: string;
+  adminLevel?: string;
 }
 
 export type User = StudentUser | LecturerUser | CompanyUser | TechLeadUser | AdminUser;
