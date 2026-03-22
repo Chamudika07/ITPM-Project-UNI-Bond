@@ -8,7 +8,7 @@ export const ROUTES = {
   NOTIFICATIONS: "/notifications",
   PROFILE: "/profile",
   PROFESSIONAL_COMMUNICATION: "/professional-communication",
-  COMPANY_TASKS: "/company-tasks",
+  COMPANY_TASKS: "/tasks",
   KUPPY_SESSIONS: "/kuppy-sessions",
   CREATE_POST: "/create-post",
   LOGIN: "/login",

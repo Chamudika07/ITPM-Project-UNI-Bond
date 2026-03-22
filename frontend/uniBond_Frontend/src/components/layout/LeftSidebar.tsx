@@ -41,8 +41,14 @@ export default function LeftSidebar() {
           <SidebarButton
             to={ROUTES.COMPANY_TASKS}
             icon={Briefcase}
-            label="Company and Task"
-            description="Manage company tasks and projects"
+            label="Tasks & Opportunities"
+            description="View and manage opportunities"
+          />
+          <SidebarButton
+            to="/companies"
+            icon={Briefcase}
+            label="Partner Companies"
+            description="Explore our industry partners"
           />
           <SidebarButton
             to={ROUTES.KUPPY_SESSIONS}
