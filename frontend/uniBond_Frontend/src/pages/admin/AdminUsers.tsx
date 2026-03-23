@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SectionCard from "@/components/common/SectionCard";
 import {
   UserCheck, UserX, Download, Users, Clock, ShieldCheck,
-  AlertTriangle, RefreshCw,
+  RefreshCw,
 } from "lucide-react";
 import {
   fetchAllUsers, fetchPendingUsers, approveUser, suspendUser, activateUser,

@@ -1,5 +1,6 @@
 import {
   createPost,
+  createPostWithFile,
   getPosts,
   getUserPosts,
   likePost,
@@ -20,6 +21,33 @@ export const handleCreatePost = async (
     return await createPost(postData);
   } catch (error: unknown) {
     setError(error instanceof Error ? error.message : "Failed to create post");
+    return null;
+  } finally {
+    setLoading(false);
+  }
+};
+
+/**
+ * handleCreatePostWithFile
+ * ------------------------
+ * Controller for the new file-upload-based post creation.
+ * Wraps createPostWithFile with loading and error state management.
+ */
+export const handleCreatePostWithFile = async (
+  content: string,
+  file: File | undefined,
+  setLoading: (value: boolean) => void,
+  setError: (value: string) => void
+): Promise<Post | null> => {
+  try {
+    setLoading(true);
+    return await createPostWithFile(content, file);
+  } catch (error: unknown) {
+    // Try to extract a meaningful error message from the API response
+    const axiosError = error as any;
+    const detail = axiosError?.response?.data?.detail;
+    const message = typeof detail === "string" ? detail : (error instanceof Error ? error.message : "Failed to create post");
+    setError(message);
     return null;
   } finally {
     setLoading(false);

@@ -38,6 +38,39 @@ export const createPost = async (
   return mapPostResponse(res.data);
 };
 
+/**
+ * createPostWithFile
+ * ------------------
+ * Sends a real file upload as multipart/form-data to POST /posts/upload.
+ * Used by the new CreatePost component with file picker.
+ *
+ * @param content - Text content of the post (optional)
+ * @param file    - The File object chosen by the user (optional)
+ */
+export const createPostWithFile = async (
+  content: string,
+  file?: File
+): Promise<Post> => {
+  // FormData automatically sets Content-Type: multipart/form-data with boundary
+  const formData = new FormData();
+
+  if (content) {
+    formData.append("content", content);
+  }
+
+  if (file) {
+    formData.append("file", file);
+  }
+
+  // Don't set Content-Type manually — Axios + FormData sets it correctly
+  const res = await apiClient.post("/posts/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return mapPostResponse(res.data);
+};
+
+
 export const getPosts = async (): Promise<Post[]> => {
   const res = await apiClient.get("/posts/");
   return res.data.map(mapPostResponse);

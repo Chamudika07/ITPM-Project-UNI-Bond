@@ -27,6 +27,20 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
     const menuRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLInputElement>(null);
 
+    const resolveMediaSrc = (url: string) => {
+        // Backend returns relative paths like "/uploads/images/<file>".
+        // The browser would otherwise try to load them from the frontend origin (e.g. :5173).
+        const apiBase =
+            ((import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ??
+                "http://localhost:8000");
+        const apiBaseNormalized = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
+        if (url.startsWith("http://") || url.startsWith("https://")) return url;
+        if (url.startsWith("/")) return `${apiBaseNormalized}${url}`;
+        return `${apiBaseNormalized}/${url}`;
+    };
+
+    const mediaSrc = post.mediaUrl ? resolveMediaSrc(post.mediaUrl) : null;
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -138,15 +152,15 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
 
             {post.content && <p className="mb-3 whitespace-pre-wrap">{post.content}</p>}
 
-            {post.mediaUrl && post.mediaType === "image" && (
+            {mediaSrc && post.mediaType === "image" && (
                 <img
-                    src={post.mediaUrl}
+                    src={mediaSrc}
                     alt="post media"
                     className="w-full max-h-[400px] object-cover rounded-lg mb-3"
                 />
             )}
 
-            {post.mediaUrl && post.mediaType === "video" && renderVideo(post.mediaUrl)}
+            {mediaSrc && post.mediaType === "video" && renderVideo(mediaSrc)}
 
             <PostActions
                 likes={post.likes}

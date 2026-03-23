@@ -1,63 +1,92 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-// import { Image, Video } from "lucide-react";
+import { Image, Video, X, Upload } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
-import { handleCreatePost } from "@/controllers/postController";
-import { validatePost } from "@/utils/validators";
+import { handleCreatePostWithFile } from "@/controllers/postController";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
-
-const mediaTypeOptions = [
-  { value: "image", label: "Image" },
-  { value: "video", label: "Video" },
-] as const;
-
-type MediaType = "image" | "video";
-
-function isMediaType(value: string): value is MediaType {
-  return ["image", "video"].includes(value);
-}
+import {
+  ALL_MEDIA_ACCEPT_ATTR,
+  IMAGE_ACCEPT_ATTR,
+  VIDEO_ACCEPT_ATTR,
+  validatePickedMediaFile,
+  type MediaKind,
+} from "@/utils/mediaUploadValidation";
 
 export default function CreatePost() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
 
+  // ── State ──────────────────────────────────────────────────────────────────
   const [content, setContent] = useState("");
-  const [mediaUrl, setMediaUrl] = useState("");
-  const [mediaType, setMediaType] = useState<MediaType>("image");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Pre-select media type from navigation state (e.g. from "Video" shortcut) ──
   useEffect(() => {
-    if (location.state?.defaultMediaType) {
-      if (isMediaType(location.state.defaultMediaType)) {
-        setMediaType(location.state.defaultMediaType);
-      }
+    if (location.state?.defaultMediaType === "video" && fileInputRef.current) {
+      // Just open file picker — user can select a video
+      fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
     }
   }, [location.state]);
 
+  // ── Clean up object URL to prevent memory leaks ────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   if (!user) return null;
 
-  const submitPost = async () => {
-    setError("");
+  // ── File picker handler ────────────────────────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const validation = validatePost(content, mediaUrl || undefined, mediaUrl ? mediaType : undefined);
-    if (!validation.isValid) {
-      setError(validation.error!);
+    // Client-side MIME type + size validation (strict whitelist).
+    const validation = validatePickedMediaFile(file);
+    if (!validation.ok) {
+      setError(validation.error);
+      resetFile();
       return;
     }
 
-    const res = await handleCreatePost(
-      {
-        authorId: "currentUserId", // TODO: get from user context
-        authorName: `${user.firstname} ${user.lastname}`,
-        authorAvatar: `https://ui-avatars.com/api/?name=${user.firstname}&background=random`, // TODO: get from user
-        authorRole: user.role,
-        content,
-        mediaUrl: mediaUrl || undefined,
-        mediaType: mediaUrl ? mediaType : undefined,
-      },
+    // Generate an object URL for preview (browser memory only, not uploaded yet)
+    const objectUrl = URL.createObjectURL(file);
+
+    setError("");
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
+    setPreviewType(validation.mediaKind);
+  };
+
+  const resetFile = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setPreviewType(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // ── Form submit ────────────────────────────────────────────────────────────
+  const submitPost = async () => {
+    setError("");
+
+    if (!content.trim() && !selectedFile) {
+      setError("Please write something or attach a file.");
+      return;
+    }
+
+    const res = await handleCreatePostWithFile(
+      content.trim(),
+      selectedFile ?? undefined,
       setLoading,
       setError
     );
@@ -67,61 +96,139 @@ export default function CreatePost() {
     }
   };
 
-  const handleMediaTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (isMediaType(e.target.value)) {
-      setMediaType(e.target.value);
-    }
-  };
-
+  // ── UI ─────────────────────────────────────────────────────────────────────
   return (
     <SectionCard title="Create New Post">
       <div className="space-y-4">
+
+        {/* ── Text content ─────────────────────────────────────────────── */}
         <textarea
           placeholder="What's on your mind?"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full border border-gray-200 rounded-lg p-3 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          rows={4}
+          className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                     transition placeholder-gray-400"
         />
 
-        <div className="flex gap-2">
+        {/* ── File preview (shown after user picks a file) ──────────────── */}
+        {previewUrl && (
+          <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+            {/* Remove file button */}
+            <button
+              onClick={resetFile}
+              className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow
+                         hover:bg-red-50 hover:text-red-500 transition-colors"
+              title="Remove file"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {previewType === "image" ? (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full max-h-72 object-cover"
+              />
+            ) : (
+              <video
+                src={previewUrl}
+                controls
+                className="w-full max-h-72 rounded-xl"
+              />
+            )}
+          </div>
+        )}
+
+        {/* ── File picker row ────────────────────────────────────────────── */}
+        <div className="flex items-center gap-3">
+          {/* Hidden real file input */}
           <input
-            type="text"
-            placeholder="Paste image or video URL (optional)"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ref={fileInputRef}
+            type="file"
+            accept={ALL_MEDIA_ACCEPT_ATTR}
+            onChange={handleFileChange}
+            className="hidden"
+            id="post-file-input"
           />
 
-          <select
-            value={mediaType}
-            onChange={handleMediaTypeChange}
-            className="border border-gray-200 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* Image shortcut button */}
+          <label
+            htmlFor="post-file-input"
+            onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+                       text-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
           >
-            {mediaTypeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <Image className="w-4 h-4" />
+            Photo
+          </label>
+
+          {/* Video shortcut button */}
+          <label
+            htmlFor="post-file-input"
+            onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+                       text-purple-600 bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
+          >
+            <Video className="w-4 h-4" />
+            Video
+          </label>
+
+          {/* Selected file name pill */}
+          {selectedFile && (
+            <span className="text-xs text-gray-500 truncate max-w-[180px]">
+              📎 {selectedFile.name}
+            </span>
+          )}
         </div>
 
-        <div className="flex gap-2">
+        {/* ── Error message ─────────────────────────────────────────────── */}
+        {error && (
+          <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm">
+            <span className="mt-0.5">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* ── Action buttons ────────────────────────────────────────────── */}
+        <div className="flex gap-3 pt-1">
           <button
             onClick={submitPost}
             disabled={loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold
+                       hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Posting..." : "Post"}
+            {loading ? (
+              <>
+                {/* Spinner */}
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Post
+              </>
+            )}
           </button>
+
           <button
             onClick={() => navigate(ROUTES.HOME)}
-            className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600"
+            className="bg-gray-100 text-gray-600 px-5 py-2 rounded-lg text-sm font-semibold
+                       hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
     </SectionCard>
   );

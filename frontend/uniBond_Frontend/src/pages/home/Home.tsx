@@ -62,7 +62,7 @@ export default function Home() {
                 }}
                 onComment={async (postId, commentText) => {
                     try {
-                        const updatedPost = await handleAddComment(postId, commentText, "Current User");
+                        const updatedPost = await handleAddComment(postId, commentText);
                         setPosts(posts.map(p => p.id === postId ? updatedPost : p));
                     } catch (err) {
                         console.error(err);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SectionCard from "@/components/common/SectionCard";
-import { Users, BookOpen, Briefcase, GraduationCap, Clock, UserCheck } from "lucide-react";
+import { Users, GraduationCap, Clock, UserCheck } from "lucide-react";
 import { fetchAdminStats } from "@/controllers/adminController";
 
 type Stats = {
