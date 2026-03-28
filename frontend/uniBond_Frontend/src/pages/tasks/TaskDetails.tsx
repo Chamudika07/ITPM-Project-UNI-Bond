@@ -27,6 +27,7 @@ export default function TaskDetails() {
   const [showAppForm, setShowAppForm] = useState(false);
   const [isEditingApp, setIsEditingApp] = useState(false);
   const [appForm, setAppForm] = useState({ portfolioUrl: "", coverLetter: "", email: "" });
+  const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchTaskInfo = () => {
@@ -60,6 +61,21 @@ export default function TaskDetails() {
 
   const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
+
+    if (!appForm.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      setFormError("Please enter a valid email address.");
+      return;
+    }
+    if (appForm.portfolioUrl && !appForm.portfolioUrl.match(/^https?:\/\/.+/)) {
+      setFormError("Portfolio URL must be a valid link starting with http:// or https://");
+      return;
+    }
+    if (appForm.coverLetter.length < 50) {
+      setFormError("Cover letter must be at least 50 characters to stand out.");
+      return;
+    }
+
     if (!user) return;
     setSubmitting(true);
     try {
@@ -93,6 +109,7 @@ export default function TaskDetails() {
         coverLetter: myApplication.coverLetter,
         email: myApplication.email
       });
+      setFormError("");
       setIsEditingApp(true);
       setShowAppForm(true);
     }
@@ -309,7 +326,7 @@ export default function TaskDetails() {
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => {setShowAppForm(true); setIsEditingApp(false); setAppForm({portfolioUrl:"", coverLetter:"", email:""})}} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex justify-center items-center gap-2 text-lg">
+                  <button onClick={() => {setShowAppForm(true); setFormError(""); setIsEditingApp(false); setAppForm({portfolioUrl:"", coverLetter:"", email:""})}} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex justify-center items-center gap-2 text-lg">
                     Apply Now <ArrowRight className="w-5 h-5"/>
                   </button>
                 )}
@@ -334,6 +351,11 @@ export default function TaskDetails() {
             </div>
             
             <form onSubmit={submitApplication} className="p-6 space-y-4">
+              {formError && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 text-sm font-bold">
+                  {formError}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Email Contact *</label>
                 <input type="email" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value={appForm.email} onChange={e => setAppForm({...appForm, email: e.target.value})} placeholder="student@example.com" />

@@ -6,7 +6,8 @@ import {
   mockDeleteTask,
   mockApplyTask,
   mockUpdateApplication,
-  mockDeleteApplication
+  mockDeleteApplication,
+  mockSubmitTaskWork
 } from "@/services/mock/mockTaskApi";
 import type { Task, TaskApplication } from "@/types/task";
 
@@ -40,4 +41,8 @@ export const handleUpdateApplication = async (taskId: string, appId: string, upd
 
 export const handleDeleteApplication = async (taskId: string, appId: string): Promise<Task> => {
   return await mockDeleteApplication(taskId, appId);
+};
+
+export const handleSubmitTaskWork = async (taskId: string, appId: string, submissionUrl: string): Promise<Task> => {
+  return await mockSubmitTaskWork(taskId, appId, submissionUrl);
 };

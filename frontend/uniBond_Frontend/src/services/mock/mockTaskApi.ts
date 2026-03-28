@@ -139,3 +139,20 @@ export const mockDeleteApplication = async (taskId: string, appId: string): Prom
   saveTasks(all);
   return { ...task };
 };
+
+export const mockSubmitTaskWork = async (taskId: string, appId: string, submissionUrl: string): Promise<Task> => {
+  const all = getInitialTasks();
+  const task = all.find(t => t.id === taskId);
+  if (!task) throw new Error("Task not found.");
+  
+  const appIndex = task.applicants.findIndex(a => a.id === appId);
+  if (appIndex === -1) throw new Error("Application not found.");
+  
+  task.applicants[appIndex] = { 
+    ...task.applicants[appIndex], 
+    submissionUrl, 
+    submittedAt: new Date().toISOString() 
+  };
+  saveTasks(all);
+  return { ...task };
+};

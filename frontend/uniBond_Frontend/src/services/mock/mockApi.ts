@@ -45,3 +45,28 @@ export const mockLogin = (email: string, password: string) => {
         }, 1000);
     });
 };
+
+export const mockGetTopStudents = async (): Promise<(User & { rating: number })[]> => {
+    const students = users.filter(u => u.role === "student");
+    const ratedStudents = students.map(s => ({
+        ...s,
+        rating: Number((Math.random() * 2 + 3).toFixed(1)) // random rating between 3.0 and 5.0
+    })).sort((a, b) => b.rating - a.rating);
+    
+    // If no students exist, return some mock default students
+    if (ratedStudents.length === 0) {
+        return Array.from({ length: 5 }).map((_, i) => ({
+            id: 'mock-stu-' + i,
+            firstname: 'Top',
+            lastname: 'Student ' + (i+1),
+            email: 'top.student' + i + '@uni-bond.com',
+            password: 'mock',
+            role: 'student' as const,
+            studentID: 'IT' + (100000 + i),
+            education: 'Bachelor' as const,
+            rating: 4.9 - (i * 0.1)
+        }));
+    }
+    
+    return ratedStudents.slice(0, 10);
+};
