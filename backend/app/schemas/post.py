@@ -18,19 +18,57 @@ class PostCreate(BaseModel):
 
 #-- Response schemas --#        
 class PostMediaResponse(PostMediaBase):
-    id: str
+    id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class PostUserResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+
+class PostCommentCreate(BaseModel):
+    content: str
+
+
+class PostCommentResponse(BaseModel):
+    id: int
+    content: str
+    created_at: datetime
+    user: PostUserResponse
+
+    class Config:
+        from_attributes = True
+
+
+class PostInteractionToggleResponse(BaseModel):
+    status: str
+    count: int
 
 
 class PostResponse(BaseModel):
-    id: str
+    id: int
     content: str | None
     created_at: datetime
-    user_id: str
+    user_id: int
+    user: PostUserResponse
     media: List[PostMediaResponse] = []
+    
+    # Intreaction metadata
+    likes_count: int = 0
+    reposts_count: int = 0
+    comments_count: int = 0
+    is_liked_by_user: bool = False
+    is_reposted_by_user: bool = False
+    comments: List[PostCommentResponse] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 

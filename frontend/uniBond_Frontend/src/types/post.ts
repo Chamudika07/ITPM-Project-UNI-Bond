@@ -10,5 +10,8 @@ export type Post = {
   likes: number;
   commentsCount: number;
   reposts: number;
+  isLikedByUser?: boolean;
+  isRepostedByUser?: boolean;
+  comments?: any[];
   createdAt: string;
 };

@@ -1,24 +1,32 @@
 export type Role = "student" | "lecturer" | "company" | "tech_lead" | "admin";
 
-
 export interface BaseUser {
   id: string;
+  user_code?: string;
   firstname: string;
   lastname: string;
   email: string;
   password: string;
   role: Role;
+  avatar?: string;
+  // Common new fields
+  city: string;
+  country: string;
+  mobile: string;
+  school?: string;       // student & lecturer
+  cv_path?: string;
+  access_status?: "active" | "pending" | "suspended";
 }
 
 export interface StudentUser extends BaseUser {
   role: "student";
-  studentID: string;
+  school: string;
   education: "Diploma" | "Higher Diploma" | "Bachelor" | "Master";
 }
 
 export interface LecturerUser extends BaseUser {
   role: "lecturer";
-  lecturerUsername: string;
+  school: string;
   education: "Diploma" | "Higher Diploma" | "Bachelor" | "Master";
 }
 
@@ -37,7 +45,46 @@ export interface TechLeadUser extends BaseUser {
 
 export interface AdminUser extends BaseUser {
   role: "admin";
-  adminLevel: string;
+  adminLevel?: string;
 }
 
 export type User = StudentUser | LecturerUser | CompanyUser | TechLeadUser | AdminUser;
+
+export interface DiscoverUser {
+  id: string;
+  firstname: string;
+  lastname: string;
+  fullName: string;
+  email: string;
+  role: Role;
+  avatar: string;
+  city?: string;
+  country?: string;
+  location?: string;
+  profilePath: string;
+}
+
+export interface ProfileConnectionStats {
+  followers: number;
+  following: number;
+  connections: number;
+}
+
+export interface UserSummary {
+  id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  role: Role;
+  avatar: string;
+  city?: string;
+  country?: string;
+}
+
+export interface UserProfileData {
+  user: User;
+  followersCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+  isOwnProfile: boolean;
+}

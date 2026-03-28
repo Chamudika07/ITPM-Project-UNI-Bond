@@ -1,38 +1,83 @@
 import { useEffect, useState } from "react";
-import SectionCard from "@/components/common/SectionCard";
 import FriendRequestList from "@/components/friend/FriendRequestList";
 import OnlineContactsList from "@/components/friend/OnlineContactsList";
-import { handleGetFriendRequests, handleConfirmFriendRequest, handleDeleteFriendRequest, handleGetOnlineContacts } from "@/controllers/friendController";
+import DiscoverUsersList from "@/components/user/DiscoverUsersList";
+import {
+  handleGetFriendRequests,
+  handleConfirmFriendRequest,
+  handleDeleteFriendRequest,
+  handleGetOnlineContacts,
+} from "@/controllers/friendController";
+import { handleGetDiscoverUsers } from "@/controllers/userController";
 import type { FriendRequest, Friend } from "@/types/friend";
+import type { DiscoverUser } from "@/types/user";
 
 export default function RightSidebar() {
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [onlineContacts, setOnlineContacts] = useState<Friend[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [discoverUsers, setDiscoverUsers] = useState<DiscoverUser[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [contactsLoading, setContactsLoading] = useState(true);
+  const [discoverLoading, setDiscoverLoading] = useState(true);
+  const [requestsError, setRequestsError] = useState("");
+  const [contactsError, setContactsError] = useState("");
+  const [discoverError, setDiscoverError] = useState("");
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadFriendRequests = async () => {
       try {
-        const [requests, contacts] = await Promise.all([
-          handleGetFriendRequests(),
-          handleGetOnlineContacts(),
-        ]);
+        setRequestsLoading(true);
+        setRequestsError("");
+        const requests = await handleGetFriendRequests();
         setFriendRequests(requests);
-        setOnlineContacts(contacts);
       } catch (error) {
-        console.error("Failed to load sidebar data:", error);
+        console.error("Failed to load friend requests:", error);
+        setFriendRequests([]);
+        setRequestsError("Friend requests could not be loaded.");
       } finally {
-        setLoading(false);
+        setRequestsLoading(false);
       }
     };
 
-    loadData();
+    const loadOnlineContacts = async () => {
+      try {
+        setContactsLoading(true);
+        setContactsError("");
+        const contacts = await handleGetOnlineContacts();
+        setOnlineContacts(contacts);
+      } catch (error) {
+        console.error("Failed to load online contacts:", error);
+        setOnlineContacts([]);
+        setContactsError("Contacts could not be loaded.");
+      } finally {
+        setContactsLoading(false);
+      }
+    };
+
+    const loadDiscoverUsers = async () => {
+      try {
+        setDiscoverLoading(true);
+        setDiscoverError("");
+        const users = await handleGetDiscoverUsers(5);
+        setDiscoverUsers(users);
+      } catch (error) {
+        console.error("Failed to load discover users:", error);
+        setDiscoverUsers([]);
+        setDiscoverError("People suggestions are unavailable right now.");
+      } finally {
+        setDiscoverLoading(false);
+      }
+    };
+
+    loadFriendRequests();
+    loadOnlineContacts();
+    loadDiscoverUsers();
   }, []);
 
   const handleConfirm = async (requestId: string) => {
     try {
       await handleConfirmFriendRequest(requestId);
-      setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+      setFriendRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (error) {
       console.error("Failed to confirm request:", error);
     }
@@ -41,28 +86,55 @@ export default function RightSidebar() {
   const handleDelete = async (requestId: string) => {
     try {
       await handleDeleteFriendRequest(requestId);
-      setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+      setFriendRequests((prev) => prev.filter((req) => req.id !== requestId));
     } catch (error) {
       console.error("Failed to delete request:", error);
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Friend Requests */}
-      <SectionCard title="Friend Requests">
+    <div className="space-y-3 sticky top-[80px] max-h-[calc(100vh-80px)] overflow-y-auto pb-4">
+      {/* Friend Requests Card */}
+      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
+        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+          Friend Requests
+        </h3>
+        {requestsError && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+            {requestsError}
+          </p>
+        )}
         <FriendRequestList
           requests={friendRequests}
           onConfirm={handleConfirm}
           onDelete={handleDelete}
-          loading={loading}
+          loading={requestsLoading}
         />
-      </SectionCard>
+      </div>
 
-      {/* Online Contacts */}
-      <SectionCard title="Contacts">
-        <OnlineContactsList contacts={onlineContacts} loading={loading} />
-      </SectionCard>
+      {/* Online Contacts Card */}
+      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
+        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+          Contacts
+        </h3>
+        {contactsError && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+            {contactsError}
+          </p>
+        )}
+        <OnlineContactsList contacts={onlineContacts} loading={contactsLoading} />
+      </div>
+
+      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
+        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+          Discover Users
+        </h3>
+        <DiscoverUsersList
+          users={discoverUsers}
+          loading={discoverLoading}
+          error={discoverError}
+        />
+      </div>
     </div>
   );
 }

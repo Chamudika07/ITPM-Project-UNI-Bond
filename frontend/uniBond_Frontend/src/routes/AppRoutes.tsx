@@ -18,6 +18,7 @@ import TaskDetails from "@/pages/tasks/TaskDetails";
 import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
+import EditPost from "@/pages/home/EditPost";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import AdminRoute from "@/routes/AdminRoute";
@@ -120,6 +121,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path={ROUTES.PROFILE_USER}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/classrooms"
         element={
           <ProtectedRoute>
@@ -205,6 +216,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <CreatePost />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.EDIT_POST}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditPost />
             </MainLayout>
           </ProtectedRoute>
         }

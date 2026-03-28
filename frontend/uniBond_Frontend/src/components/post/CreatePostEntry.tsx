@@ -13,7 +13,7 @@ export default function CreatePostEntry() {
   return (
     <SectionCard title="Create Post" className="mb-6">
       <div className="flex items-start gap-3">
-        <Avatar src="https://via.placeholder.com/40" alt={user.firstname} />
+        <Avatar src={`https://ui-avatars.com/api/?name=${user.firstname}&background=random`} alt={user.firstname} />
         <div className="flex-1">
           <Link
             to={ROUTES.CREATE_POST}
@@ -24,6 +24,7 @@ export default function CreatePostEntry() {
           <div className="flex gap-2 mt-3">
             <Link
               to={ROUTES.CREATE_POST}
+              state={{ defaultMediaType: "image" }}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Image className="w-4 h-4" />
@@ -31,6 +32,7 @@ export default function CreatePostEntry() {
             </Link>
             <Link
               to={ROUTES.CREATE_POST}
+              state={{ defaultMediaType: "video" }}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Video className="w-4 h-4" />

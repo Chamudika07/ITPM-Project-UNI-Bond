@@ -1,8 +1,15 @@
-import { User } from "@/types/user";
+import type { ProfileConnectionStats, User } from "@/types/user";
 import SectionCard from "@/components/common/SectionCard";
 import { Mail, GraduationCap, MapPin, Home, Briefcase } from "lucide-react";
 
-export default function ProfileLeftColumn({ user }: { user: User }) {
+type Props = {
+  user: User;
+  stats: ProfileConnectionStats;
+};
+
+export default function ProfileLeftColumn({ user, stats }: Props) {
+  const currentLocation = [user.city, user.country].filter(Boolean).join(", ") || "Location not shared";
+
   return (
     <div className="space-y-4">
       <SectionCard title="Intro">
@@ -28,11 +35,11 @@ export default function ProfileLeftColumn({ user }: { user: User }) {
           
           <div className="flex items-center gap-3">
             <Home className="w-5 h-5 text-gray-400 shrink-0" />
-            <span>Lives in <strong>Colombo, Sri Lanka</strong></span>
+            <span>Lives in <strong>{currentLocation}</strong></span>
           </div>
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
-            <span>From <strong>Kandy, Sri Lanka</strong></span>
+            <span>From <strong>{currentLocation}</strong></span>
           </div>
         </div>
       </SectionCard>
@@ -43,7 +50,7 @@ export default function ProfileLeftColumn({ user }: { user: User }) {
           <h3 className="font-bold text-gray-900">Connections</h3>
           <button className="text-blue-600 font-semibold cursor-pointer text-sm hover:underline">See All</button>
         </div>
-        <p className="text-xs text-gray-500 mb-4">124 connections</p>
+        <p className="text-xs text-gray-500 mb-4">{stats.connections} connections</p>
         <div className="grid grid-cols-3 gap-2">
           {[1,2,3,4,5,6].map(i => (
             <div key={i} className="flex flex-col items-center">

@@ -12,3 +12,5 @@ backend/.venv/
 *.env
 **/__Pycache__/
 **/*.pyc
+uploads/
+**/uploads/
