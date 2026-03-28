@@ -15,6 +15,9 @@ import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
 import TaskList from "@/pages/tasks/TaskList";
 import CreateTask from "@/pages/tasks/CreateTask";
 import TaskDetails from "@/pages/tasks/TaskDetails";
+import EditTask from "@/pages/tasks/EditTask";
+import CompanyList from "@/pages/companies/CompanyList";
+import CompanyDetails from "@/pages/companies/CompanyDetails";
 import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
@@ -186,6 +189,36 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <TaskDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id/edit"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditTask />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyDetails />
             </MainLayout>
           </ProtectedRoute>
         }
