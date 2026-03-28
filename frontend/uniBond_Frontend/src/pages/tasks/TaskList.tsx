@@ -35,6 +35,12 @@ export default function TaskList() {
     return t.applicants.some(a => a.studentId === user.id);
   };
 
+  const formatDate = (value: string) => {
+    if (!value) return "Not set";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6">
       
@@ -99,7 +105,7 @@ export default function TaskList() {
                      <div className="text-xs font-semibold text-slate-500 flex items-center gap-3">
                        <span>Duration: <strong className="text-slate-700">{t.duration}</strong></span>
                        <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                       <span>Deadline: <strong className="text-slate-700">{new Date(t.deadline).toLocaleDateString()}</strong></span>
+                       <span>Deadline: <strong className="text-slate-700">{formatDate(t.deadline)}</strong></span>
                      </div>
                      <div className="flex gap-3">
                         <button onClick={() => navigate(`/tasks/${t.id}`)} className="px-5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold rounded-xl transition-colors text-sm flex items-center gap-1 shadow-sm">

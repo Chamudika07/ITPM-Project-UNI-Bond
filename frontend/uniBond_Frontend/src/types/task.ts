@@ -4,8 +4,8 @@ export interface TaskApplication {
   studentId: string;
   studentName: string;
   email: string;
-  portfolioUrl: string;
-  coverLetter: string;
+  portfolioUrl?: string;
+  coverLetter?: string;
   status: 'pending' | 'accepted' | 'rejected';
   appliedAt: string;
 }

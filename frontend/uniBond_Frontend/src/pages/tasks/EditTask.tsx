@@ -42,7 +42,7 @@ export default function EditTask() {
   const handleSubmit = async (data: TaskFormData) => {
     try {
       setLoading(true);
-      await handleUpdateTask(task.id, data);
+      await handleUpdateTask(task.id, { ...task, ...data });
       navigate(`/tasks/${task.id}`);
     } catch (error) {
       console.error("Failed to update task", error);

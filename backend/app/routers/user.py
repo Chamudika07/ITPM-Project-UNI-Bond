@@ -180,8 +180,15 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # --- Get all users ---
 @router.get("/", response_model=List[UserResponse])
-def get_all_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(User).all()
+def get_all_users(
+    role: UserRole | None = Query(default=None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(User)
+    if role is not None:
+        query = query.filter(User.role == role)
+    return query.all()
 
 
 # --- Discover users ---

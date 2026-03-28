@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { mockGetCompanyById, Company } from "@/services/mock/mockCompanyApi";
+import { handleGetCompanyById, type CompanyProfile } from "@/controllers/companyController";
 import { handleGetTasks } from "@/controllers/taskController";
 import type { Task } from "@/types/task";
 import SectionCard from "@/components/common/SectionCard";
@@ -10,20 +10,21 @@ export default function CompanyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
       Promise.all([
-        mockGetCompanyById(id),
+        handleGetCompanyById(id),
         handleGetTasks()
-      ]).then(([comp, allTasks]) => {
-        setCompany(comp || null);
-        setTasks(allTasks.filter(t => t.companyId === id));
-        setLoading(false);
-      });
+      ])
+        .then(([companyResponse, allTasks]) => {
+          setCompany(companyResponse || null);
+          setTasks(allTasks.filter(t => t.companyId === id));
+        })
+        .finally(() => setLoading(false));
     }
   }, [id]);
 
