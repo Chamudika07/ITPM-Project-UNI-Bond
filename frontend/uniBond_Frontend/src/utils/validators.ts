@@ -1,5 +1,6 @@
 import type { Role } from "@/types/user";
 import type { TaskFormData } from "@/components/tasks/TaskForm";
+import type { UserProfileUpdatePayload } from "@/types/user";
 
 export type ValidationResult<T extends string = string> = {
   isValid: boolean;
@@ -316,6 +317,78 @@ export const validateGroupForm = (
     errors.description = "Description is required.";
   } else if (description.trim().length < 12) {
     errors.description = "Description should be at least 12 characters.";
+  }
+
+  return createResult(errors);
+};
+
+export const validateUserProfileUpdate = (
+  payload: UserProfileUpdatePayload,
+  role: Role
+): ValidationResult<string> => {
+  const errors: Record<string, string> = {};
+
+  if (!payload.firstname.trim()) {
+    errors.firstname = "First name is required.";
+  }
+
+  if (!payload.lastname.trim()) {
+    errors.lastname = "Last name is required.";
+  }
+
+  if (!payload.email.trim()) {
+    errors.email = "Email is required.";
+  } else if (!validateEmail(payload.email)) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  if (!payload.city.trim()) {
+    errors.city = "City is required.";
+  }
+
+  if (!payload.country.trim()) {
+    errors.country = "Country is required.";
+  }
+
+  if (!payload.mobile.trim()) {
+    errors.mobile = "Mobile number is required.";
+  } else if (!validateMobile(payload.mobile)) {
+    errors.mobile = "Mobile must be 10 digits and start with 0.";
+  }
+
+  if (payload.password?.trim() && payload.password.trim().length < 8) {
+    errors.password = "Password must be at least 8 characters.";
+  }
+
+  if ((role === "student" || role === "lecturer") && !payload.school?.trim()) {
+    errors.school = "School or university is required.";
+  }
+
+  if ((role === "student" || role === "lecturer") && !payload.education?.trim()) {
+    errors.education = "Education level is required.";
+  }
+
+  if (role === "company") {
+    if (!payload.companyName?.trim()) {
+      errors.companyName = "Company name is required.";
+    }
+    if (!payload.industry?.trim()) {
+      errors.industry = "Industry is required.";
+    }
+    if (!payload.companySize?.trim()) {
+      errors.companySize = "Company size is required.";
+    }
+  }
+
+  if (role === "tech_lead") {
+    if (!payload.industryExpertise?.trim()) {
+      errors.industryExpertise = "Industry expertise is required.";
+    }
+    if (!payload.yearsOfExperience?.trim()) {
+      errors.yearsOfExperience = "Years of experience is required.";
+    } else if (Number.isNaN(Number(payload.yearsOfExperience)) || Number(payload.yearsOfExperience) < 0 || Number(payload.yearsOfExperience) > 50) {
+      errors.yearsOfExperience = "Enter a valid number between 0 and 50.";
+    }
   }
 
   return createResult(errors);

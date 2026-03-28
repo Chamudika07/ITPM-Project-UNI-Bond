@@ -11,6 +11,7 @@ from app.models.user_follow import UserFollow
 from app.schemas.user import (
     UserCreate,
     UserResponse,
+    UserUpdate,
     UserStatusUpdate,
     UserDiscoverResponse,
     FollowStatusResponse,
@@ -30,6 +31,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 UPLOAD_DIR = "uploads/cvs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+AVATAR_UPLOAD_DIR = "uploads/avatars"
+os.makedirs(AVATAR_UPLOAD_DIR, exist_ok=True)
 
 # --- Role code prefix & zero-pad helper ---
 ROLE_PREFIX = {
@@ -39,6 +42,83 @@ ROLE_PREFIX = {
     UserRole.tech_lead: ("TLE", 4),
     UserRole.admin:     ("AD",  2),
 }
+
+
+def parse_role_profile_fields(user: User) -> dict[str, str | None]:
+    description = (user.description or "").strip()
+
+    if user.role == UserRole.company:
+        company_name = f"{user.first_name} {user.last_name}".strip()
+        industry = None
+        company_size = None
+
+        if description:
+            parts = [part.strip() for part in description.split("|")]
+            if parts:
+                company_name = parts[0] or company_name
+            if len(parts) > 1:
+                industry = parts[1] or None
+            if len(parts) > 2:
+                company_size = parts[2].replace("Size:", "").strip() or None
+
+        return {
+            "company_name": company_name or None,
+            "industry": industry,
+            "company_size": company_size,
+            "industry_expertise": None,
+            "years_of_experience": None,
+        }
+
+    if user.role == UserRole.tech_lead:
+        industry_expertise = None
+        years_of_experience = None
+
+        if description:
+            parts = [part.strip() for part in description.split("|")]
+            if parts:
+                industry_expertise = parts[0].replace("Expert in", "").strip() or None
+            if len(parts) > 1:
+                years_of_experience = parts[1].replace("years", "").strip() or None
+
+        return {
+            "company_name": None,
+            "industry": None,
+            "company_size": None,
+            "industry_expertise": industry_expertise,
+            "years_of_experience": years_of_experience,
+        }
+
+    return {
+        "company_name": None,
+        "industry": None,
+        "company_size": None,
+        "industry_expertise": None,
+        "years_of_experience": None,
+    }
+
+
+def build_user_response(user: User) -> UserResponse:
+    role_fields = parse_role_profile_fields(user)
+    return UserResponse(
+        id=user.id,
+        user_code=user.user_code,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        username=user.username,
+        email=user.email,
+        role=user.role,
+        description=user.description,
+        education_status=user.education_status,
+        city=user.city,
+        country=user.country,
+        school=user.school,
+        mobile=user.mobile,
+        cv_path=user.cv_path,
+        avatar_path=user.avatar_path,
+        access_status=user.access_status,
+        created_at=user.created_at,
+        **role_fields,
+    )
 
 
 def generate_user_code(role: UserRole, db: Session) -> str:
@@ -87,6 +167,7 @@ def is_following_user(follower_id: int, following_id: int, db: Session) -> bool:
 
 def build_user_profile_response(profile_user: User, current_user: User, db: Session) -> UserProfileResponse:
     followers_count, following_count = get_follow_counts(profile_user.id, db)
+    role_fields = parse_role_profile_fields(profile_user)
     return UserProfileResponse(
         id=profile_user.id,
         user_code=profile_user.user_code,
@@ -102,6 +183,8 @@ def build_user_profile_response(profile_user: User, current_user: User, db: Sess
         school=profile_user.school,
         mobile=profile_user.mobile,
         cv_path=profile_user.cv_path,
+        avatar_path=profile_user.avatar_path,
+        **role_fields,
         access_status=profile_user.access_status,
         created_at=profile_user.created_at,
         followers_count=followers_count,
@@ -173,7 +256,7 @@ def is_missing_last_seen_column_error(exc: ProgrammingError) -> bool:
 # --- Get Current User ---
 @router.get("/me", response_model=UserResponse)
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+    return build_user_response(current_user)
 
 
 @router.post("/presence/heartbeat", response_model=UserResponse)
@@ -187,7 +270,7 @@ def update_presence(
         db.rollback()
         if not is_missing_last_seen_column_error(exc):
             raise
-    return current_user
+    return build_user_response(current_user)
 
 
 # --- Create a new user (Registration) ---
@@ -265,7 +348,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Registration failed because a unique field already exists. Please check email, mobile number, and username.",
         )
-    return new_user
+    return build_user_response(new_user)
 
 
 # --- Get all users ---
@@ -278,7 +361,7 @@ def get_all_users(
     query = db.query(User)
     if role is not None:
         query = query.filter(User.role == role)
-    return query.all()
+    return [build_user_response(user) for user in query.all()]
 
 
 # --- Discover users ---
@@ -509,12 +592,12 @@ def get_user_following(
 def get_user(user_id: str, db: Session = Depends(get_db),
              current_user: User = Depends(get_current_user)):
     user = get_user_or_404(user_id, db)
-    return user
+    return build_user_response(user)
 
 
 # --- Update user ---
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: str, user_update: UserCreate,
+def update_user(user_id: str, user_update: UserUpdate,
                 db: Session = Depends(get_db),
                 current_user: User = Depends(get_current_user)):
     if str(current_user.id) != str(user_id) and current_user.role.value != "admin":
@@ -525,14 +608,58 @@ def update_user(user_id: str, user_update: UserCreate,
     if not user_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    update_data = user_update.model_dump(exclude_unset=True)
+    update_data = user_update.model_dump(exclude_unset=True, exclude={"company_name", "industry", "company_size", "industry_expertise", "years_of_experience"})
+
+    next_email = (update_data.get("email") or user_obj.email).strip().lower()
+    next_username = (update_data.get("username") or user_obj.username).strip().lower()
+    next_mobile = (update_data.get("mobile") or user_obj.mobile or "").strip() or None
+    next_role = update_data.get("role") or user_obj.role
+
+    existing_email = db.query(User).filter(User.email == next_email, User.id != user_obj.id).first()
+    if existing_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="An account with this email already exists")
+
+    existing_username = db.query(User).filter(User.username == next_username, User.id != user_obj.id).first()
+    if existing_username:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
+
+    if next_mobile:
+        existing_mobile = db.query(User).filter(User.mobile == next_mobile, User.id != user_obj.id).first()
+        if existing_mobile:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mobile number already registered")
+
+    update_data["email"] = next_email
+    update_data["username"] = next_username
+    update_data["mobile"] = next_mobile
+
     if "password" in update_data:
         update_data["password"] = hash_password(update_data["password"])
+
+    if next_role in (UserRole.student, UserRole.lecturer):
+        next_school = update_data.get("school", user_obj.school)
+        next_education = update_data.get("education_status", user_obj.education_status)
+        if not next_school:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="School/University is required for students and lecturers.")
+        if not next_education:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Education level is required for students and lecturers.")
+
+    role_description = update_data.get("description", user_obj.description)
+    if next_role == UserRole.company:
+        company_name = (user_update.company_name or parse_role_profile_fields(user_obj).get("company_name") or f"{user_obj.first_name} {user_obj.last_name}").strip()
+        industry = (user_update.industry or parse_role_profile_fields(user_obj).get("industry") or "").strip()
+        company_size = (user_update.company_size or parse_role_profile_fields(user_obj).get("company_size") or "").strip()
+        role_description = " | ".join(part for part in [company_name, industry, f"Size: {company_size}" if company_size else ""] if part)
+    elif next_role == UserRole.tech_lead:
+        expertise = (user_update.industry_expertise or parse_role_profile_fields(user_obj).get("industry_expertise") or "").strip()
+        years = (user_update.years_of_experience or parse_role_profile_fields(user_obj).get("years_of_experience") or "").strip()
+        role_description = " | ".join(part for part in [f"Expert in {expertise}" if expertise else "", f"{years} years" if years else ""] if part)
+
+    update_data["description"] = role_description
 
     user_q.update(update_data, synchronize_session=False)
     db.commit()
     db.refresh(user_obj)
-    return user_obj
+    return build_user_response(user_obj)
 
 
 # --- Delete user ---
@@ -596,7 +723,47 @@ def upload_cv(user_id: str, file: UploadFile = File(...),
     user.cv_path = filepath
     db.commit()
     db.refresh(user)
-    return user
+    return build_user_response(user)
+
+
+@router.post("/{user_id}/avatar", response_model=UserResponse)
+def upload_avatar(
+    user_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if str(current_user.id) != str(user_id) and current_user.role.value != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    allowed = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only JPG, PNG, and WebP images are accepted.",
+        )
+
+    ext = os.path.splitext(file.filename or "avatar.png")[1].lower() or ".png"
+    filename = f"{user_id}_{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(AVATAR_UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    if user.avatar_path and os.path.exists(user.avatar_path):
+        try:
+            os.remove(user.avatar_path)
+        except OSError:
+            pass
+
+    user.avatar_path = filepath
+    db.commit()
+    db.refresh(user)
+    return build_user_response(user)
 
 
 # --- Download CV ---

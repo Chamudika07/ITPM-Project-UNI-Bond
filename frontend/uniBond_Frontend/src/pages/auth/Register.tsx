@@ -59,7 +59,8 @@ function InputField({
       onChange={onChange}
       required={required}
       aria-invalid={Boolean(error)}
-      className={`w-full pl-10 pr-4 py-2.5 text-sm field-shell ${error ? "field-shell-error" : ""}`}
+      className={`w-full text-sm field-shell ${error ? "field-shell-error" : ""}`}
+      style={{ paddingLeft: "2.9rem", paddingRight: "1rem", paddingTop: "0.8rem", paddingBottom: "0.8rem" }}
     />
   );
 }

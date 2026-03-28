@@ -9,8 +9,10 @@ import {
   getUserProfile,
   sendPresenceHeartbeat,
   unfollowUser,
+  uploadUserAvatar,
+  updateUserProfile,
 } from "@/models/userModel";
-import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserSummary } from "@/types/user";
+import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 
 export const handleGetDiscoverUsers = async (
   limit = 5,
@@ -54,4 +56,12 @@ export const handleGetOnlineUsers = async (limit = 10): Promise<OnlineContact[]>
 
 export const handlePresenceHeartbeat = async (): Promise<void> => {
   return sendPresenceHeartbeat();
+};
+
+export const handleUpdateUserProfile = async (userId: string, payload: UserProfileUpdatePayload): Promise<User> => {
+  return updateUserProfile(userId, payload);
+};
+
+export const handleUploadUserAvatar = async (userId: string, file: File): Promise<User> => {
+  return uploadUserAvatar(userId, file);
 };

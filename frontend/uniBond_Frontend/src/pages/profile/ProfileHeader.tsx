@@ -1,6 +1,7 @@
 import { Edit2, LogOut } from "lucide-react";
 import FollowButton from "@/components/user/FollowButton";
 import type { ProfileConnectionStats, User } from "@/types/user";
+import { getUserDisplayName } from "@/utils/formatters";
 
 type Props = {
   user: User;
@@ -10,6 +11,7 @@ type Props = {
   isFollowing?: boolean;
   followLoading?: boolean;
   followError?: string;
+  onEditProfile?: () => void;
   onFollowToggle?: () => Promise<void> | void;
 };
 
@@ -21,9 +23,10 @@ export default function ProfileHeader({
   isFollowing = false,
   followLoading = false,
   followError = "",
+  onEditProfile,
   onFollowToggle,
 }: Props) {
-  const profileName = `${user.firstname} ${user.lastname}`.trim();
+  const profileName = getUserDisplayName(user);
 
   return (
     <div className="bg-white rounded-b-xl shadow-sm mb-6 pb-6 lg:mt-[-24px] lg:mx-[0px]">
@@ -42,7 +45,7 @@ export default function ProfileHeader({
           </div>
           {isOwnProfile && (
             <div className="flex gap-2">
-              <button className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition text-sm sm:text-base">
+              <button type="button" onClick={onEditProfile} className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition text-sm sm:text-base">
                 <Edit2 className="w-4 h-4" />
                 <span className="inline">Edit Profile</span>
               </button>
@@ -76,14 +79,14 @@ export default function ProfileHeader({
         {/* User Details */}
         <div className="mt-2 text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 border-none pb-0">
-            {user.firstname} {user.lastname}
+            {profileName}
           </h1>
           <p className="text-gray-500 font-medium capitalize flex items-center justify-center sm:justify-start gap-2 text-sm mt-1">
             {user.role.replace('_', ' ')} • UniBond
           </p>
           
           <p className="mt-3 text-gray-700 max-w-2xl text-sm sm:text-base mx-auto sm:mx-0">
-            Passionate about learning and growth at UniBond infrastructure.
+            {user.description?.trim() || "Keep your profile updated so students, companies, and lecturers can understand your background quickly."}
           </p>
           
           <div className="flex gap-4 mt-4 text-sm font-medium text-gray-600 justify-center sm:justify-start">

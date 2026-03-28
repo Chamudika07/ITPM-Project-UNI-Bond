@@ -8,7 +8,9 @@ export interface BaseUser {
   email: string;
   password: string;
   role: Role;
+  description?: string;
   avatar?: string;
+  avatar_path?: string;
   // Common new fields
   city: string;
   country: string;
@@ -98,3 +100,20 @@ export interface UserProfileData {
   isFollowing: boolean;
   isOwnProfile: boolean;
 }
+
+export type UserProfileUpdatePayload = {
+  firstname: string;
+  lastname: string;
+  email: string;
+  city: string;
+  country: string;
+  mobile: string;
+  password?: string;
+  school?: string;
+  education?: string;
+  companyName?: string;
+  industry?: string;
+  companySize?: string;
+  industryExpertise?: string;
+  yearsOfExperience?: string;
+};

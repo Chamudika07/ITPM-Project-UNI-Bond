@@ -71,20 +71,20 @@ export default function RightSidebar() {
 
   return (
     <div className="space-y-3 sticky top-[80px] max-h-[calc(100vh-80px)] overflow-y-auto pb-4">
-      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
-        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+      <div className="panel-surface rounded-2xl p-5">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
           Contacts
         </h3>
         {contactsError && (
-          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+          <p className="mb-3 rounded-lg bg-[var(--danger-soft)] px-3 py-2 text-xs text-[var(--danger)]">
             {contactsError}
           </p>
         )}
         <OnlineContactsList contacts={onlineContacts} loading={contactsLoading} />
       </div>
 
-      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
-        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+      <div className="panel-surface rounded-2xl p-5">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
           Discover Users
         </h3>
         <DiscoverUsersList

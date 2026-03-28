@@ -14,15 +14,15 @@ export default function UserDiscoveryCard({ user }: Props) {
     <button
       type="button"
       onClick={() => navigate(user.profilePath)}
-      className="w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-left shadow-sm transition hover:border-gray-300 hover:bg-white"
+      className="w-full rounded-xl border border-[var(--border-soft)] bg-[var(--surface-elevated)] px-3 py-3 text-left shadow-sm transition hover:border-[var(--brand-soft)] hover:bg-[var(--surface-muted)]"
     >
       <div className="flex items-start gap-3">
-        <Avatar src={user.avatar} alt={user.fullName} size="sm" className="ring-1 ring-gray-200" />
+        <Avatar src={user.avatar} alt={user.fullName} size="sm" className="ring-1 ring-[var(--border-soft)]" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900">{user.fullName}</p>
-          <p className="text-xs capitalize text-gray-500">{user.role.replace("_", " ")}</p>
+          <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{user.fullName}</p>
+          <p className="text-xs capitalize text-[var(--text-secondary)]">{user.role.replace("_", " ")}</p>
           {user.location && (
-            <p className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+            <p className="mt-1 flex items-center gap-1 text-xs text-[var(--text-secondary)]">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{user.location}</span>
             </p>
