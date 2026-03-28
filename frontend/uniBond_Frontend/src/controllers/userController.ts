@@ -8,10 +8,10 @@ import {
   getUserProfile,
   unfollowUser,
 } from "@/models/userModel";
-import type { DiscoverUser, User, UserProfileData, UserSummary } from "@/types/user";
+import type { DiscoverUser, Role, User, UserProfileData, UserSummary } from "@/types/user";
 
-export const handleGetDiscoverUsers = async (limit = 5): Promise<DiscoverUser[]> => {
-  return getDiscoverUsers(limit);
+export const handleGetDiscoverUsers = async (limit = 5, roles?: Role[]): Promise<DiscoverUser[]> => {
+  return getDiscoverUsers(limit, roles);
 };
 
 export const handleGetUserById = async (userId: string): Promise<User> => {
