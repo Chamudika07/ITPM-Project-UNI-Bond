@@ -27,6 +27,18 @@ export default function Home() {
 
     return (
         <div className="space-y-6">
+            {/* Quick Actions */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-blue-100 flex flex-wrap gap-4 items-center justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900">Explore UNI-Bond</h3>
+                <p className="text-sm text-gray-500">Discover opportunities and connect with partners.</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => window.location.href='/tasks'} className="px-4 py-2 bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition">View Tasks</button>
+                <button onClick={() => window.location.href='/companies'} className="px-4 py-2 bg-purple-50 text-purple-700 font-semibold rounded-lg hover:bg-purple-100 transition">Partner Companies</button>
+              </div>
+            </div>
+
             <CreatePostEntry />
 
             {error && <p className="text-red-500 text-center">{error}</p>}
