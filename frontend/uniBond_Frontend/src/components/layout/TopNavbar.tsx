@@ -37,7 +37,7 @@ export default function TopNavbar() {
   };
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-[#3D2E8E] text-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -47,7 +47,7 @@ export default function TopNavbar() {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-xl mx-8">
-            <SearchBar className="w-full text-gray-900" />
+            <SearchBar className="w-full text-white" />
           </div>
 
           {/* Navigation Buttons */}
@@ -60,7 +60,7 @@ export default function TopNavbar() {
             <div className="relative ml-2" ref={dropdownRef}>
               <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-700 hover:bg-blue-800 transition overflow-hidden border-2 border-transparent hover:border-white focus:outline-none"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#F5A623] hover:brightness-110 transition overflow-hidden border-2 border-transparent hover:border-white focus:outline-none"
               >
                 {user ? (
                   <span className="text-sm font-bold uppercase">{user.firstname.charAt(0)}{user.lastname.charAt(0)}</span>
@@ -70,10 +70,20 @@ export default function TopNavbar() {
               </button>
               
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200 text-gray-800">
+                <div className="absolute right-0 mt-2 w-48 bg-[#2E2070] rounded-md shadow-lg py-1 z-50 border border-[#3D2E8E] text-[#EDE9FF]">
+                  {/* Admin link added to dropdown as requested */}
+                  {user?.role === 'admin' && (
+                    <Link 
+                      to="/admin"
+                      className="flex px-4 py-2 text-sm text-[#F5A623] hover:bg-[#C5BBEF]/15 items-center gap-2 font-bold"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
                   <Link 
                     to={ROUTES.PROFILE}
-                    className="block px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                    className="flex px-4 py-2 text-sm hover:bg-[#C5BBEF]/15 items-center gap-2"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <User className="w-4 h-4" />
@@ -81,7 +91,7 @@ export default function TopNavbar() {
                   </Link>
                   <button 
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 font-medium"
+                    className="flex w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#C5BBEF]/15 items-center gap-2 font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
