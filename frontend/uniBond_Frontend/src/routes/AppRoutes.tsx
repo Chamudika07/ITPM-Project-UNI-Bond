@@ -121,6 +121,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path={ROUTES.PROFILE_USER}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/classrooms"
         element={
           <ProtectedRoute>

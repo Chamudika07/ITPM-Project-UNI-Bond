@@ -2,9 +2,9 @@ import { User } from "@/types/user";
 import { BookOpen, Briefcase, Users, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function RoleSpecificSection({ user }: { user: User }) {
+export default function RoleSpecificSection({ user, isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
   const navigate = useNavigate();
-  if (user.role === "student") return null;
+  if (user.role === "student" || !isOwnProfile) return null;
 
   let title = "";
   let icon = null;

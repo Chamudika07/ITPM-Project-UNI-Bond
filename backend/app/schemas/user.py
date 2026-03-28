@@ -68,5 +68,58 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class UserDiscoverResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: EmailStr
+    role: UserRole
+    city: Optional[str]
+    country: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class FollowStatusResponse(BaseModel):
+    is_following: bool
+
+
+class UserSummaryResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: EmailStr
+    role: UserRole
+    city: Optional[str]
+    country: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileResponse(BaseModel):
+    id: int
+    user_code: Optional[str]
+    first_name: str
+    last_name: str
+    username: str
+    email: EmailStr
+    role: UserRole
+    description: Optional[str]
+    education_status: Optional[str]
+    city: Optional[str]
+    country: Optional[str]
+    school: Optional[str]
+    mobile: Optional[str]
+    cv_path: Optional[str]
+    access_status: AccessStatus
+    created_at: datetime
+    followers_count: int
+    following_count: int
+    is_following: bool
+    is_own_profile: bool
+
+
 class UserStatusUpdate(BaseModel):
     access_status: AccessStatus

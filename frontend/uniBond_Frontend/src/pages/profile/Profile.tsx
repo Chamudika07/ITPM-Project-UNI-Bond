@@ -1,63 +1,171 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuthHook";
 import { ROUTES } from "@/utils/constants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ProfileHeader from "./ProfileHeader";
 import ProfileLeftColumn from "./ProfileLeftColumn";
 import RoleSpecificSection from "./RoleSpecificSection";
 import CreatePostEntry from "@/components/post/CreatePostEntry";
 import PostList from "@/components/post/PostList";
 import { handleGetUserPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
+import { handleFollowUser, handleGetUserProfile, handleUnfollowUser } from "@/controllers/userController";
 import type { Post } from "@/types/post";
+import type { ProfileConnectionStats, UserProfileData } from "@/types/user";
 
 export default function Profile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { userId } = useParams();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [profileData, setProfileData] = useState<UserProfileData | null>(null);
+  const [postsError, setPostsError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followError, setFollowError] = useState("");
+
+  const activeUserId = userId || user?.id;
+  const routeOwnProfile = !userId || userId === user?.id;
 
   const fetchPosts = async () => {
-    if (!user) return;
+    if (!activeUserId) return;
     setLoading(true);
+    setPostsError("");
     try {
-      const data = await handleGetUserPosts(user.id);
+      const data = await handleGetUserPosts(activeUserId);
       setPosts(data);
     } catch (error) {
       console.error("Failed to load user posts", error);
+      setPosts([]);
+      setPostsError("Posts could not be loaded right now.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const loadProfile = async () => {
+      if (!user || !activeUserId) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+        setProfileError("");
+        setFollowError("");
+        const nextProfileData = await handleGetUserProfile(activeUserId);
+        setProfileData(nextProfileData);
+      } catch (error) {
+        console.error("Failed to load profile user", error);
+        setProfileData(null);
+        setProfileError("This profile could not be loaded.");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [activeUserId, user]);
+
+  useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [activeUserId]);
 
   if (!user) return null;
+
+  if (profileLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-72 rounded-2xl bg-white shadow-sm animate-pulse" />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="md:col-span-5 lg:col-span-4">
+            <div className="h-64 rounded-2xl bg-white shadow-sm animate-pulse" />
+          </div>
+          <div className="md:col-span-7 lg:col-span-8">
+            <div className="h-80 rounded-2xl bg-white shadow-sm animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
+        <p className="text-gray-700 font-semibold">{profileError || "Profile not found."}</p>
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     logout();
     navigate(ROUTES.LOGIN);
   };
 
+  const isOwnProfile = profileData.isOwnProfile || routeOwnProfile;
+  const profileUser = profileData.user;
+  const profileStats: ProfileConnectionStats = {
+    followers: profileData.followersCount,
+    following: profileData.followingCount,
+    connections: profileData.followingCount,
+  };
+
+  const handleFollowToggle = async () => {
+    if (!activeUserId || isOwnProfile || followLoading) {
+      return;
+    }
+
+    try {
+      setFollowLoading(true);
+      setFollowError("");
+      const nextProfileData = profileData.isFollowing
+        ? await handleUnfollowUser(activeUserId)
+        : await handleFollowUser(activeUserId);
+      setProfileData(nextProfileData);
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setFollowError(typeof detail === "string" ? detail : "Follow action failed. Please try again.");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto pb-10">
-      <ProfileHeader user={user} onLogout={handleLogout} />
+      <ProfileHeader
+        user={profileUser}
+        onLogout={handleLogout}
+        isOwnProfile={isOwnProfile}
+        stats={profileStats}
+        isFollowing={profileData.isFollowing}
+        followLoading={followLoading}
+        followError={followError}
+        onFollowToggle={handleFollowToggle}
+      />
       
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:px-0 mt-4">
         {/* Left Column */}
         <div className="md:col-span-5 lg:col-span-4">
-          <ProfileLeftColumn user={user} />
+          <ProfileLeftColumn user={profileUser} stats={profileStats} />
         </div>
         
         {/* Center / Right Column */}
         <div className="md:col-span-7 lg:col-span-8 space-y-4">
-          <RoleSpecificSection user={user} />
+          <RoleSpecificSection user={profileUser} isOwnProfile={isOwnProfile} />
           
-          <CreatePostEntry />
+          {isOwnProfile && <CreatePostEntry />}
           
           <div className="mt-4">
-             <h3 className="font-bold text-gray-900 mb-4 px-2 tracking-tight">Recent Posts</h3>
+             <h3 className="font-bold text-gray-900 mb-4 px-2 tracking-tight">
+               {isOwnProfile ? "Recent Posts" : `${profileUser.firstname}'s Posts`}
+             </h3>
+             {postsError && (
+                <p className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {postsError}
+                </p>
+             )}
              {posts.length > 0 ? (
                  <PostList 
                     posts={posts}
@@ -70,7 +178,7 @@ export default function Profile() {
                             }
                             return p;
                         }));
-                    }}
+                     }}
                     onRepost={async (postId) => {
                         const { status, count } = await handleRepostPost(postId);
                         setPosts(posts.map(p => {
@@ -89,7 +197,11 @@ export default function Profile() {
              ) : (
                 <div className="bg-white p-8 rounded-2xl shadow-sm text-center border border-gray-100">
                     <p className="text-gray-600 font-medium">No posts to display yet.</p>
-                    <p className="text-gray-400 text-sm mt-1">When you publish or repost something, it will appear here on your timeline.</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {isOwnProfile
+                        ? "When you publish or repost something, it will appear here on your timeline."
+                        : "When this user publishes something, it will appear here."}
+                    </p>
                 </div>
              )}
           </div>

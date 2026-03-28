@@ -7,6 +7,7 @@ import type { Post } from "@/types/post";
 import Avatar from "@/components/common/Avatar";
 import PostActions from "./PostActions";
 import { formatDateTime } from "@/utils/formatters";
+import { extractYouTubeVideoId, resolveMediaSrc } from "@/utils/media";
 
 type Props = {
     post: Post;
@@ -26,18 +27,6 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLInputElement>(null);
-
-    const resolveMediaSrc = (url: string) => {
-        // Backend returns relative paths like "/uploads/images/<file>".
-        // The browser would otherwise try to load them from the frontend origin (e.g. :5173).
-        const apiBase =
-            ((import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ??
-                "http://localhost:8000");
-        const apiBaseNormalized = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
-        if (url.startsWith("http://") || url.startsWith("https://")) return url;
-        if (url.startsWith("/")) return `${apiBaseNormalized}${url}`;
-        return `${apiBaseNormalized}/${url}`;
-    };
 
     const mediaSrc = post.mediaUrl ? resolveMediaSrc(post.mediaUrl) : null;
 
@@ -81,16 +70,16 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
     };
 
     const renderVideo = (url: string) => {
-        // Check for YouTube (including Shorts)
-        const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-        if (ytMatch && ytMatch[1]) {
+        const youtubeVideoId = extractYouTubeVideoId(url);
+        if (youtubeVideoId) {
             return (
                 <iframe
                     className="w-full aspect-video rounded-lg mb-3"
-                    src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?rel=0`}
                     title="YouTube video player"
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
                 ></iframe>
             );

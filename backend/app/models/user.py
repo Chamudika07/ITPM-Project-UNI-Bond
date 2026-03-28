@@ -46,3 +46,15 @@ class User(Base):
     likes = relationship("PostLike", back_populates="user", cascade="all, delete-orphan")
     reposts = relationship("PostRepost", back_populates="user", cascade="all, delete-orphan")
     comments = relationship("PostComment", back_populates="user", cascade="all, delete-orphan")
+    following_relationships = relationship(
+        "UserFollow",
+        foreign_keys="UserFollow.follower_id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    follower_relationships = relationship(
+        "UserFollow",
+        foreign_keys="UserFollow.following_id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

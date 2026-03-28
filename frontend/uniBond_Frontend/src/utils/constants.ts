@@ -7,6 +7,7 @@ export const ROUTES = {
   NOTICES: "/notices",
   NOTIFICATIONS: "/notifications",
   PROFILE: "/profile",
+  PROFILE_USER: "/profile/:userId",
   PROFESSIONAL_COMMUNICATION: "/professional-communication",
   COMPANY_TASKS: "/company-tasks",
   KUPPY_SESSIONS: "/kuppy-sessions",

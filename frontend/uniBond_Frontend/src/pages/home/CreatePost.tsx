@@ -10,7 +10,6 @@ import {
   IMAGE_ACCEPT_ATTR,
   VIDEO_ACCEPT_ATTR,
   validatePickedMediaFile,
-  type MediaKind,
 } from "@/utils/mediaUploadValidation";
 
 export default function CreatePost() {
