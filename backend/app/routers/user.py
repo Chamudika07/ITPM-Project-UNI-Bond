@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import IntegrityError
 from app.db.database import get_db
 from app.models.user import User, UserRole, AccessStatus
 from app.models.user_follow import UserFollow
@@ -126,33 +127,48 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
 # --- Create a new user (Registration) ---
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    normalized_email = user.email.strip().lower()
+    normalized_username = (user.username or normalized_email).strip().lower()
+    normalized_mobile = user.mobile.strip()
 
     # Validate school for student / lecturer
     if user.role in (UserRole.student, UserRole.lecturer) and not user.school:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="School/University is required for students and lecturers."
-        )
+    )
 
     # Check username
-    if db.query(User).filter(User.username == user.username).first():
+    if db.query(User).filter(User.username == normalized_username).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
 
     # Check email
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+    if db.query(User).filter(User.email == normalized_email).first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="An account with this email already exists")
 
     # Check mobile uniqueness
-    if user.mobile and db.query(User).filter(User.mobile == user.mobile).first():
+    if normalized_mobile and db.query(User).filter(User.mobile == normalized_mobile).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Mobile number already registered")
 
     # Auto-generate user code
     user_code = generate_user_code(user.role, db)
 
-    # Students are auto-approved; all others start as pending
-    access_status = (
-        AccessStatus.active if user.role == UserRole.student else AccessStatus.pending
+    has_active_admin = (
+        db.query(User)
+        .filter(User.role == UserRole.admin, User.access_status == AccessStatus.active)
+        .first()
+        is not None
     )
+
+    # Bootstrap rule:
+    # - students are auto-approved
+    # - the first active admin is auto-approved so the system can be managed
+    # - everyone else starts pending
+    access_status = AccessStatus.pending
+    if user.role == UserRole.student:
+        access_status = AccessStatus.active
+    elif user.role == UserRole.admin and not has_active_admin:
+        access_status = AccessStatus.active
 
     hashed_pw = hash_password(user.password)
 
@@ -160,8 +176,8 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         user_code=user_code,
         first_name=user.first_name,
         last_name=user.last_name,
-        username=user.username,
-        email=user.email,
+        username=normalized_username,
+        email=normalized_email,
         password=hashed_pw,
         role=user.role,
         description=user.description,
@@ -169,12 +185,20 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         city=user.city,
         country=user.country,
         school=user.school,
-        mobile=user.mobile,
+        mobile=normalized_mobile,
         access_status=access_status,
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Registration failed because a unique field already exists. Please check email, mobile number, and username.",
+        )
     return new_user
 
 
@@ -195,10 +219,11 @@ def get_all_users(
 @router.get("/discover", response_model=List[UserDiscoverResponse])
 def discover_users(
     limit: int = Query(default=8, ge=1, le=25),
+    roles: List[UserRole] | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return (
+    query = (
         db.query(User)
         .filter(User.id != current_user.id)
         .filter(
@@ -207,6 +232,13 @@ def discover_users(
                 User.access_status.is_(None),
             )
         )
+    )
+
+    if roles:
+        query = query.filter(User.role.in_(roles))
+
+    return (
+        query
         .order_by(User.created_at.desc(), User.id.desc())
         .limit(limit)
         .all()

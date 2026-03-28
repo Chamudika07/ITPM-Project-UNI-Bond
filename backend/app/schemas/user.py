@@ -34,6 +34,22 @@ class UserCreate(BaseModel):
     school: Optional[str] = None   # Required for student / lecturer
     mobile: str
 
+    @field_validator("first_name", "last_name", "username", "city", "country")
+    @classmethod
+    def validate_required_text(cls, v: str) -> str:
+        clean = v.strip()
+        if not clean:
+            raise ValueError("This field is required")
+        return clean
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        clean = v.strip()
+        if len(clean) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        return clean
+
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, v: str) -> str:

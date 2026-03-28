@@ -10,7 +10,11 @@ type Props = {
 export default function MainLayout({ children }: Props) {
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
-  const isWidePage = location.pathname.startsWith('/companies') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/search');
+  const isWidePage =
+    location.pathname.startsWith('/companies') ||
+    location.pathname.startsWith('/tasks') ||
+    location.pathname.startsWith('/search') ||
+    location.pathname.startsWith('/professional-communication');
 
   return (
     <div className="min-h-screen bg-gray-100">

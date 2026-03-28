@@ -82,6 +82,7 @@ export default function Register() {
   };
 
   const validateMobile = (m: string) => /^0\d{9}$/.test(m.trim());
+  const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email.trim());
 
   const validateForm = (): boolean => {
     const required = ["firstname", "lastname", "email", "password", "city", "country", "mobile"];
@@ -93,6 +94,14 @@ export default function Register() {
     }
     if (!validateMobile(form.mobile)) {
       setError("Mobile must be 10 digits and start with 0 (e.g. 0775078338).");
+      return false;
+    }
+    if (!validateEmail(form.email)) {
+      setError("Please enter a valid email address.");
+      return false;
+    }
+    if ((form.password ?? "").trim().length < 8) {
+      setError("Password must be at least 8 characters long.");
       return false;
     }
     if ((role === "student" || role === "lecturer") && !form.school?.trim()) {
@@ -120,21 +129,21 @@ export default function Register() {
     if (!validateForm()) return;
 
     const userData = {
-      firstname: form.firstname,
-      lastname: form.lastname,
-      email: form.email,
+      firstname: form.firstname.trim(),
+      lastname: form.lastname.trim(),
+      email: form.email.trim().toLowerCase(),
       password: form.password,
       role,
-      city: form.city,
-      country: form.country,
-      mobile: form.mobile,
-      school: form.school ?? undefined,
-      education: form.education as StudentUser["education"],
-      companyName: form.companyName,
-      industry: form.industry,
-      companySize: form.companySize,
-      industryExpertise: form.industryExpertise,
-      yearsOfExperience: form.yearsOfExperience,
+      city: form.city.trim(),
+      country: form.country.trim(),
+      mobile: form.mobile.trim(),
+      school: form.school?.trim() || undefined,
+      education: form.education,
+      companyName: form.companyName?.trim(),
+      industry: form.industry?.trim(),
+      companySize: form.companySize?.trim(),
+      industryExpertise: form.industryExpertise?.trim(),
+      yearsOfExperience: form.yearsOfExperience?.trim(),
     };
 
     const res = await handleRegister(userData as unknown as User, setLoading, setError);
@@ -144,7 +153,7 @@ export default function Register() {
         try { await uploadCV(String(res.user.id), cvFile); } catch { /* non-fatal */ }
       }
 
-      if (role === "student") {
+      if (res.user?.access_status === "active") {
         navigate(ROUTES.LOGIN);
       } else {
         setPendingMsg(
@@ -343,6 +352,3 @@ export default function Register() {
     </div>
   );
 }
-
-// Local type alias for the cast (avoids import loop inside the file)
-type StudentUser = { education: "Diploma" | "Higher Diploma" | "Bachelor" | "Master" };
