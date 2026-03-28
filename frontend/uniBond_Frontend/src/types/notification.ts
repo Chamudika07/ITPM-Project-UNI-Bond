@@ -1,5 +1,6 @@
 export type Notification = {
   id: string;
+  userId?: string;
   type: "like" | "comment" | "friend_request" | "notice" | "kuppy" | "group";
   message: string;
   isRead: boolean;

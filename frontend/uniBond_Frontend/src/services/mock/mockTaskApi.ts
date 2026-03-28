@@ -114,6 +114,17 @@ export const mockApplyTask = async (taskId: string, appData: Omit<TaskApplicatio
   
   task.applicants.push(newApp);
   saveTasks(all);
+  
+  // Trigger notification to the company
+  import("@/services/mock/mockNotificationApi").then(({ mockAddNotification }) => {
+     mockAddNotification({
+       userId: task.companyId,
+       type: "notice",
+       message: `${appData.studentName} applied for your task: ${task.title}`,
+       relatedId: task.id
+     }).catch(console.error);
+  });
+
   return { ...task };
 };
 

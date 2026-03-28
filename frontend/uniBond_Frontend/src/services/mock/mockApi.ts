@@ -1,17 +1,25 @@
 import type { User } from "@/types/user";
 
+export const getStoredUsers = (): User[] => {
+    const stored = localStorage.getItem('mock_users');
+    return stored ? JSON.parse(stored) : [];
+};
 
-const users: User[] = [];
+export const saveUsers = (u: User[]) => {
+    localStorage.setItem('mock_users', JSON.stringify(u));
+};
 
 export const mockRegister = (userData: User): Promise<{ message: string; user: User }> => {
     return new Promise((resolve, reject) => {
         setTimeout(async () => {
+            const users = getStoredUsers();
             const exists = users.find((u) => u.email === userData.email);
 
             if (exists) {
                 reject({ message: "User already exists" });
             } else {
                 users.push(userData);
+                saveUsers(users);
                 // If it's a company, auto-add to the mock companies list
                 if (userData.role === "company") {
                    const { mockAddCompany } = await import("@/services/mock/mockCompanyApi");
@@ -33,6 +41,7 @@ export const mockRegister = (userData: User): Promise<{ message: string; user: U
 export const mockLogin = (email: string, password: string) => {
     return new Promise<{ message: string; user: User }>((resolve, reject) => {
         setTimeout(() => {
+            const users = getStoredUsers();
             const user = users.find(
                 (u) => u.email === email && u.password === password
             );
@@ -47,6 +56,7 @@ export const mockLogin = (email: string, password: string) => {
 };
 
 export const mockGetTopStudents = async (): Promise<(User & { rating: number })[]> => {
+    const users = getStoredUsers();
     const students = users.filter(u => u.role === "student");
     const ratedStudents = students.map(s => ({
         ...s,
