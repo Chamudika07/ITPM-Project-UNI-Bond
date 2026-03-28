@@ -14,6 +14,7 @@ export default function TaskList() {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   if (user?.role === "company") {
     return <CompanyDashboard user={user as CompanyUser} />;
@@ -25,9 +26,16 @@ export default function TaskList() {
 
   const fetchTasks = async () => {
     setLoading(true);
-    const data = await handleGetTasks();
-    setTasks(data);
-    setLoading(false);
+    setError("");
+    try {
+      const data = await handleGetTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error("Failed to load tasks", err);
+      setError("We couldn't load tasks right now. Please try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const hasApplied = (t: Task) => {
@@ -54,6 +62,10 @@ export default function TaskList() {
 
         {loading ? (
           <div className="text-center py-12 text-slate-500 font-medium animate-pulse">Loading amazing opportunities...</div>
+        ) : error ? (
+          <SectionCard title="Available Tasks">
+             <EmptyState icon={Briefcase} title="Tasks Unavailable" description={error} />
+          </SectionCard>
         ) : tasks.length === 0 ? (
           <SectionCard title="Available Tasks">
              <EmptyState icon={Briefcase} title="No Tasks Available" description="There are currently no tasks posted by companies." />

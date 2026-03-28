@@ -17,8 +17,8 @@ export default function IconNavButton({ to, icon: Icon, label, isActive }: Props
       to={to}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
         active
-          ? "bg-blue-100 text-blue-700"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          ? "bg-[var(--brand-soft)] text-[var(--brand-strong)]"
+          : "text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]"
       }`}
     >
       <Icon className="w-5 h-5" />
