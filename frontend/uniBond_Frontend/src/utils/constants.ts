@@ -9,7 +9,7 @@ export const ROUTES = {
   PROFILE: "/profile",
   PROFILE_USER: "/profile/:userId",
   PROFESSIONAL_COMMUNICATION: "/professional-communication",
-  COMPANY_TASKS: "/company-tasks",
+  COMPANY_TASKS: "/tasks",
   KUPPY_SESSIONS: "/kuppy-sessions",
   CREATE_POST: "/create-post",
   EDIT_POST: "/edit-post/:id",

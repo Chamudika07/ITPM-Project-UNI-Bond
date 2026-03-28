@@ -10,6 +10,7 @@ type Props = {
 export default function MainLayout({ children }: Props) {
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
+  const isWidePage = location.pathname.startsWith('/companies') || location.pathname.startsWith('/tasks') || location.pathname.startsWith('/search');
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -19,15 +20,24 @@ export default function MainLayout({ children }: Props) {
           children
         ) : (
           <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-3">
+            <div className="col-span-12 md:col-span-3">
               <LeftSidebar />
             </div>
-            <div className="col-span-6">
-              {children}
-            </div>
-            <div className="col-span-3">
-              <RightSidebar />
-            </div>
+            
+            {isWidePage ? (
+              <div className="col-span-12 md:col-span-9">
+                {children}
+              </div>
+            ) : (
+              <>
+                <div className="col-span-12 md:col-span-6">
+                  {children}
+                </div>
+                <div className="col-span-12 md:col-span-3">
+                  <RightSidebar />
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

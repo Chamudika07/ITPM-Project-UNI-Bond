@@ -1,4 +1,4 @@
-import { MessageSquare, Briefcase, Coffee, User } from "lucide-react";
+import { MessageSquare, Briefcase, Coffee, User, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
@@ -24,6 +24,12 @@ export default function LeftSidebar() {
       icon: Briefcase,
       label: "Company and Task",
       description: "Manage company tasks",
+    },
+    {
+      to: "/companies",
+      icon: Building2,
+      label: "Partner Companies",
+      description: "Explore industry partners",
     },
     {
       to: ROUTES.KUPPY_SESSIONS,
@@ -56,7 +62,6 @@ export default function LeftSidebar() {
           </div>
         </Link>
       </div>
-
       {/* Menu Card */}
       <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
         <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
