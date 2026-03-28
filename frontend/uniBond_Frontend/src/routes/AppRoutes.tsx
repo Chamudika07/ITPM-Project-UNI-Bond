@@ -9,6 +9,7 @@ import GroupDetails from "@/pages/groups/GroupDetails";
 import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
+import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
 import CreateClassroom from "@/pages/classrooms/CreateClassroom";
 import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
@@ -109,6 +110,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <Notifications />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PROFESSIONAL_COMMUNICATION}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfessionalCommunication />
             </MainLayout>
           </ProtectedRoute>
         }

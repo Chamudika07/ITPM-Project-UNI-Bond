@@ -2,17 +2,18 @@ import apiClient from "@/services/api/axiosClient";
 import type { User, StudentUser, LecturerUser, CompanyUser, TechLeadUser } from "@/types/user";
 
 export const registerUser = async (data: User) => {
+  const email = data.email.trim().toLowerCase();
   const payload: Record<string, unknown> = {
-    first_name: data.firstname,
-    last_name: data.lastname,
-    username: data.email,
-    email: data.email,
+    first_name: data.firstname.trim(),
+    last_name: data.lastname.trim(),
+    username: email,
+    email,
     password: data.password,
     role: data.role,
-    city: data.city,
-    country: data.country,
-    mobile: data.mobile,
-    school: data.school ?? null,
+    city: data.city.trim(),
+    country: data.country.trim(),
+    mobile: data.mobile.trim(),
+    school: data.school?.trim() || null,
   };
 
   if (data.role === "student" || data.role === "lecturer") {
@@ -36,7 +37,7 @@ export const registerUser = async (data: User) => {
 
 export const loginUser = async (email: string, password: string) => {
   const formData = new FormData();
-  formData.append("username", email);
+  formData.append("username", email.trim().toLowerCase());
   formData.append("password", password);
   const res = await apiClient.post("/users/login", formData);
   return res.data;

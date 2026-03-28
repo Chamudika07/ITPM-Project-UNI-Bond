@@ -94,9 +94,9 @@ const mapDiscoverUserResponse = (data: any): DiscoverUser => {
   };
 };
 
-export const getDiscoverUsers = async (limit = 5): Promise<DiscoverUser[]> => {
+export const getDiscoverUsers = async (limit = 5, roles?: Role[]): Promise<DiscoverUser[]> => {
   try {
-    const response = await apiClient.get("/users/discover", { params: { limit } });
+    const response = await apiClient.get("/users/discover", { params: { limit, roles } });
     return response.data.map(mapDiscoverUserResponse);
   } catch (error) {
     console.warn("Falling back to mock discover users.", error);

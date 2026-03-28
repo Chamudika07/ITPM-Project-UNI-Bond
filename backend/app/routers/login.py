@@ -16,7 +16,8 @@ def login_user(
     user_credentials: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.email == user_credentials.username).first()
+    email = user_credentials.username.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
 
     if not user:
         raise HTTPException(
@@ -27,7 +28,19 @@ def login_user(
     if not verify_password(user_credentials.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid password"
+            detail="Invalid credentials"
+        )
+
+    if user.access_status == AccessStatus.pending:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is pending admin approval. Please wait until an administrator activates it.",
+        )
+
+    if user.access_status == AccessStatus.suspended:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account is suspended. Please contact an administrator.",
         )
 
     access_token = create_access_token(data={"user_id": user.id})

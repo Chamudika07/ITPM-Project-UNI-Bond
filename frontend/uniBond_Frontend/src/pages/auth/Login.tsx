@@ -5,6 +5,24 @@ import { ROUTES } from "@/utils/constants";
 import apiClient from "@/services/api/axiosClient";
 import Input from "@/components/Input";
 
+const extractApiErrorMessage = (err: unknown): string => {
+    const apiError = err as any;
+    const detail = apiError?.response?.data?.detail;
+
+    if (typeof detail === "string") {
+        return detail;
+    }
+
+    if (Array.isArray(detail)) {
+        return detail
+            .map((item) => item?.msg || item?.message)
+            .filter(Boolean)
+            .join(", ") || "Validation failed";
+    }
+
+    return err instanceof Error ? err.message : "Login failed. Check credentials.";
+};
+
 export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -15,10 +33,14 @@ export default function Login() {
 
     const onSubmit = async () => {
         setError("");
+        if (!email.trim() || !password) {
+            setError("Email and password are required.");
+            return;
+        }
         setLoading(true);
         try {
             const formData = new URLSearchParams();
-            formData.append("username", email); // FastAPI OAuth2 expects 'username' field, which is email here
+            formData.append("username", email.trim().toLowerCase());
             formData.append("password", password);
 
             const res = await apiClient.post("/users/login", formData, {
@@ -31,8 +53,8 @@ export default function Login() {
             });
             login(userRes.data, token);
             navigate("/");
-        } catch (err: any) {
-            setError(err.response?.data?.detail || "Login failed. Check credentials.");
+        } catch (err: unknown) {
+            setError(extractApiErrorMessage(err));
         } finally {
             setLoading(false);
         }
