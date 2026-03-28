@@ -8,6 +8,8 @@ import {
   User,
   LogOut,
   Shield,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 import AppLogo from "@/components/common/AppLogo";
@@ -15,9 +17,11 @@ import SearchBar from "@/components/common/SearchBar";
 import IconNavButton from "@/components/common/IconNavButton";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function TopNavbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,10 +46,22 @@ export default function TopNavbar() {
     <nav className="bg-gray-300 text-gray-900 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center">
-            <AppLogo />
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-400/60 bg-white/70 text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-white"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-500" /> : <Moon className="h-5 w-5 text-slate-700" />}
+            </button>
+
+            {/* Logo */}
+            <Link to={ROUTES.HOME} className="flex items-center">
+              <AppLogo />
+            </Link>
+          </div>
 
           {/* Search Bar */}
           <div className="flex-1 max-w-xl mx-8">
