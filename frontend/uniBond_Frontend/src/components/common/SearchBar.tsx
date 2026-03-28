@@ -29,13 +29,13 @@ export default function SearchBar({ placeholder = "Search posts, users, groups..
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#C5BBEF]" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2 bg-[#C5BBEF]/20 border border-transparent rounded-lg text-white placeholder-[#C5BBEF] focus:outline-none focus:ring-2 focus:ring-[#C5BBEF]/50 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 bg-gray-300 border border-gray-400/40 rounded-lg text-black placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent"
         />
       </div>
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}

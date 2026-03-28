@@ -17,14 +17,14 @@ export default function LeftSidebar() {
       <SectionCard title="Profile">
         <Link
           to={ROUTES.PROFILE}
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-400/50 transition-colors"
         >
           <Avatar src="https://via.placeholder.com/40" alt={user.firstname} />
           <div>
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-black">
               {user.firstname} {user.lastname}
             </p>
-            <p className="text-sm text-gray-500 capitalize">{user.role}</p>
+            <p className="text-sm text-gray-700 capitalize">{user.role}</p>
           </div>
         </Link>
       </SectionCard>
