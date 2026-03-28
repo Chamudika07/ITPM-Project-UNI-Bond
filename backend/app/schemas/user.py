@@ -92,6 +92,7 @@ class UserDiscoverResponse(BaseModel):
     role: UserRole
     city: Optional[str]
     country: Optional[str]
+    is_following: bool = False
 
     class Config:
         from_attributes = True
@@ -109,9 +110,15 @@ class UserSummaryResponse(BaseModel):
     role: UserRole
     city: Optional[str]
     country: Optional[str]
+    is_following: bool = False
 
     class Config:
         from_attributes = True
+
+
+class OnlineUserResponse(UserSummaryResponse):
+    last_seen: Optional[datetime]
+    is_online: bool
 
 
 class UserProfileResponse(BaseModel):

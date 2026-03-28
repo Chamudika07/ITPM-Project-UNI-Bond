@@ -2,6 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import type { User } from "@/types/user";
 import apiClient from "@/services/api/axiosClient";
+import { handlePresenceHeartbeat } from "@/controllers/userController";
 
 const mapUser = (data: any): User => ({
     ...data,
@@ -32,6 +33,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         initAuth();
     }, []);
+
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+
+        let intervalId: number | undefined;
+
+        const beat = async () => {
+            try {
+                await handlePresenceHeartbeat();
+            } catch (err) {
+                console.error("Failed to update presence", err);
+            }
+        };
+
+        void beat();
+        intervalId = window.setInterval(() => {
+            if (!document.hidden) {
+                void beat();
+            }
+        }, 60000);
+
+        const onVisibilityChange = () => {
+            if (!document.hidden) {
+                void beat();
+            }
+        };
+
+        document.addEventListener("visibilitychange", onVisibilityChange);
+
+        return () => {
+            if (intervalId) {
+                window.clearInterval(intervalId);
+            }
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [user]);
 
     const login = (userData: any, token: string) => {
         setUser(mapUser(userData));

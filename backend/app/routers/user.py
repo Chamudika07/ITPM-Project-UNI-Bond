@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import undefer
 from app.db.database import get_db
 from app.models.user import User, UserRole, AccessStatus
 from app.models.user_follow import UserFollow
@@ -14,11 +15,13 @@ from app.schemas.user import (
     UserDiscoverResponse,
     FollowStatusResponse,
     UserSummaryResponse,
+    OnlineUserResponse,
     UserProfileResponse,
 )
 from app.utils.security import hash_password
 from app.utils.autho import get_current_user
 from typing import List
+from datetime import datetime, timedelta, timezone
 import os
 import shutil
 import uuid
@@ -108,6 +111,50 @@ def build_user_profile_response(profile_user: User, current_user: User, db: Sess
     )
 
 
+def build_user_discover_response(user: User, current_user: User, db: Session) -> UserDiscoverResponse:
+    return UserDiscoverResponse(
+        id=user.id,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email,
+        role=user.role,
+        city=user.city,
+        country=user.country,
+        is_following=is_following_user(current_user.id, user.id, db),
+    )
+
+
+def build_user_summary_response(user: User, current_user: User, db: Session) -> UserSummaryResponse:
+    return UserSummaryResponse(
+        id=user.id,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        email=user.email,
+        role=user.role,
+        city=user.city,
+        country=user.country,
+        is_following=is_following_user(current_user.id, user.id, db),
+    )
+
+
+def is_user_online(user: User, now: datetime | None = None) -> bool:
+    if not user.last_seen:
+        return False
+    current_time = now or datetime.now(timezone.utc)
+    return user.last_seen >= current_time - timedelta(minutes=2)
+
+
+def touch_user_presence(user: User, db: Session):
+    now = datetime.now(timezone.utc)
+    if user.last_seen and user.last_seen >= now - timedelta(seconds=30):
+        return
+
+    user.last_seen = now
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+
 def raise_follow_feature_unavailable(db: Session, exc: ProgrammingError):
     db.rollback()
     if "user_follows" in str(exc).lower():
@@ -118,9 +165,28 @@ def raise_follow_feature_unavailable(db: Session, exc: ProgrammingError):
     raise exc
 
 
+def is_missing_last_seen_column_error(exc: ProgrammingError) -> bool:
+    db_error_text = str(getattr(exc, "orig", exc)).lower()
+    return "last_seen" in db_error_text and "does not exist" in db_error_text
+
+
 # --- Get Current User ---
 @router.get("/me", response_model=UserResponse)
 def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/presence/heartbeat", response_model=UserResponse)
+def update_presence(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        touch_user_presence(current_user, db)
+    except ProgrammingError as exc:
+        db.rollback()
+        if not is_missing_last_seen_column_error(exc):
+            raise
     return current_user
 
 
@@ -220,6 +286,8 @@ def get_all_users(
 def discover_users(
     limit: int = Query(default=8, ge=1, le=25),
     roles: List[UserRole] | None = Query(default=None),
+    exclude_followed: bool = Query(default=False),
+    exclude_user_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -237,12 +305,67 @@ def discover_users(
     if roles:
         query = query.filter(User.role.in_(roles))
 
-    return (
+    if exclude_user_id is not None:
+        query = query.filter(User.id != exclude_user_id)
+
+    if exclude_followed:
+        followed_subquery = (
+            db.query(UserFollow.following_id)
+            .filter(UserFollow.follower_id == current_user.id)
+            .subquery()
+        )
+        query = query.filter(User.id.not_in(followed_subquery))
+
+    users = (
         query
         .order_by(User.created_at.desc(), User.id.desc())
         .limit(limit)
         .all()
     )
+    return [build_user_discover_response(user, current_user, db) for user in users]
+
+
+@router.get("/online-users", response_model=List[OnlineUserResponse])
+def get_online_users(
+    limit: int = Query(default=10, ge=1, le=30),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    now = datetime.now(timezone.utc)
+    online_cutoff = now - timedelta(minutes=2)
+
+    followed_subquery = (
+        db.query(UserFollow.following_id)
+        .filter(UserFollow.follower_id == current_user.id)
+        .subquery()
+    )
+
+    try:
+        users = (
+            db.query(User)
+            .options(undefer(User.last_seen))
+            .filter(User.id != current_user.id)
+            .filter(User.access_status == AccessStatus.active)
+            .filter(User.last_seen.is_not(None))
+            .filter(User.last_seen >= online_cutoff)
+            .order_by(User.id.in_(followed_subquery).desc(), User.last_seen.desc(), User.id.desc())
+            .limit(limit)
+            .all()
+        )
+    except ProgrammingError as exc:
+        db.rollback()
+        if is_missing_last_seen_column_error(exc):
+            return []
+        raise
+
+    return [
+        OnlineUserResponse(
+            **build_user_summary_response(user, current_user, db).model_dump(),
+            last_seen=user.last_seen,
+            is_online=is_user_online(user, now),
+        )
+        for user in users
+    ]
 
 
 @router.get("/{user_id}/profile", response_model=UserProfileResponse)
@@ -349,13 +472,14 @@ def get_user_followers(
 ):
     get_user_or_404(user_id, db)
     try:
-        return (
+        users = (
             db.query(User)
             .join(UserFollow, User.id == UserFollow.follower_id)
             .filter(UserFollow.following_id == user_id)
             .order_by(UserFollow.created_at.desc(), User.id.desc())
             .all()
         )
+        return [build_user_summary_response(user, current_user, db) for user in users]
     except ProgrammingError as exc:
         raise_follow_feature_unavailable(db, exc)
 
@@ -368,13 +492,14 @@ def get_user_following(
 ):
     get_user_or_404(user_id, db)
     try:
-        return (
+        users = (
             db.query(User)
             .join(UserFollow, User.id == UserFollow.following_id)
             .filter(UserFollow.follower_id == user_id)
             .order_by(UserFollow.created_at.desc(), User.id.desc())
             .all()
         )
+        return [build_user_summary_response(user, current_user, db) for user in users]
     except ProgrammingError as exc:
         raise_follow_feature_unavailable(db, exc)
 

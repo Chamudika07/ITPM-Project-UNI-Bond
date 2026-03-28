@@ -29,10 +29,3 @@ export const validatePost = (
   }
   return { isValid: true };
 };
-
-export const validateFriendRequest = (requestId: string): { isValid: boolean; error?: string } => {
-  if (!requestId.trim()) {
-    return { isValid: false, error: "Request ID is required" };
-  }
-  return { isValid: true };
-};

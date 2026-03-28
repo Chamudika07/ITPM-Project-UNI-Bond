@@ -1,6 +1,6 @@
 import apiClient from "@/services/api/axiosClient";
 import { mockGetDiscoverUsers, mockGetUserById } from "@/services/mock/mockUserApi";
-import type { DiscoverUser, Role, User, UserProfileData, UserSummary } from "@/types/user";
+import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserSummary } from "@/types/user";
 
 const buildAvatar = (firstname: string, lastname: string, email: string) => {
   const label = `${firstname} ${lastname}`.trim() || email || "Uni Bond";
@@ -91,12 +91,24 @@ const mapDiscoverUserResponse = (data: any): DiscoverUser => {
     country: data.country || undefined,
     location: buildLocation(data.city, data.country),
     profilePath: `/profile/${data.id}`,
+    isFollowing: Boolean(data.is_following),
   };
 };
 
-export const getDiscoverUsers = async (limit = 5, roles?: Role[]): Promise<DiscoverUser[]> => {
+export const getDiscoverUsers = async (
+  limit = 5,
+  roles?: Role[],
+  options?: { excludeFollowed?: boolean; excludeUserId?: string }
+): Promise<DiscoverUser[]> => {
   try {
-    const response = await apiClient.get("/users/discover", { params: { limit, roles } });
+    const response = await apiClient.get("/users/discover", {
+      params: {
+        limit,
+        roles,
+        exclude_followed: options?.excludeFollowed,
+        exclude_user_id: options?.excludeUserId,
+      },
+    });
     return response.data.map(mapDiscoverUserResponse);
   } catch (error) {
     console.warn("Falling back to mock discover users.", error);
@@ -128,6 +140,30 @@ const mapUserSummaryResponse = (data: any): UserSummary => {
     avatar: data.avatar || buildAvatar(firstname, lastname, email),
     city: data.city || undefined,
     country: data.country || undefined,
+    isFollowing: Boolean(data.is_following),
+  };
+};
+
+const mapOnlineContactResponse = (data: any): OnlineContact => {
+  const firstname = data.first_name || data.firstname || "User";
+  const lastname = data.last_name || data.lastname || "";
+  const email = data.email || "";
+
+  return {
+    id: String(data.id),
+    firstname,
+    lastname,
+    fullName: `${firstname} ${lastname}`.trim(),
+    email,
+    role: (data.role || "student") as Role,
+    avatar: data.avatar || buildAvatar(firstname, lastname, email),
+    city: data.city || undefined,
+    country: data.country || undefined,
+    location: buildLocation(data.city, data.country),
+    lastSeen: data.last_seen || undefined,
+    isOnline: Boolean(data.is_online),
+    isFollowing: Boolean(data.is_following),
+    profilePath: `/profile/${data.id}`,
   };
 };
 
@@ -171,4 +207,13 @@ export const getFollowing = async (userId: string): Promise<UserSummary[]> => {
 export const getFollowStatus = async (userId: string): Promise<boolean> => {
   const response = await apiClient.get(`/users/${userId}/follow-status`);
   return Boolean(response.data?.is_following);
+};
+
+export const getOnlineUsers = async (limit = 10): Promise<OnlineContact[]> => {
+  const response = await apiClient.get("/users/online-users", { params: { limit } });
+  return response.data.map(mapOnlineContactResponse);
+};
+
+export const sendPresenceHeartbeat = async (): Promise<void> => {
+  await apiClient.post("/users/presence/heartbeat");
 };

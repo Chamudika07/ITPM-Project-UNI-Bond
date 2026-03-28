@@ -62,6 +62,7 @@ export interface DiscoverUser {
   country?: string;
   location?: string;
   profilePath: string;
+  isFollowing: boolean;
 }
 
 export interface ProfileConnectionStats {
@@ -79,6 +80,15 @@ export interface UserSummary {
   avatar: string;
   city?: string;
   country?: string;
+  isFollowing?: boolean;
+}
+
+export interface OnlineContact extends UserSummary {
+  fullName: string;
+  location?: string;
+  lastSeen?: string;
+  isOnline: boolean;
+  profilePath: string;
 }
 
 export interface UserProfileData {
