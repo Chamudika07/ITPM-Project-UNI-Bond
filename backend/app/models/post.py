@@ -15,5 +15,8 @@ class Post(Base):
 
     #--relationship --#
     user = relationship("User", back_populates="posts")
-    medias = relationship("PostMedia", back_populates="post", cascade="all, delete")
+    media = relationship("PostMedia", back_populates="post", cascade="all, delete")
+    likes = relationship("PostLike", back_populates="post", cascade="all, delete-orphan")
+    reposts = relationship("PostRepost", back_populates="post", cascade="all, delete-orphan")
+    comments = relationship("PostComment", back_populates="post", cascade="all, delete-orphan")
 

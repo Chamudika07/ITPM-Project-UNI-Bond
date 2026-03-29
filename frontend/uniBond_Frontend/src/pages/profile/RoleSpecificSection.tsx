@@ -1,10 +1,10 @@
 import { User } from "@/types/user";
-import { BookOpen, Briefcase, Users, PlusCircle } from "lucide-react";
+import { BookOpen, Users, PlusCircle, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function RoleSpecificSection({ user }: { user: User }) {
+export default function RoleSpecificSection({ user, isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
   const navigate = useNavigate();
-  if (user.role === "student") return null;
+  if (user.role === "student" || !isOwnProfile) return null;
 
   let title = "";
   let icon = null;
@@ -16,16 +16,16 @@ export default function RoleSpecificSection({ user }: { user: User }) {
     icon = <BookOpen className="w-5 h-5 text-blue-600" />;
     btnLabel = "Create Course";
     linkTarget = "/courses/create";
-  } else if (user.role === "company") {
-    title = "Best Offer Tasks";
-    icon = <Briefcase className="w-5 h-5 text-blue-600" />;
-    btnLabel = "Create Task";
-    linkTarget = "/tasks/create";
   } else if (user.role === "tech_lead") {
     title = "Featured Classrooms";
     icon = <Users className="w-5 h-5 text-blue-600" />;
     btnLabel = "Create Classroom";
     linkTarget = "/classrooms/create";
+  } else if (user.role === "company") {
+    title = "Company Operations";
+    icon = <Briefcase className="w-5 h-5 text-blue-600" />;
+    btnLabel = "Manage Tasks";
+    linkTarget = "/tasks";
   }
 
   return (
