@@ -10,6 +10,7 @@ import {
   sendPresenceHeartbeat,
   unfollowUser,
   uploadUserAvatar,
+  uploadUserCover,
   updateUserProfile,
 } from "@/models/userModel";
 import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
@@ -64,4 +65,8 @@ export const handleUpdateUserProfile = async (userId: string, payload: UserProfi
 
 export const handleUploadUserAvatar = async (userId: string, file: File): Promise<User> => {
   return uploadUserAvatar(userId, file);
+};
+
+export const handleUploadUserCover = async (userId: string, file: File): Promise<User> => {
+  return uploadUserCover(userId, file);
 };

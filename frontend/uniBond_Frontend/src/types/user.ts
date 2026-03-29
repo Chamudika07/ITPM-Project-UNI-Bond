@@ -11,6 +11,8 @@ export interface BaseUser {
   description?: string;
   avatar?: string;
   avatar_path?: string;
+  cover?: string;
+  cover_path?: string;
   // Common new fields
   city: string;
   country: string;

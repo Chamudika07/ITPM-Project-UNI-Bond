@@ -39,6 +39,7 @@ class User(Base):
     mobile = Column(String(15), nullable=True)     # Sri Lankan format: 0XXXXXXXXX
     cv_path = Column(String(500), nullable=True)   # Relative path to uploaded CV file
     avatar_path = Column(String(500), nullable=True)
+    cover_path = Column(String(500), nullable=True)
     access_status = Column(Enum(AccessStatus), default=AccessStatus.pending)
     last_seen = deferred(Column(DateTime(timezone=True), nullable=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())

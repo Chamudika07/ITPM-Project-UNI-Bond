@@ -33,6 +33,8 @@ UPLOAD_DIR = "uploads/cvs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 AVATAR_UPLOAD_DIR = "uploads/avatars"
 os.makedirs(AVATAR_UPLOAD_DIR, exist_ok=True)
+COVER_UPLOAD_DIR = "uploads/covers"
+os.makedirs(COVER_UPLOAD_DIR, exist_ok=True)
 
 # --- Role code prefix & zero-pad helper ---
 ROLE_PREFIX = {
@@ -115,6 +117,7 @@ def build_user_response(user: User) -> UserResponse:
         mobile=user.mobile,
         cv_path=user.cv_path,
         avatar_path=user.avatar_path,
+        cover_path=user.cover_path,
         access_status=user.access_status,
         created_at=user.created_at,
         **role_fields,
@@ -184,6 +187,7 @@ def build_user_profile_response(profile_user: User, current_user: User, db: Sess
         mobile=profile_user.mobile,
         cv_path=profile_user.cv_path,
         avatar_path=profile_user.avatar_path,
+        cover_path=profile_user.cover_path,
         **role_fields,
         access_status=profile_user.access_status,
         created_at=profile_user.created_at,
@@ -761,6 +765,46 @@ def upload_avatar(
             pass
 
     user.avatar_path = filepath
+    db.commit()
+    db.refresh(user)
+    return build_user_response(user)
+
+
+@router.post("/{user_id}/cover", response_model=UserResponse)
+def upload_cover(
+    user_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if str(current_user.id) != str(user_id) and current_user.role.value != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    allowed = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only JPG, PNG, and WebP images are accepted.",
+        )
+
+    ext = os.path.splitext(file.filename or "cover.jpg")[1].lower() or ".jpg"
+    filename = f"{user_id}_{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(COVER_UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    if user.cover_path and os.path.exists(user.cover_path):
+        try:
+            os.remove(user.cover_path)
+        except OSError:
+            pass
+
+    user.cover_path = filepath
     db.commit()
     db.refresh(user)
     return build_user_response(user)

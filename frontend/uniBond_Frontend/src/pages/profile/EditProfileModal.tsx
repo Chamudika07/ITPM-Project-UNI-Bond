@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Save, Upload, X } from "lucide-react";
 import type { User, UserProfileUpdatePayload } from "@/types/user";
 import { validateUserProfileUpdate } from "@/utils/validators";
+import ProfileImageCropModal from "./ProfileImageCropModal";
+import {
+  AVATAR_ALLOWED_TYPES,
+  AVATAR_MAX_SIZE_BYTES,
+  IMAGE_INPUT_ACCEPT,
+  readImageDimensions,
+  validateImageUpload,
+  type AvatarImageDimensions,
+} from "@/utils/avatarCrop";
 
 const EDUCATION_OPTIONS = ["Diploma", "Higher Diploma", "Bachelor", "Master"];
 
@@ -33,11 +42,22 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
   });
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(user.avatar || "");
+  const [cropSource, setCropSource] = useState("");
+  const [cropFileName, setCropFileName] = useState("");
+  const [cropDimensions, setCropDimensions] = useState<AvatarImageDimensions | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState("");
 
+  const revokeObjectUrl = (value: string) => {
+    if (value.startsWith("blob:")) {
+      URL.revokeObjectURL(value);
+    }
+  };
+
   useEffect(() => {
     if (!open) return;
+    revokeObjectUrl(avatarPreview);
+    revokeObjectUrl(cropSource);
     setForm({
       firstname: user.firstname,
       lastname: user.lastname,
@@ -56,9 +76,22 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
     });
     setAvatarFile(null);
     setAvatarPreview(user.avatar || "");
+    setCropSource("");
+    setCropFileName("");
+    setCropDimensions(null);
     setFieldErrors({});
     setFormError("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }, [open, user]);
+
+  useEffect(() => {
+    return () => {
+      revokeObjectUrl(avatarPreview);
+      revokeObjectUrl(cropSource);
+    };
+  }, [avatarPreview, cropSource]);
 
   if (!open) return null;
 
@@ -83,22 +116,57 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
     }
   };
 
-  const handleAvatarSelection = (file?: File | null) => {
-    if (!file) return;
+  const handleAvatarSelection = async (file?: File | null) => {
+    const validation = validateImageUpload({
+      file,
+      allowedTypes: AVATAR_ALLOWED_TYPES,
+      maxSizeBytes: AVATAR_MAX_SIZE_BYTES,
+      invalidTypeMessage: "Please upload only an image file: JPG, PNG, or WebP.",
+      invalidSizeMessage: "Profile photo must be smaller than 5 MB.",
+    });
 
-    const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-    if (!allowedTypes.has(file.type)) {
-      setFormError("Please upload a JPG, PNG, or WebP image.");
+    if (!validation.isValid) {
+      setFormError(validation.error);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setFormError("Profile photo must be smaller than 5 MB.");
-      return;
-    }
+    const nextCropSource = URL.createObjectURL(file as File);
 
+    try {
+      const dimensions = await readImageDimensions(nextCropSource);
+      revokeObjectUrl(cropSource);
+      setCropSource(nextCropSource);
+      setCropFileName((file as File).name);
+      setCropDimensions(dimensions);
+      setFormError("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      revokeObjectUrl(nextCropSource);
+      setFormError(error instanceof Error ? error.message : "Selected image could not be loaded.");
+    }
+  };
+
+  const handleCropClose = () => {
+    revokeObjectUrl(cropSource);
+    setCropSource("");
+    setCropFileName("");
+    setCropDimensions(null);
+  };
+
+  const handleCroppedAvatarConfirm = (file: File) => {
+    const nextPreview = URL.createObjectURL(file);
+    revokeObjectUrl(avatarPreview);
+    revokeObjectUrl(cropSource);
     setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarPreview(nextPreview);
+    setCropSource("");
+    setCropFileName("");
+    setCropDimensions(null);
     setFormError("");
   };
 
@@ -153,17 +221,24 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h3 className="text-base font-bold text-[var(--text-primary)]">Profile Photo</h3>
-                <p className="mt-1 text-sm text-[var(--text-secondary)]">Upload a JPG, PNG, or WebP image from your device.</p>
+                <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                  Upload a JPG, PNG, or WebP image, then crop it so it fits the profile circle neatly.
+                </p>
                 <div className="mt-3 flex flex-col sm:flex-row gap-3">
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-secondary px-4 py-2.5">
                     <Upload className="h-4 w-4" />
-                    {avatarFile ? "Change Photo" : "Upload Photo"}
+                    {avatarFile ? "Change Photo" : "Upload & Crop"}
                   </button>
                   {avatarFile ? (
-                    <button type="button" onClick={() => {
-                      setAvatarFile(null);
-                      setAvatarPreview(user.avatar || "");
-                    }} className="btn-ghost px-4 py-2.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        revokeObjectUrl(avatarPreview);
+                        setAvatarFile(null);
+                        setAvatarPreview(user.avatar || "");
+                      }}
+                      className="btn-ghost px-4 py-2.5"
+                    >
                       Remove Selection
                     </button>
                   ) : null}
@@ -171,9 +246,11 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={IMAGE_INPUT_ACCEPT}
                   className="hidden"
-                  onChange={(e) => handleAvatarSelection(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    void handleAvatarSelection(e.target.files?.[0] || null);
+                  }}
                 />
               </div>
             </div>
@@ -250,6 +327,15 @@ export default function EditProfileModal({ user, open, saving = false, onClose, 
           </div>
         </form>
       </div>
+
+      <ProfileImageCropModal
+        open={Boolean(cropSource)}
+        imageSrc={cropSource}
+        fileName={cropFileName}
+        dimensions={cropDimensions}
+        onClose={handleCropClose}
+        onConfirm={handleCroppedAvatarConfirm}
+      />
     </div>
   );
 }

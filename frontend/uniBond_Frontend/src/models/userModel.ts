@@ -37,6 +37,8 @@ export const mapApiUserToFrontendUser = (data: any): User => {
       resolveAssetUrl(data.avatar_path || data.avatar) ||
       buildAvatar(data.first_name || data.firstname || "User", data.last_name || data.lastname || "", data.email || ""),
     avatar_path: data.avatar_path || undefined,
+    cover: resolveAssetUrl(data.cover_path || data.cover),
+    cover_path: data.cover_path || undefined,
     city: data.city || "",
     country: data.country || "",
     mobile: data.mobile || "",
@@ -259,6 +261,15 @@ export const uploadUserAvatar = async (userId: string, file: File): Promise<User
   const formData = new FormData();
   formData.append("file", file);
   const response = await apiClient.post(`/users/${userId}/avatar`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return mapApiUserToFrontendUser(response.data);
+};
+
+export const uploadUserCover = async (userId: string, file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post(`/users/${userId}/cover`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return mapApiUserToFrontendUser(response.data);

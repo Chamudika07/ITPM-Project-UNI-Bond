@@ -9,7 +9,7 @@ import EditProfileModal from "./EditProfileModal";
 import CreatePostEntry from "@/components/post/CreatePostEntry";
 import PostList from "@/components/post/PostList";
 import { handleGetUserPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
-import { handleFollowUser, handleGetUserProfile, handleUnfollowUser, handleUpdateUserProfile, handleUploadUserAvatar } from "@/controllers/userController";
+import { handleFollowUser, handleGetUserProfile, handleUnfollowUser, handleUpdateUserProfile, handleUploadUserAvatar, handleUploadUserCover } from "@/controllers/userController";
 import type { Post } from "@/types/post";
 import type { ProfileConnectionStats, UserProfileData, UserProfileUpdatePayload } from "@/types/user";
 import { getUserDisplayName } from "@/utils/formatters";
@@ -28,6 +28,8 @@ export default function Profile() {
   const [followError, setFollowError] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
+  const [coverSaving, setCoverSaving] = useState(false);
+  const [coverUploadError, setCoverUploadError] = useState("");
 
   const activeUserId = userId || user?.id;
   const routeOwnProfile = !userId || userId === user?.id;
@@ -159,6 +161,27 @@ export default function Profile() {
     }
   };
 
+  const handleSaveCover = async (coverFile: File) => {
+    if (!activeUserId) return;
+
+    try {
+      setCoverSaving(true);
+      setCoverUploadError("");
+      const updatedUser = await handleUploadUserCover(activeUserId, coverFile);
+      setProfileData((current) => current ? { ...current, user: updatedUser } : current);
+      if (isOwnProfile) {
+        updateUser(updatedUser);
+      }
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      const message = typeof detail === "string" ? detail : "Cover photo upload failed. Please try again.";
+      setCoverUploadError(message);
+      throw new Error(message);
+    } finally {
+      setCoverSaving(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto pb-10">
       <ProfileHeader
@@ -171,6 +194,9 @@ export default function Profile() {
         followError={followError}
         onEditProfile={() => setEditOpen(true)}
         onFollowToggle={handleFollowToggle}
+        onCoverUpload={handleSaveCover}
+        coverUploading={coverSaving}
+        coverUploadError={coverUploadError}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:px-0 mt-4">

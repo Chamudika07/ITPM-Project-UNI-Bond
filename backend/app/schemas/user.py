@@ -78,6 +78,7 @@ class UserResponse(BaseModel):
     mobile: Optional[str]
     cv_path: Optional[str]
     avatar_path: Optional[str] = None
+    cover_path: Optional[str] = None
     company_name: Optional[str] = None
     industry: Optional[str] = None
     company_size: Optional[str] = None
@@ -143,6 +144,7 @@ class UserProfileResponse(BaseModel):
     mobile: Optional[str]
     cv_path: Optional[str]
     avatar_path: Optional[str] = None
+    cover_path: Optional[str] = None
     company_name: Optional[str] = None
     industry: Optional[str] = None
     company_size: Optional[str] = None
