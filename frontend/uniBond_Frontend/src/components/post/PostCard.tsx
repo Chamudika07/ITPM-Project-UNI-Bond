@@ -23,12 +23,41 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showAllComments, setShowAllComments] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const { user } = useAuth();
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLInputElement>(null);
 
     const mediaSrc = post.mediaUrl ? resolveMediaSrc(post.mediaUrl) : null;
+    const COLLAPSED_CHAR_LIMIT = 360;
+    const COLLAPSED_LINE_LIMIT = 8;
+
+    const buildCollapsedContent = (content: string) => {
+        const trimmed = content.trim();
+        const lines = trimmed.split("\n");
+        let preview = lines.slice(0, COLLAPSED_LINE_LIMIT).join("\n").trim();
+        let isTruncated = lines.length > COLLAPSED_LINE_LIMIT;
+
+        if (preview.length > COLLAPSED_CHAR_LIMIT) {
+            const shortened = preview.slice(0, COLLAPSED_CHAR_LIMIT);
+            const lastSpace = shortened.lastIndexOf(" ");
+            preview = (lastSpace > 220 ? shortened.slice(0, lastSpace) : shortened).trim();
+            isTruncated = true;
+        }
+
+        if (!isTruncated && trimmed.length > preview.length) {
+            isTruncated = true;
+        }
+
+        return {
+            preview: isTruncated ? `${preview}...` : preview,
+            isTruncated,
+        };
+    };
+
+    const { preview: collapsedContent, isTruncated: canExpand } = buildCollapsedContent(post.content || "");
+    const displayedContent = isExpanded ? post.content : collapsedContent;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -139,13 +168,27 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
                 )}
             </div>
 
-            {post.content && <p className="mb-3 whitespace-pre-wrap">{post.content}</p>}
+            {post.content && (
+                <div className="mb-4">
+                    <p className="whitespace-pre-wrap break-words text-[15px] leading-7 text-[var(--text-primary)]">
+                        {displayedContent}
+                    </p>
+                    {canExpand && (
+                        <button
+                            onClick={() => setIsExpanded((current) => !current)}
+                            className="mt-2 text-sm font-semibold text-[var(--accent)] hover:opacity-80"
+                        >
+                            {isExpanded ? "See less" : "See more"}
+                        </button>
+                    )}
+                </div>
+            )}
 
             {mediaSrc && post.mediaType === "image" && (
                 <img
                     src={mediaSrc}
                     alt="post media"
-                    className="w-full max-h-[400px] object-cover rounded-lg mb-3"
+                    className="w-full max-h-[440px] object-cover rounded-2xl mb-3 border border-[var(--border-soft)]"
                 />
             )}
 
