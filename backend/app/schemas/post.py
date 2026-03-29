@@ -29,6 +29,7 @@ class PostUserResponse(BaseModel):
     first_name: str
     last_name: str
     role: str
+    avatar_path: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -71,4 +72,3 @@ class PostResponse(BaseModel):
 
     class Config:
         from_attributes = True
-

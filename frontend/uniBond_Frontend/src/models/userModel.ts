@@ -1,24 +1,7 @@
 import apiClient from "@/services/api/axiosClient";
 import { mockGetDiscoverUsers, mockGetUserById } from "@/services/mock/mockUserApi";
 import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
-
-const buildAvatar = (firstname: string, lastname: string, email: string) => {
-  const label = `${firstname} ${lastname}`.trim() || email || "Uni Bond";
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(label)}&background=e5e7eb&color=374151`;
-};
-
-const resolveAssetUrl = (path?: string | null): string | undefined => {
-  if (!path) return undefined;
-  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
-    return path;
-  }
-
-  const trimmed = path.replace(/^\.?\/*/, "");
-  const uploadsIndex = trimmed.indexOf("uploads/");
-  const publicPath = uploadsIndex >= 0 ? `/${trimmed.slice(uploadsIndex)}` : `/${trimmed}`;
-  const baseUrl = ((import.meta as any).env?.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
-  return `${baseUrl}${publicPath}`;
-};
+import { buildAvatar, buildUserAvatar, resolveAssetUrl } from "@/utils/userMedia";
 
 const buildLocation = (city?: string, country?: string) =>
   [city, country].filter(Boolean).join(", ") || undefined;
@@ -103,7 +86,7 @@ const mapDiscoverUserResponse = (data: any): DiscoverUser => {
     fullName: `${firstname} ${lastname}`.trim(),
     email,
     role: (data.role || "student") as Role,
-    avatar: data.avatar || buildAvatar(firstname, lastname, email),
+    avatar: buildUserAvatar(data),
     city: data.city || undefined,
     country: data.country || undefined,
     location: buildLocation(data.city, data.country),
@@ -179,7 +162,7 @@ const mapOnlineContactResponse = (data: any): OnlineContact => {
     fullName: `${firstname} ${lastname}`.trim(),
     email,
     role: (data.role || "student") as Role,
-    avatar: data.avatar || buildAvatar(firstname, lastname, email),
+    avatar: buildUserAvatar(data),
     city: data.city || undefined,
     country: data.country || undefined,
     location: buildLocation(data.city, data.country),

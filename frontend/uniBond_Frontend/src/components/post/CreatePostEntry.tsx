@@ -4,6 +4,7 @@ import Avatar from "@/components/common/Avatar";
 import SectionCard from "@/components/common/SectionCard";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import { buildUserAvatar } from "@/utils/userMedia";
 
 export default function CreatePostEntry() {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export default function CreatePostEntry() {
   return (
     <SectionCard title="Create Post" className="mb-6">
       <div className="flex items-start gap-3">
-        <Avatar src={`https://ui-avatars.com/api/?name=${user.firstname}&background=random`} alt={user.firstname} />
+        <Avatar src={buildUserAvatar(user)} alt={user.firstname} />
         <div className="flex-1">
           <Link
             to={ROUTES.CREATE_POST}

@@ -1,9 +1,15 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy import func
 from app.db.database import get_db
 from app.models.notice_notification import Notice, Notification
-from app.schemas.notice_notification import NoticeCreate, NoticeResponse, NotificationResponse
+from app.schemas.notice_notification import (
+    NoticeCreate,
+    NoticeResponse,
+    NotificationResponse,
+    NotificationSummaryResponse,
+)
 from app.models.user import User
 from app.utils.autho import get_current_user
 
@@ -34,9 +40,32 @@ def get_all_notices(db: Session = Depends(get_db), current_user: User = Depends(
 
 # Notifications
 @router.get("/notifications", response_model=List[NotificationResponse])
-def get_user_notifications(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    notifications = db.query(Notification).filter(Notification.user_id == current_user.id).order_by(Notification.created_at.desc()).all()
+def get_user_notifications(
+    unread_only: bool = Query(default=False),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = db.query(Notification).filter(Notification.user_id == current_user.id)
+    if unread_only:
+        query = query.filter(Notification.is_read.is_(False))
+
+    notifications = query.order_by(Notification.created_at.desc(), Notification.id.desc()).all()
     return notifications
+
+
+@router.get("/notifications/summary", response_model=NotificationSummaryResponse)
+def get_notification_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    total_count = db.query(func.count(Notification.id)).filter(Notification.user_id == current_user.id).scalar() or 0
+    unread_count = (
+        db.query(func.count(Notification.id))
+        .filter(Notification.user_id == current_user.id, Notification.is_read.is_(False))
+        .scalar()
+        or 0
+    )
+    return NotificationSummaryResponse(total_count=total_count, unread_count=unread_count)
 
 @router.put("/notifications/{notification_id}/read", response_model=NotificationResponse)
 def mark_notification_read(notification_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -48,3 +77,19 @@ def mark_notification_read(notification_id: int, db: Session = Depends(get_db), 
     db.commit()
     db.refresh(notification)
     return notification
+
+
+@router.put("/notifications/read-all", response_model=NotificationSummaryResponse)
+def mark_all_notifications_read(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    (
+        db.query(Notification)
+        .filter(Notification.user_id == current_user.id, Notification.is_read.is_(False))
+        .update({Notification.is_read: True}, synchronize_session=False)
+    )
+    db.commit()
+
+    total_count = db.query(func.count(Notification.id)).filter(Notification.user_id == current_user.id).scalar() or 0
+    return NotificationSummaryResponse(total_count=total_count, unread_count=0)

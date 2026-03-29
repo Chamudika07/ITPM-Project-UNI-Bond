@@ -207,6 +207,7 @@ def build_user_discover_response(user: User, current_user: User, db: Session) ->
         role=user.role,
         city=user.city,
         country=user.country,
+        avatar_path=user.avatar_path,
         is_following=is_following_user(current_user.id, user.id, db),
     )
 

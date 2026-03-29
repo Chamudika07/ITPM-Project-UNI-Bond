@@ -1,3 +1,19 @@
+export type PostCommentUser = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  avatar: string;
+  role: "student" | "lecturer" | "company" | "tech_lead" | "admin";
+};
+
+export type PostComment = {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: PostCommentUser;
+};
+
 export type Post = {
   id: string;
   authorId: string;
@@ -12,6 +28,6 @@ export type Post = {
   reposts: number;
   isLikedByUser?: boolean;
   isRepostedByUser?: boolean;
-  comments?: any[];
+  comments?: PostComment[];
   createdAt: string;
 };

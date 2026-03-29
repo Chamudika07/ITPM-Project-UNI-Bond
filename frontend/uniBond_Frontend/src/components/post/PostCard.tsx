@@ -199,17 +199,17 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
                         </button>
                     )}
 
-                    {(showAllComments ? post.comments : [post.comments[post.comments.length - 1]]).map((comment: any) => (
+                    {(showAllComments ? post.comments : [post.comments[post.comments.length - 1]]).map((comment) => (
                         <div key={comment.id} className="flex gap-3">
                             <Avatar 
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.first_name + " " + comment.user.last_name)}&background=random`} 
-                                alt="avatar" 
+                                src={comment.user.avatar}
+                                alt={comment.user.fullName}
                                 size="sm" 
                             />
                             <div className="flex-1 bg-gray-50 rounded-2xl p-3">
-                                <p className="font-semibold text-sm">{comment.user.first_name} {comment.user.last_name}</p>
+                                <p className="font-semibold text-sm">{comment.user.fullName}</p>
                                 <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
-                                <p className="text-xs text-gray-400 mt-1">{formatDateTime(comment.created_at)}</p>
+                                <p className="text-xs text-gray-400 mt-1">{formatDateTime(comment.createdAt)}</p>
                             </div>
                         </div>
                     ))}
