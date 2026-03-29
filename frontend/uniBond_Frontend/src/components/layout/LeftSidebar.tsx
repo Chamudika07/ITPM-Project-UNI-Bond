@@ -1,7 +1,8 @@
-import { MessageSquare, Briefcase, Coffee, User } from "lucide-react";
+import { MessageSquare, Briefcase, Coffee, User, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import { getInitialsFromName, getUserDisplayName } from "@/utils/formatters";
 
 export default function LeftSidebar() {
   const { user } = useAuth();
@@ -9,8 +10,8 @@ export default function LeftSidebar() {
 
   if (!user) return null;
 
-  const getInitials = () =>
-    `${user.firstname?.[0] ?? ""}${user.lastname?.[0] ?? ""}`.toUpperCase();
+  const displayName = getUserDisplayName(user);
+  const initials = getInitialsFromName(displayName);
 
   const menuItems = [
     {
@@ -26,6 +27,12 @@ export default function LeftSidebar() {
       description: "Manage company tasks",
     },
     {
+      to: "/companies",
+      icon: Building2,
+      label: "Partner Companies",
+      description: "Explore industry partners",
+    },
+    {
       to: ROUTES.KUPPY_SESSIONS,
       icon: Coffee,
       label: "Kuppy Sessions",
@@ -36,30 +43,35 @@ export default function LeftSidebar() {
   return (
     <div className="space-y-3 sticky top-[80px] max-h-[calc(100vh-80px)] overflow-y-auto pb-4">
       {/* Profile Card */}
-      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
-        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+      <div className="panel-surface rounded-2xl p-5">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
           Profile
         </h3>
         <Link
           to={ROUTES.PROFILE}
-          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-400/50 transition-all duration-200 active:scale-[0.98] group"
+          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--surface-muted)] transition-all duration-200 active:scale-[0.98] group"
         >
           {/* Avatar Circle */}
-          <div className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm shrink-0 group-hover:ring-2 group-hover:ring-black/30 transition-all">
-            {user.firstname ? getInitials() : <User className="w-5 h-5" />}
+          <div className="w-11 h-11 rounded-full bg-[var(--surface-muted)] text-[var(--text-primary)] flex items-center justify-center font-bold text-sm shrink-0 group-hover:ring-2 group-hover:ring-[var(--brand-soft)] transition-all overflow-hidden border border-[var(--border-soft)]">
+            {user.avatar ? (
+              <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+            ) : user.firstname ? (
+              initials
+            ) : (
+              <User className="w-5 h-5" />
+            )}
           </div>
           <div>
-            <p className="font-semibold text-black text-sm leading-tight">
-              {user.firstname} {user.lastname}
+            <p className="font-semibold text-[var(--text-primary)] text-sm leading-tight">
+              {displayName}
             </p>
-            <p className="text-xs text-gray-700 capitalize mt-0.5">{user.role}</p>
+            <p className="text-xs text-[var(--text-secondary)] capitalize mt-0.5">{user.role.replace("_", " ")}</p>
           </div>
         </Link>
       </div>
-
       {/* Menu Card */}
-      <div className="bg-gray-300 rounded-2xl p-5 shadow-sm border border-gray-400/40">
-        <h3 className="text-xs font-bold text-black uppercase tracking-widest mb-3">
+      <div className="panel-surface rounded-2xl p-5">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
           Menu
         </h3>
         <div className="space-y-1">
@@ -70,23 +82,23 @@ export default function LeftSidebar() {
                 key={to}
                 to={to}
                 className={`flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 ease-in-out active:scale-[0.98] group ${
-                  isActive ? "bg-black/15 shadow-inner" : "hover:bg-gray-400/50"
+                  isActive ? "bg-[var(--brand-soft)] shadow-inner" : "hover:bg-[var(--surface-muted)]"
                 }`}
               >
                 <div
                   className={`p-2 rounded-lg transition-colors shrink-0 ${
                     isActive
-                      ? "bg-black text-white"
-                      : "bg-gray-400/60 text-black group-hover:bg-black group-hover:text-white"
+                      ? "bg-[var(--brand)] text-white"
+                      : "bg-[var(--surface-muted)] text-[var(--text-secondary)] group-hover:bg-[var(--brand)] group-hover:text-white"
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-black text-sm leading-tight">
+                  <p className="font-semibold text-[var(--text-primary)] text-sm leading-tight">
                     {label}
                   </p>
-                  <p className="text-xs text-gray-700 mt-0.5">{description}</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">{description}</p>
                 </div>
               </Link>
             );

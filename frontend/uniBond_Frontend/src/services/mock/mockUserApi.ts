@@ -85,6 +85,7 @@ const toDiscoverUser = (user: User): DiscoverUser => {
     country: user.country,
     location: location || undefined,
     profilePath: buildProfilePath(user.id),
+    isFollowing: false,
   };
 };
 

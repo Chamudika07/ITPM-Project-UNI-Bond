@@ -9,12 +9,16 @@ import GroupDetails from "@/pages/groups/GroupDetails";
 import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
+import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
 import CreateClassroom from "@/pages/classrooms/CreateClassroom";
 import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
 import TaskList from "@/pages/tasks/TaskList";
 import CreateTask from "@/pages/tasks/CreateTask";
 import TaskDetails from "@/pages/tasks/TaskDetails";
+import EditTask from "@/pages/tasks/EditTask";
+import CompanyList from "@/pages/companies/CompanyList";
+import CompanyDetails from "@/pages/companies/CompanyDetails";
 import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
@@ -111,6 +115,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path={ROUTES.PROFESSIONAL_COMMUNICATION}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfessionalCommunication />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.PROFILE}
         element={
           <ProtectedRoute>
@@ -186,6 +200,36 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <TaskDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id/edit"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditTask />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyDetails />
             </MainLayout>
           </ProtectedRoute>
         }

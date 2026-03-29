@@ -1,6 +1,9 @@
 import { searchAll } from "@/models/searchModel";
-import type { SearchResult } from "@/types/search";
+import type { SearchResponse, SearchResultType } from "@/types/search";
 
-export const handleSearchAll = async (query: string): Promise<SearchResult[]> => {
-  return await searchAll(query);
+export const handleSearchAll = async (
+  query: string,
+  options?: { limit?: number; types?: SearchResultType[] }
+): Promise<SearchResponse> => {
+  return await searchAll(query, options);
 };
