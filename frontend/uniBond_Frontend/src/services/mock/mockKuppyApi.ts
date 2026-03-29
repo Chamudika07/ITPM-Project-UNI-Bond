@@ -1,27 +1,37 @@
-import { KuppySession } from "@/types/kuppy";
+import type { KuppySession } from "@/types/kuppy";
+
+const lecturer = {
+  id: "u1",
+  firstname: "Senior",
+  lastname: "Lecturer",
+  fullName: "Senior Lecturer",
+  role: "lecturer",
+};
 
 let kuppySessions: KuppySession[] = [
   {
     id: "k1",
-    hostId: "u1",
-    hostName: "Senior Student Kamel",
+    lecturerId: "u1",
     title: "Data Structures Crash Course",
+    moduleName: "CS2020 Data Structures",
     description: "Reviewing trees and graphs before the mid terms.",
-    datetime: new Date(Date.now() + 86400000).toISOString(),
-    pointsEarned: 50,
-    participants: ["u2", "u3"],
-  }
+    scheduledStart: new Date(Date.now() + 86400000).toISOString(),
+    scheduledEnd: new Date(Date.now() + 90000000).toISOString(),
+    maxStudents: 10,
+    status: "scheduled",
+    createdAt: new Date().toISOString(),
+    lecturer,
+    participants: [],
+  },
 ];
 
-export const mockGetKuppySessions = async (): Promise<KuppySession[]> => {
-  return [...kuppySessions];
-};
+export const mockGetKuppySessions = async (): Promise<KuppySession[]> => [...kuppySessions];
 
-export const mockCreateKuppySession = async (data: Omit<KuppySession, "id" | "pointsEarned" | "participants">): Promise<KuppySession> => {
+export const mockCreateKuppySession = async (data: Omit<KuppySession, "id" | "participants" | "createdAt">): Promise<KuppySession> => {
   const newSession: KuppySession = {
     ...data,
-    id: "kp-" + Math.random().toString(36).substring(2, 9),
-    pointsEarned: 10, // Host gets 10 points for creating
+    id: `kp-${Math.random().toString(36).slice(2, 9)}`,
+    createdAt: new Date().toISOString(),
     participants: [],
   };
   kuppySessions.push(newSession);
@@ -29,11 +39,22 @@ export const mockCreateKuppySession = async (data: Omit<KuppySession, "id" | "po
 };
 
 export const mockJoinKuppySession = async (sessionId: string, userId: string): Promise<KuppySession> => {
-  const session = kuppySessions.find(s => s.id === sessionId);
+  const session = kuppySessions.find((item) => item.id === sessionId);
   if (!session) throw new Error("Session not found");
-  if (!session.participants.includes(userId)) {
-      session.participants.push(userId);
-      session.pointsEarned += 5; // Extra points for host when people join
+
+  if (!session.participants.some((participant) => participant.userId === userId)) {
+    session.participants.push({
+      userId,
+      joinedAt: new Date().toISOString(),
+      user: {
+        id: userId,
+        firstname: "Student",
+        lastname: "User",
+        fullName: "Student User",
+        role: "student",
+      },
+    });
   }
+
   return { ...session };
 };

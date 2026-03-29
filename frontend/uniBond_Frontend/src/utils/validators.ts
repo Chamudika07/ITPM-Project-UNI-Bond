@@ -270,15 +270,24 @@ export const validateClassroomForm = (
 
 export const validateKuppyForm = (
   title: string,
+  moduleName: string,
   description: string,
-  datetime: string
-): ValidationResult<"title" | "description" | "datetime"> => {
-  const errors: Partial<Record<"title" | "description" | "datetime", string>> = {};
+  startDatetime: string,
+  endDatetime: string,
+  maxStudents: number
+): ValidationResult<"title" | "moduleName" | "description" | "startDatetime" | "endDatetime" | "maxStudents"> => {
+  const errors: Partial<Record<"title" | "moduleName" | "description" | "startDatetime" | "endDatetime" | "maxStudents", string>> = {};
 
   if (!title.trim()) {
     errors.title = "Topic is required.";
   } else if (title.trim().length < 5) {
     errors.title = "Topic should be at least 5 characters.";
+  }
+
+  if (!moduleName.trim()) {
+    errors.moduleName = "Module name is required.";
+  } else if (moduleName.trim().length < 3) {
+    errors.moduleName = "Module name should be at least 3 characters.";
   }
 
   if (!description.trim()) {
@@ -287,15 +296,114 @@ export const validateKuppyForm = (
     errors.description = "Description should be at least 15 characters.";
   }
 
-  if (!datetime) {
-    errors.datetime = "Date and time are required.";
+  if (!startDatetime) {
+    errors.startDatetime = "Start date and time are required.";
   } else {
-    const scheduledAt = new Date(datetime);
-    if (Number.isNaN(scheduledAt.getTime())) {
-      errors.datetime = "Enter a valid date and time.";
-    } else if (scheduledAt <= new Date()) {
-      errors.datetime = "Please schedule the session for a future time.";
+    const scheduledStart = new Date(startDatetime);
+    if (Number.isNaN(scheduledStart.getTime())) {
+      errors.startDatetime = "Enter a valid start date and time.";
+    } else if (scheduledStart <= new Date()) {
+      errors.startDatetime = "Please schedule the session for a future time.";
     }
+  }
+
+  if (!endDatetime) {
+    errors.endDatetime = "End date and time are required.";
+  } else {
+    const scheduledEnd = new Date(endDatetime);
+    const scheduledStart = new Date(startDatetime);
+    if (Number.isNaN(scheduledEnd.getTime())) {
+      errors.endDatetime = "Enter a valid end date and time.";
+    } else if (!Number.isNaN(scheduledStart.getTime()) && scheduledEnd <= scheduledStart) {
+      errors.endDatetime = "End time must be after the start time.";
+    } else if (!Number.isNaN(scheduledStart.getTime()) && scheduledEnd.getTime() - scheduledStart.getTime() < 30 * 60 * 1000) {
+      errors.endDatetime = "Session duration should be at least 30 minutes.";
+    }
+  }
+
+  if (!Number.isFinite(maxStudents) || maxStudents < 1 || maxStudents > 500) {
+    errors.maxStudents = "Maximum students must be between 1 and 500.";
+  }
+
+  return createResult(errors);
+};
+
+export const validateKuppyRequestForm = (
+  moduleName: string,
+  description: string,
+  requestedBefore: string,
+  currentStudentCount: number
+): ValidationResult<"moduleName" | "description" | "requestedBefore" | "currentStudentCount"> => {
+  const errors: Partial<Record<"moduleName" | "description" | "requestedBefore" | "currentStudentCount", string>> = {};
+
+  if (!moduleName.trim()) {
+    errors.moduleName = "Module name is required.";
+  } else if (moduleName.trim().length < 3) {
+    errors.moduleName = "Module name should be at least 3 characters.";
+  }
+
+  if (!description.trim()) {
+    errors.description = "Description is required.";
+  } else if (description.trim().length < 15) {
+    errors.description = "Description should be at least 15 characters.";
+  }
+
+  if (!requestedBefore) {
+    errors.requestedBefore = "Needed before date is required.";
+  } else {
+    const neededBefore = new Date(requestedBefore);
+    if (Number.isNaN(neededBefore.getTime())) {
+      errors.requestedBefore = "Enter a valid deadline.";
+    } else if (neededBefore <= new Date()) {
+      errors.requestedBefore = "Please choose a future deadline.";
+    }
+  }
+
+  if (!Number.isFinite(currentStudentCount) || currentStudentCount < 1 || currentStudentCount > 500) {
+    errors.currentStudentCount = "Student count must be between 1 and 500.";
+  }
+
+  return createResult(errors);
+};
+
+export const validateKuppyOfferForm = (
+  availabilityStart: string,
+  availabilityEnd: string,
+  description: string
+): ValidationResult<"availabilityStart" | "availabilityEnd" | "description"> => {
+  const errors: Partial<Record<"availabilityStart" | "availabilityEnd" | "description", string>> = {};
+
+  if (!availabilityStart) {
+    errors.availabilityStart = "Availability start is required.";
+  }
+
+  if (!availabilityEnd) {
+    errors.availabilityEnd = "Availability end is required.";
+  }
+
+  if (availabilityStart && availabilityEnd) {
+    const start = new Date(availabilityStart);
+    const end = new Date(availabilityEnd);
+
+    if (Number.isNaN(start.getTime())) {
+      errors.availabilityStart = "Enter a valid availability start time.";
+    } else if (start <= new Date()) {
+      errors.availabilityStart = "Availability start must be in the future.";
+    }
+
+    if (Number.isNaN(end.getTime())) {
+      errors.availabilityEnd = "Enter a valid availability end time.";
+    } else if (!Number.isNaN(start.getTime()) && end <= start) {
+      errors.availabilityEnd = "Availability end must be after the start time.";
+    } else if (!Number.isNaN(start.getTime()) && end.getTime() - start.getTime() < 30 * 60 * 1000) {
+      errors.availabilityEnd = "Offer duration should be at least 30 minutes.";
+    }
+  }
+
+  if (!description.trim()) {
+    errors.description = "Offer description is required.";
+  } else if (description.trim().length < 10) {
+    errors.description = "Offer description should be at least 10 characters.";
   }
 
   return createResult(errors);
