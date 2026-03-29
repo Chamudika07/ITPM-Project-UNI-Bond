@@ -147,16 +147,22 @@ const mapUserSummaryResponse = (data: any): UserSummary => {
   const firstname = data.first_name || data.firstname || "User";
   const lastname = data.last_name || data.lastname || "";
   const email = data.email || "";
+  const avatar =
+    resolveAssetUrl(data.avatar_path || data.avatar) ||
+    buildAvatar(firstname, lastname, email);
 
   return {
     id: String(data.id),
     firstname,
     lastname,
+    fullName: `${firstname} ${lastname}`.trim(),
     email,
     role: (data.role || "student") as Role,
-    avatar: data.avatar || buildAvatar(firstname, lastname, email),
+    avatar,
     city: data.city || undefined,
     country: data.country || undefined,
+    location: buildLocation(data.city, data.country),
+    profilePath: `/profile/${data.id}`,
     isFollowing: Boolean(data.is_following),
   };
 };

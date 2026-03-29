@@ -1,13 +1,25 @@
-import type { ProfileConnectionStats, User } from "@/types/user";
+import type { ProfileConnectionStats, User, UserSummary } from "@/types/user";
 import SectionCard from "@/components/common/SectionCard";
 import { Mail, GraduationCap, MapPin, Home, Briefcase, Star } from "lucide-react";
+import ProfileConnectionsCard from "./ProfileConnectionsCard";
 
 type Props = {
   user: User;
   stats: ProfileConnectionStats;
+  connections: UserSummary[];
+  connectionsLoading?: boolean;
+  connectionsError?: string;
+  isOwnProfile: boolean;
 };
 
-export default function ProfileLeftColumn({ user, stats }: Props) {
+export default function ProfileLeftColumn({
+  user,
+  stats,
+  connections,
+  connectionsLoading = false,
+  connectionsError = "",
+  isOwnProfile,
+}: Props) {
   const currentLocation = [user.city, user.country].filter(Boolean).join(", ") || "Location not shared";
 
   return (
@@ -43,23 +55,15 @@ export default function ProfileLeftColumn({ user, stats }: Props) {
           </div>
         </div>
       </SectionCard>
-      
-      {/* Friends Preview */}
-      <div className="bg-white rounded-xl shadow-sm p-4 w-full">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-gray-900">Connections</h3>
-          <button className="text-blue-600 font-semibold cursor-pointer text-sm hover:underline">See All</button>
-        </div>
-        <p className="text-xs text-gray-500 mb-4">{stats.connections} connections</p>
-        <div className="grid grid-cols-3 gap-2">
-          {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="flex flex-col items-center">
-              <img src={`https://ui-avatars.com/api/?name=Friend+${i}&background=random`} alt="" className="w-full aspect-square rounded-lg object-cover mb-1"/>
-              <span className="text-xs font-medium text-gray-700 w-full truncate text-center">Friend {i}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+
+      <ProfileConnectionsCard
+        connections={connections}
+        totalConnections={stats.connections}
+        loading={connectionsLoading}
+        error={connectionsError}
+        isOwnProfile={isOwnProfile}
+      />
+
       {/* Top 10 Students Leaderboard */}
       {user.role === "company" && (
         <div className="bg-white rounded-xl shadow-sm p-4 w-full border border-blue-100">

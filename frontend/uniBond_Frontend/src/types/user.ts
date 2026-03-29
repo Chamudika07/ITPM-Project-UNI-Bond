@@ -79,11 +79,14 @@ export interface UserSummary {
   id: string;
   firstname: string;
   lastname: string;
+  fullName: string;
   email: string;
   role: Role;
   avatar: string;
   city?: string;
   country?: string;
+  location?: string;
+  profilePath: string;
   isFollowing?: boolean;
 }
 

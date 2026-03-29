@@ -124,7 +124,7 @@ export default function ProfileHeader({
 
   return (
     <>
-      <div className="bg-white rounded-b-xl shadow-sm mb-6 pb-6 lg:mt-[-24px] lg:mx-[0px]">
+      <div className="panel-surface rounded-b-xl mb-6 pb-6 lg:mt-[-24px] lg:mx-[0px]">
         {/* Cover Photo */}
         <div className="h-48 md:h-64 w-full rounded-b-none lg:rounded-t-xl overflow-hidden relative bg-gradient-to-r from-blue-400 to-indigo-600">
           {user.cover ? (
@@ -138,9 +138,9 @@ export default function ProfileHeader({
                   type="button"
                   onClick={triggerCoverPicker}
                   disabled={coverUploading}
-                  className="relative z-20 inline-flex min-h-12 items-center gap-3 rounded-[1.35rem] bg-slate-50/95 px-7 py-3 text-sm font-semibold text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.22)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
+                  className="relative z-20 inline-flex min-h-12 items-center gap-3 rounded-[1.35rem] border border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface-elevated)_94%,white)] px-7 py-3 text-sm font-semibold text-[var(--text-primary)] shadow-[var(--shadow-soft)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-[var(--surface-elevated)] disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
                 >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-soft)] text-[var(--brand-strong)]">
                       <Camera className="h-4 w-4" />
                     </span>
                     {coverUploading ? "Saving Cover..." : user.cover ? "Change Cover Photo" : "Add Cover Photo"}
@@ -175,11 +175,18 @@ export default function ProfileHeader({
             </div>
             {isOwnProfile && (
               <div className="flex gap-2">
-                <button type="button" onClick={onEditProfile} className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition text-sm sm:text-base">
+                <button
+                  type="button"
+                  onClick={onEditProfile}
+                  className="btn-secondary flex items-center gap-1 border border-[var(--border-soft)] px-3 py-2 text-sm sm:gap-2 sm:px-4 sm:text-base"
+                >
                   <Edit2 className="w-4 h-4" />
                   <span className="inline">Edit Profile</span>
                 </button>
-                <button onClick={onLogout} className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-semibold transition text-sm sm:text-base">
+                <button
+                  onClick={onLogout}
+                  className="btn-danger flex items-center gap-1 px-3 py-2 text-sm sm:gap-2 sm:px-4 sm:text-base"
+                >
                   <LogOut className="w-4 h-4" />
                   <span className="hidden sm:inline">Logout</span>
                 </button>
@@ -187,14 +194,14 @@ export default function ProfileHeader({
             )}
             {!isOwnProfile && (
               <div className="flex w-full sm:w-auto justify-center sm:justify-end">
-                <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-left shadow-sm">
+                <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--accent-soft)] px-4 py-3 text-left shadow-sm">
                   <div className="flex items-center gap-3">
                     <FollowButton
                       isFollowing={isFollowing}
                       loading={followLoading}
                       onToggle={() => onFollowToggle?.()}
                     />
-                    <span className="text-xs font-medium text-blue-700">
+                    <span className="text-xs font-medium text-[var(--accent)]">
                       {isFollowing ? "You are following this profile." : "Follow this profile to stay updated."}
                     </span>
                   </div>

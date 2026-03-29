@@ -9,9 +9,9 @@ import EditProfileModal from "./EditProfileModal";
 import CreatePostEntry from "@/components/post/CreatePostEntry";
 import PostList from "@/components/post/PostList";
 import { handleGetUserPosts, handleLikePost, handleAddComment, handleRepostPost } from "@/controllers/postController";
-import { handleFollowUser, handleGetUserProfile, handleUnfollowUser, handleUpdateUserProfile, handleUploadUserAvatar, handleUploadUserCover } from "@/controllers/userController";
+import { handleFollowUser, handleGetFollowing, handleGetUserProfile, handleUnfollowUser, handleUpdateUserProfile, handleUploadUserAvatar, handleUploadUserCover } from "@/controllers/userController";
 import type { Post } from "@/types/post";
-import type { ProfileConnectionStats, UserProfileData, UserProfileUpdatePayload } from "@/types/user";
+import type { ProfileConnectionStats, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 import { getUserDisplayName } from "@/utils/formatters";
 
 export default function Profile() {
@@ -24,6 +24,9 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
+  const [connections, setConnections] = useState<UserSummary[]>([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
+  const [connectionsError, setConnectionsError] = useState("");
   const [followLoading, setFollowLoading] = useState(false);
   const [followError, setFollowError] = useState("");
   const [editOpen, setEditOpen] = useState(false);
@@ -73,6 +76,31 @@ export default function Profile() {
     };
 
     loadProfile();
+  }, [activeUserId, user]);
+
+  useEffect(() => {
+    const loadConnections = async () => {
+      if (!user || !activeUserId) {
+        setConnections([]);
+        setConnectionsLoading(false);
+        return;
+      }
+
+      try {
+        setConnectionsLoading(true);
+        setConnectionsError("");
+        const nextConnections = await handleGetFollowing(activeUserId);
+        setConnections(nextConnections);
+      } catch (error) {
+        console.error("Failed to load profile connections", error);
+        setConnections([]);
+        setConnectionsError("Connections could not be loaded right now.");
+      } finally {
+        setConnectionsLoading(false);
+      }
+    };
+
+    loadConnections();
   }, [activeUserId, user]);
 
   useEffect(() => {
@@ -202,7 +230,14 @@ export default function Profile() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:px-0 mt-4">
         {/* Left Column */}
         <div className="md:col-span-5 lg:col-span-4">
-          <ProfileLeftColumn user={profileUser} stats={profileStats} />
+          <ProfileLeftColumn
+            user={profileUser}
+            stats={profileStats}
+            connections={connections}
+            connectionsLoading={connectionsLoading}
+            connectionsError={connectionsError}
+            isOwnProfile={isOwnProfile}
+          />
         </div>
         
         {/* Center / Right Column */}

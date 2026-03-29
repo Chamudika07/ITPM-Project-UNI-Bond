@@ -137,7 +137,8 @@ select {
 
 .btn-primary,
 .btn-secondary,
-.btn-ghost {
+.btn-ghost,
+.btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -170,6 +171,17 @@ select {
 
 .btn-ghost {
   color: var(--text-secondary);
+}
+
+.btn-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, var(--border-soft));
+}
+
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--danger-soft) 76%, var(--surface-elevated));
+  transform: translateY(-1px);
 }
 
 .status-error,
