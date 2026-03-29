@@ -8,6 +8,8 @@ import {
   User,
   LogOut,
   Shield,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 import AppLogo from "@/components/common/AppLogo";
@@ -15,9 +17,12 @@ import SearchBar from "@/components/common/SearchBar";
 import IconNavButton from "@/components/common/IconNavButton";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import { useTheme } from "@/hooks/useTheme";
+import { getInitialsFromName, getUserDisplayName } from "@/utils/formatters";
 
 export default function TopNavbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -38,18 +43,33 @@ export default function TopNavbar() {
     navigate(ROUTES.LOGIN);
   };
 
+  const displayName = user ? getUserDisplayName(user) : "";
+  const userInitials = displayName ? getInitialsFromName(displayName) : "";
+
   return (
-    <nav className="bg-gray-300 text-gray-900 shadow-lg sticky top-0 z-50">
+    <nav className="sticky top-0 z-50 border-b border-[var(--border-soft)] bg-[color:color-mix(in_srgb,var(--surface)_88%,transparent)] text-[var(--text-primary)] shadow-lg backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to={ROUTES.HOME} className="flex items-center">
-            <AppLogo />
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-elevated)] text-[var(--text-primary)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--surface-muted)]"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-700" />}
+            </button>
+
+            {/* Logo */}
+            <Link to={ROUTES.HOME} className="flex items-center">
+              <AppLogo />
+            </Link>
+          </div>
 
           {/* Search Bar */}
           <div className="flex-1 max-w-xl mx-8">
-            <SearchBar className="w-full text-gray-900" />
+            <SearchBar className="w-full" />
           </div>
 
           {/* Navigation Buttons */}
@@ -62,22 +82,32 @@ export default function TopNavbar() {
             <div className="relative ml-2" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-700 hover:bg-blue-800 transition overflow-hidden border-2 border-transparent hover:border-white focus:outline-none"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--brand)] hover:bg-[var(--brand-strong)] transition overflow-hidden border-2 border-transparent hover:border-[var(--surface-elevated)] focus:outline-none"
               >
                 {user ? (
-                  <span className="text-sm font-bold uppercase">{user.firstname.charAt(0)}{user.lastname.charAt(0)}</span>
+                  user.avatar ? (
+                    <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold uppercase">{userInitials}</span>
+                  )
                 ) : (
                   <User className="w-5 h-5" />
                 )}
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg py-1.5 z-50 border border-gray-200 text-gray-800">
+                <div className="absolute right-0 mt-2 w-56 panel-surface rounded-xl py-1.5 z-50 text-[var(--text-primary)]">
+                  {user && (
+                    <div className="px-4 py-3 border-b border-[var(--border-soft)]">
+                      <p className="font-semibold text-sm truncate">{displayName}</p>
+                      <p className="text-xs text-[var(--text-secondary)] capitalize mt-0.5">{user.role.replace("_", " ")}</p>
+                    </div>
+                  )}
                   {/* Admin Panel link — only for admins */}
                   {user?.role === "admin" && (
                     <Link
                       to="/admin"
-                      className="block px-4 py-2.5 text-sm hover:bg-blue-50 text-blue-700 font-semibold flex items-center gap-2 border-b border-gray-100"
+                      className="block px-4 py-2.5 text-sm hover:bg-[var(--brand-soft)] text-[var(--brand)] font-semibold flex items-center gap-2 border-b border-[var(--border-soft)]"
                       onClick={() => setDropdownOpen(false)}
                     >
                       <Shield className="w-4 h-4" />
@@ -86,7 +116,7 @@ export default function TopNavbar() {
                   )}
                   <Link
                     to={ROUTES.PROFILE}
-                    className="block px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                    className="block px-4 py-2 text-sm hover:bg-[var(--surface-muted)] flex items-center gap-2"
                     onClick={() => setDropdownOpen(false)}
                   >
                     <User className="w-4 h-4" />
@@ -94,7 +124,7 @@ export default function TopNavbar() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 font-medium"
+                    className="block w-full text-left px-4 py-2 text-sm text-[var(--danger)] hover:bg-[var(--surface-muted)] flex items-center gap-2 font-medium"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout

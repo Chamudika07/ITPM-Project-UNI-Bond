@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin
+from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search
 import os
 
 app = FastAPI(title="Uni Bond")
@@ -35,6 +35,7 @@ app.include_router(classroom.router)
 app.include_router(task.router)
 app.include_router(notice_notification.router)
 app.include_router(admin.router)
+app.include_router(search.router)
 
 
 @app.get("/")

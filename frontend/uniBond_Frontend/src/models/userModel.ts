@@ -1,16 +1,29 @@
 import apiClient from "@/services/api/axiosClient";
 import { mockGetDiscoverUsers, mockGetUserById } from "@/services/mock/mockUserApi";
-import type { DiscoverUser, Role, User, UserProfileData, UserSummary } from "@/types/user";
+import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 
 const buildAvatar = (firstname: string, lastname: string, email: string) => {
   const label = `${firstname} ${lastname}`.trim() || email || "Uni Bond";
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(label)}&background=e5e7eb&color=374151`;
 };
 
+const resolveAssetUrl = (path?: string | null): string | undefined => {
+  if (!path) return undefined;
+  if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("data:")) {
+    return path;
+  }
+
+  const trimmed = path.replace(/^\.?\/*/, "");
+  const uploadsIndex = trimmed.indexOf("uploads/");
+  const publicPath = uploadsIndex >= 0 ? `/${trimmed.slice(uploadsIndex)}` : `/${trimmed}`;
+  const baseUrl = ((import.meta as any).env?.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+  return `${baseUrl}${publicPath}`;
+};
+
 const buildLocation = (city?: string, country?: string) =>
   [city, country].filter(Boolean).join(", ") || undefined;
 
-const mapApiUserToFrontendUser = (data: any): User => {
+export const mapApiUserToFrontendUser = (data: any): User => {
   const base = {
     id: String(data.id),
     user_code: data.user_code,
@@ -19,9 +32,13 @@ const mapApiUserToFrontendUser = (data: any): User => {
     email: data.email || "",
     password: "",
     role: (data.role || "student") as Role,
+    description: data.description || undefined,
     avatar:
-      data.avatar ||
+      resolveAssetUrl(data.avatar_path || data.avatar) ||
       buildAvatar(data.first_name || data.firstname || "User", data.last_name || data.lastname || "", data.email || ""),
+    avatar_path: data.avatar_path || undefined,
+    cover: resolveAssetUrl(data.cover_path || data.cover),
+    cover_path: data.cover_path || undefined,
     city: data.city || "",
     country: data.country || "",
     mobile: data.mobile || "",
@@ -91,12 +108,24 @@ const mapDiscoverUserResponse = (data: any): DiscoverUser => {
     country: data.country || undefined,
     location: buildLocation(data.city, data.country),
     profilePath: `/profile/${data.id}`,
+    isFollowing: Boolean(data.is_following),
   };
 };
 
-export const getDiscoverUsers = async (limit = 5, roles?: Role[]): Promise<DiscoverUser[]> => {
+export const getDiscoverUsers = async (
+  limit = 5,
+  roles?: Role[],
+  options?: { excludeFollowed?: boolean; excludeUserId?: string }
+): Promise<DiscoverUser[]> => {
   try {
-    const response = await apiClient.get("/users/discover", { params: { limit, roles } });
+    const response = await apiClient.get("/users/discover", {
+      params: {
+        limit,
+        roles,
+        exclude_followed: options?.excludeFollowed,
+        exclude_user_id: options?.excludeUserId,
+      },
+    });
     return response.data.map(mapDiscoverUserResponse);
   } catch (error) {
     console.warn("Falling back to mock discover users.", error);
@@ -118,16 +147,46 @@ const mapUserSummaryResponse = (data: any): UserSummary => {
   const firstname = data.first_name || data.firstname || "User";
   const lastname = data.last_name || data.lastname || "";
   const email = data.email || "";
+  const avatar =
+    resolveAssetUrl(data.avatar_path || data.avatar) ||
+    buildAvatar(firstname, lastname, email);
 
   return {
     id: String(data.id),
     firstname,
     lastname,
+    fullName: `${firstname} ${lastname}`.trim(),
+    email,
+    role: (data.role || "student") as Role,
+    avatar,
+    city: data.city || undefined,
+    country: data.country || undefined,
+    location: buildLocation(data.city, data.country),
+    profilePath: `/profile/${data.id}`,
+    isFollowing: Boolean(data.is_following),
+  };
+};
+
+const mapOnlineContactResponse = (data: any): OnlineContact => {
+  const firstname = data.first_name || data.firstname || "User";
+  const lastname = data.last_name || data.lastname || "";
+  const email = data.email || "";
+
+  return {
+    id: String(data.id),
+    firstname,
+    lastname,
+    fullName: `${firstname} ${lastname}`.trim(),
     email,
     role: (data.role || "student") as Role,
     avatar: data.avatar || buildAvatar(firstname, lastname, email),
     city: data.city || undefined,
     country: data.country || undefined,
+    location: buildLocation(data.city, data.country),
+    lastSeen: data.last_seen || undefined,
+    isOnline: Boolean(data.is_online),
+    isFollowing: Boolean(data.is_following),
+    profilePath: `/profile/${data.id}`,
   };
 };
 
@@ -171,4 +230,53 @@ export const getFollowing = async (userId: string): Promise<UserSummary[]> => {
 export const getFollowStatus = async (userId: string): Promise<boolean> => {
   const response = await apiClient.get(`/users/${userId}/follow-status`);
   return Boolean(response.data?.is_following);
+};
+
+export const getOnlineUsers = async (limit = 10): Promise<OnlineContact[]> => {
+  const response = await apiClient.get("/users/online-users", { params: { limit } });
+  return response.data.map(mapOnlineContactResponse);
+};
+
+export const sendPresenceHeartbeat = async (): Promise<void> => {
+  await apiClient.post("/users/presence/heartbeat");
+};
+
+export const updateUserProfile = async (userId: string, payload: UserProfileUpdatePayload): Promise<User> => {
+  const response = await apiClient.put(`/users/${userId}`, {
+    first_name: payload.firstname.trim(),
+    last_name: payload.lastname.trim(),
+    username: payload.email.trim().toLowerCase(),
+    email: payload.email.trim().toLowerCase(),
+    city: payload.city.trim(),
+    country: payload.country.trim(),
+    mobile: payload.mobile.trim(),
+    password: payload.password?.trim() || undefined,
+    school: payload.school?.trim() || undefined,
+    education_status: payload.education?.trim() || undefined,
+    company_name: payload.companyName?.trim() || undefined,
+    industry: payload.industry?.trim() || undefined,
+    company_size: payload.companySize?.trim() || undefined,
+    industry_expertise: payload.industryExpertise?.trim() || undefined,
+    years_of_experience: payload.yearsOfExperience?.trim() || undefined,
+  });
+
+  return mapApiUserToFrontendUser(response.data);
+};
+
+export const uploadUserAvatar = async (userId: string, file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post(`/users/${userId}/avatar`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return mapApiUserToFrontendUser(response.data);
+};
+
+export const uploadUserCover = async (userId: string, file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post(`/users/${userId}/cover`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return mapApiUserToFrontendUser(response.data);
 };

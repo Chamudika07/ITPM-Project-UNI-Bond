@@ -17,7 +17,7 @@ export default function MainLayout({ children }: Props) {
     location.pathname.startsWith('/professional-communication');
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[var(--bg-app)] text-[var(--text-primary)]">
       <TopNavbar />
       <div className="max-w-7xl mx-auto px-4 py-6">
         {isProfilePage ? (

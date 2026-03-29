@@ -2,15 +2,10 @@ import { useState, useEffect, type ReactNode } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import type { User } from "@/types/user";
 import apiClient from "@/services/api/axiosClient";
+import { handlePresenceHeartbeat } from "@/controllers/userController";
+import { mapApiUserToFrontendUser } from "@/models/userModel";
 
-const mapUser = (data: any): User => ({
-    ...data,
-    id: String(data.id),
-    firstname: data.first_name || data.firstname || "User",
-    lastname: data.last_name || data.lastname || "",
-    email: data.email,
-    role: data.role
-});
+const mapUser = (data: any): User => mapApiUserToFrontendUser(data);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -33,9 +28,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initAuth();
     }, []);
 
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+
+        let intervalId: number | undefined;
+
+        const beat = async () => {
+            try {
+                await handlePresenceHeartbeat();
+            } catch (err) {
+                console.error("Failed to update presence", err);
+            }
+        };
+
+        void beat();
+        intervalId = window.setInterval(() => {
+            if (!document.hidden) {
+                void beat();
+            }
+        }, 60000);
+
+        const onVisibilityChange = () => {
+            if (!document.hidden) {
+                void beat();
+            }
+        };
+
+        document.addEventListener("visibilitychange", onVisibilityChange);
+
+        return () => {
+            if (intervalId) {
+                window.clearInterval(intervalId);
+            }
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [user]);
+
     const login = (userData: any, token: string) => {
         setUser(mapUser(userData));
         localStorage.setItem("token", token);
+    };
+
+    const updateUser = (userData: User) => {
+        setUser(userData);
     };
 
     const logout = () => {
@@ -46,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (loading) return null; // Or a nice Loader depending on app design
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, updateUser, logout }}>
             {children}
         </AuthContext.Provider>
     );
