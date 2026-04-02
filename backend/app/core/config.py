@@ -1,4 +1,5 @@
-from  pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     database_hostname: str
@@ -9,6 +10,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int
+    debug: Optional[bool] = False
     
     class Config:
         env_file = ".env"
