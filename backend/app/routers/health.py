@@ -1,8 +1,18 @@
 from fastapi import APIRouter
 
-from app.core.config import settings
-from app.schemas.ai_text import AIServiceHealthResponse
-from app.services.text_moderation_service import get_inference_backend, is_model_loaded
+from app.schemas.ai_image import AIModelComponentHealth, AIServiceHealthResponse
+from app.services.image_moderation_service import (
+    get_image_inference_backend,
+    get_image_model_error,
+    get_image_model_name,
+    is_image_model_loaded,
+)
+from app.services.text_moderation_service import (
+    get_inference_backend,
+    get_model_error,
+    get_text_model_name,
+    is_model_loaded,
+)
 
 router = APIRouter(tags=["Health"])
 
@@ -13,7 +23,16 @@ def health_check() -> AIServiceHealthResponse:
     return AIServiceHealthResponse(
         status="ok",
         service="UniBond API",
-        model_name=settings.ai_text_model_name,
-        model_loaded=is_model_loaded(),
-        inference_backend=get_inference_backend(),
+        text_ai=AIModelComponentHealth(
+            model_name=get_text_model_name(),
+            model_loaded=is_model_loaded(),
+            inference_backend=get_inference_backend(),
+            detail=get_model_error(),
+        ),
+        image_ai=AIModelComponentHealth(
+            model_name=get_image_model_name(),
+            model_loaded=is_image_model_loaded(),
+            inference_backend=get_image_inference_backend(),
+            detail=get_image_model_error(),
+        ),
     )

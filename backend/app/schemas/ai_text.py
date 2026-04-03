@@ -60,13 +60,3 @@ class ErrorResponse(BaseModel):
     """Simple reusable error shape for documented API responses."""
 
     detail: str
-
-
-class AIServiceHealthResponse(BaseModel):
-    """Health information for the text AI service."""
-
-    status: Literal["ok"]
-    service: str
-    model_name: str
-    model_loaded: bool
-    inference_backend: Literal["transformers", "fallback_rules"]

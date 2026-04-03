@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
 from app.core.config import settings
 from app.schemas.ai_text import TextModerationResponse
+
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 try:
     from transformers import pipeline
@@ -117,6 +120,14 @@ def is_model_loaded() -> bool:
 
 def get_inference_backend() -> str:
     return "transformers" if is_model_loaded() else "fallback_rules"
+
+
+def get_model_error() -> str | None:
+    return _classifier_load_error
+
+
+def get_text_model_name() -> str:
+    return settings.ai_text_model_name
 
 
 def moderate_text(text: str) -> TextModerationResponse:

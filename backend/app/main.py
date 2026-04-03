@@ -5,11 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
+from app.core.runtime import configure_runtime_environment
+
+configure_runtime_environment()
+
 import app.models  # noqa: F401
 from app.db.base import Base
 from app.db.database import engine
 from app.routers import (
     admin,
+    ai_image,
     ai_text,
     classroom,
     group,
@@ -63,6 +68,7 @@ app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
 app.include_router(ai_text.router)
+app.include_router(ai_image.router)
 app.include_router(health.router)
 
 
