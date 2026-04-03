@@ -1,12 +1,27 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search
+import os
+
+import app.models  # noqa: F401
 from app.db.base import Base
 from app.db.database import engine
-import app.models  # noqa: F401
-import os
+from app.routers import (
+    admin,
+    ai_text,
+    classroom,
+    group,
+    health,
+    kuppy,
+    login,
+    notice_notification,
+    post,
+    search,
+    task,
+    user,
+)
 
 
 @asynccontextmanager
@@ -47,6 +62,8 @@ app.include_router(task.router)
 app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
+app.include_router(ai_text.router)
+app.include_router(health.router)
 
 
 @app.get("/")
