@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import apiClient from "@/services/api/axiosClient";
 
 export type Session = {
   id: string;
@@ -9,7 +10,11 @@ export type Session = {
   description: string;
   link: string;
   tags: string[];
-  creatorId: string; // To allow only the creator to edit/delete
+  seatCount: number;
+  availableSeats: number;
+  registeredCount: number;
+  isRegistered: boolean;
+  creatorId: string;
 };
 
 export type Attendee = {
@@ -23,104 +28,174 @@ export type Attendee = {
 type ProfessionalCommunicationContextType = {
   sessions: Session[];
   attendees: Attendee[];
-  addSession: (session: Omit<Session, "id">) => void;
-  updateSession: (id: string, updatedSession: Omit<Session, "id">) => void;
-  deleteSession: (id: string) => void;
-  registerStudent: (sessionId: string, studentId: string, studentName: string, studentEmail: string) => void;
+  addSession: (session: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => Promise<{ ok: boolean; message: string }>;
+  updateSession: (id: string, updatedSession: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => Promise<{ ok: boolean; message: string }>;
+  deleteSession: (id: string) => Promise<{ ok: boolean; message: string }>;
+  registerStudent: (sessionId: string, studentId: string, studentName: string, studentEmail: string) => Promise<{ ok: boolean; message: string }>;
   getAttendeesForSession: (sessionId: string) => Attendee[];
   isStudentRegistered: (sessionId: string, studentId: string) => boolean;
+  getAvailableSeats: (sessionId: string) => number;
+  refreshSessions: () => Promise<void>;
 };
 
 const ProfessionalCommunicationContext = createContext<ProfessionalCommunicationContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY_SESSIONS = "uniBond_prof_sessions";
-const LOCAL_STORAGE_KEY_ATTENDEES = "uniBond_prof_attendees";
+type ApiSession = {
+  id: number;
+  title: string;
+  speaker: string;
+  description: string;
+  session_date: string;
+  session_time: string;
+  zoom_link?: string | null;
+  seat_count: number;
+  available_seats: number;
+  registered_count: number;
+  tags: string[];
+  creator_id: string;
+  is_registered: boolean;
+};
 
-const MOCK_INITIAL_SESSIONS: Session[] = [
-  {
-    id: "1",
-    title: "Navigating Tech Careers in 2026",
-    speaker: "Jane Doe",
-    date: "2026-03-25",
-    time: "18:00",
-    description: "An open session to discuss the current tech landscape and how to effectively build your career.",
-    link: "https://meet.google.com/xyz-abc-def",
-    tags: ["Career", "Tech", "Q&A"],
-    creatorId: "mock-tech-leader-id" // This should match a tech leader's ID or we just rely on role for demo
-  },
-  {
-    id: "2",
-    title: "Mastering System Design Interviews",
-    speaker: "John Smith",
-    date: "2026-04-02",
-    time: "17:30",
-    description: "Deep dive into system design principles and how to approach common interview problems.",
-    link: "https://zoom.us/j/123456789",
-    tags: ["System Design", "Interview Prep"],
-    creatorId: "mock-tech-leader-id"
+const toSession = (item: ApiSession): Session => ({
+  id: String(item.id),
+  title: item.title,
+  speaker: item.speaker,
+  date: item.session_date,
+  time: item.session_time,
+  description: item.description,
+  link: item.zoom_link ?? "",
+  tags: item.tags ?? [],
+  seatCount: item.seat_count,
+  availableSeats: item.available_seats,
+  registeredCount: item.registered_count,
+  isRegistered: item.is_registered,
+  creatorId: item.creator_id,
+});
+
+const getApiErrorMessage = (error: any, fallback: string): string => {
+  const response = error?.response;
+  const data = response?.data;
+  const detail = data?.detail;
+
+  if (!response) {
+    return "Cannot reach backend server. Please ensure backend is running on http://localhost:8000.";
   }
-];
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data && typeof data === "object" && "message" in data && typeof data.message === "string") {
+    return data.message;
+  }
+
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const joined = detail
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "msg" in item) {
+          const loc = Array.isArray((item as { loc?: unknown }).loc)
+            ? String((item as { loc: unknown[] }).loc[(item as { loc: unknown[] }).loc.length - 1])
+            : "";
+          const msg = String((item as { msg: unknown }).msg);
+          return loc ? `${loc}: ${msg}` : msg;
+        }
+        return "";
+      })
+      .filter(Boolean)
+      .join(" ");
+
+    return joined || fallback;
+  }
+
+  if (detail && typeof detail === "object" && "msg" in detail) {
+    return String((detail as { msg: unknown }).msg);
+  }
+
+  if (response?.status) {
+    return `Request failed (${response.status}). Please try again.`;
+  }
+
+  return fallback;
+};
 
 export function ProfessionalCommunicationProvider({ children }: { children: ReactNode }) {
-  const [sessions, setSessions] = useState<Session[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_SESSIONS);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return MOCK_INITIAL_SESSIONS;
-      }
-    }
-    return MOCK_INITIAL_SESSIONS;
-  });
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
 
-  const [attendees, setAttendees] = useState<Attendee[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_ATTENDEES);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return [];
-      }
+  const refreshSessions = useCallback(async () => {
+    try {
+      const response = await apiClient.get<ApiSession[]>("/professional-sessions");
+      setSessions(response.data.map(toSession));
+    } catch (error) {
+      console.error("Failed to load professional sessions", error);
+      setSessions([]);
     }
-    return [];
-  });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY_SESSIONS, JSON.stringify(sessions));
-  }, [sessions]);
+    void refreshSessions();
+  }, [refreshSessions]);
 
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY_ATTENDEES, JSON.stringify(attendees));
-  }, [attendees]);
-
-  const addSession = (sessionData: Omit<Session, "id">) => {
-    const newSession: Session = {
-      ...sessionData,
-      id: Date.now().toString()
-    };
-    setSessions(prev => [newSession, ...prev]);
+  const addSession = async (sessionData: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => {
+    try {
+      await apiClient.post("/professional-sessions", {
+        title: sessionData.title,
+        description: sessionData.description,
+        session_date: sessionData.date,
+        session_time: sessionData.time,
+        zoom_link: sessionData.link,
+        seat_count: sessionData.seatCount,
+        tags: sessionData.tags,
+      });
+      await refreshSessions();
+      return { ok: true, message: "Session created." };
+    } catch (error: any) {
+      return { ok: false, message: getApiErrorMessage(error, "Failed to create session.") };
+    }
   };
 
-  const updateSession = (id: string, updatedSession: Omit<Session, "id">) => {
-    setSessions(prev => prev.map(s => s.id === id ? { ...updatedSession, id } : s));
+  const updateSession = async (id: string, updatedSession: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => {
+    try {
+      await apiClient.put(`/professional-sessions/${id}`, {
+        title: updatedSession.title,
+        description: updatedSession.description,
+        session_date: updatedSession.date,
+        session_time: updatedSession.time,
+        zoom_link: updatedSession.link,
+        seat_count: updatedSession.seatCount,
+        tags: updatedSession.tags,
+      });
+      await refreshSessions();
+      return { ok: true, message: "Session updated." };
+    } catch (error: any) {
+      return { ok: false, message: getApiErrorMessage(error, "Failed to update session.") };
+    }
   };
 
-  const deleteSession = (id: string) => {
-    setSessions(prev => prev.filter(s => s.id !== id));
-    // Also remove attendees for this session
-    setAttendees(prev => prev.filter(a => a.sessionId !== id));
+  const deleteSession = async (id: string) => {
+    try {
+      await apiClient.delete(`/professional-sessions/${id}`);
+      await refreshSessions();
+      setAttendees((prev) => prev.filter((a) => a.sessionId !== id));
+      return { ok: true, message: "Session deleted." };
+    } catch (error: any) {
+      return { ok: false, message: getApiErrorMessage(error, "Failed to delete session.") };
+    }
   };
 
-  const registerStudent = (sessionId: string, studentId: string, studentName: string, studentEmail: string) => {
-    const newAttendee: Attendee = {
-      sessionId,
-      studentId,
-      studentName,
-      studentEmail,
-      registeredAt: new Date().toISOString()
-    };
-    setAttendees(prev => [...prev, newAttendee]);
+  const registerStudent = async (sessionId: string, _studentId: string, _studentName: string, _studentEmail: string) => {
+    try {
+      await apiClient.post(`/professional-sessions/${sessionId}/register`);
+      await refreshSessions();
+      return { ok: true, message: "Registered successfully." };
+    } catch (error: any) {
+      return { ok: false, message: getApiErrorMessage(error, "Failed to register for session.") };
+    }
   };
 
   const getAttendeesForSession = (sessionId: string) => {
@@ -128,7 +203,16 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
   };
 
   const isStudentRegistered = (sessionId: string, studentId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return false;
+    if (session.isRegistered) return true;
     return attendees.some(a => a.sessionId === sessionId && a.studentId === studentId);
+  };
+
+  const getAvailableSeats = (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return 0;
+    return session.availableSeats;
   };
 
   return (
@@ -141,7 +225,9 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
         deleteSession,
         registerStudent,
         getAttendeesForSession,
-        isStudentRegistered
+        isStudentRegistered,
+        getAvailableSeats,
+        refreshSessions
       }}
     >
       {children}
