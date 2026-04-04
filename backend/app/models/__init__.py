@@ -24,3 +24,4 @@ from app.models.opportunity import (
     CompanyProfile,
     StudentProfile,
 )
+from app.models.professional_session import ProfessionalSession, ProfessionalSessionRegistration

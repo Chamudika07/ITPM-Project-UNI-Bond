@@ -1,0 +1,83 @@
+﻿Requirement already satisfied: alembic==1.18.4 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 1)) (1.18.4)
+Requirement already satisfied: annotated-doc==0.0.4 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 2)) (0.0.4)
+Requirement already satisfied: annotated-types==0.7.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 3)) (0.7.0)
+Requirement already satisfied: anyio==4.12.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 4)) (4.12.1)
+Requirement already satisfied: bcrypt==4.0.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 5)) (4.0.1)
+Requirement already satisfied: click==8.3.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 6)) (8.3.1)
+Requirement already satisfied: dnspython==2.8.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 7)) (2.8.0)
+Requirement already satisfied: ecdsa==0.19.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 8)) (0.19.1)
+Requirement already satisfied: email-validator==2.3.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 9)) (2.3.0)
+Requirement already satisfied: fastapi==0.134.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 10)) (0.134.0)
+Collecting faiss-cpu==1.12.0 (from -r requirements.txt (line 11))
+  Using cached faiss_cpu-1.12.0-cp314-cp314-win_amd64.whl.metadata (5.2 kB)
+Requirement already satisfied: h11==0.16.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 12)) (0.16.0)
+Requirement already satisfied: idna==3.11 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 13)) (3.11)
+Requirement already satisfied: Mako==1.3.10 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 14)) (1.3.10)
+Requirement already satisfied: MarkupSafe==3.0.3 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 15)) (3.0.3)
+Collecting numpy==2.3.4 (from -r requirements.txt (line 16))
+  Using cached numpy-2.3.4-cp314-cp314-win_amd64.whl.metadata (60 kB)
+Collecting python-multipart==0.0.20 (from -r requirements.txt (line 17))
+  Using cached python_multipart-0.0.20-py3-none-any.whl.metadata (1.8 kB)
+Requirement already satisfied: passlib==1.7.4 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 18)) (1.7.4)
+Requirement already satisfied: psycopg2-binary==2.9.11 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 19)) (2.9.11)
+Requirement already satisfied: pyasn1==0.6.2 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 20)) (0.6.2)
+Requirement already satisfied: pydantic==2.12.5 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 21)) (2.12.5)
+Requirement already satisfied: pydantic-settings==2.13.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 22)) (2.13.1)
+Requirement already satisfied: pydantic_core==2.41.5 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 23)) (2.41.5)
+Collecting Pillow==11.3.0 (from -r requirements.txt (line 24))
+  Using cached pillow-11.3.0-cp314-cp314-win_amd64.whl.metadata (9.2 kB)
+Requirement already satisfied: python-dotenv==1.2.1 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 26)) (1.2.1)
+Requirement already satisfied: python-jose==3.5.0 in c:\users\eneth\desktop\itpm-project-uni-bond\backend\.venv\lib\site-packages (from -r requirements.txt (line 27)) (3.5.0)
+python.exe : ERROR: 
+Cannot install 
+python-multipart==0.0.20 
+and 
+python-multipart==0.0.22 
+because these package 
+versions have conflicting 
+dependencies.
+At line:1 char:1
++ & .\.venv\Scripts\python
+.exe -m pip install -r 
+requirements.txt > pip ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (E  
+  RROR: Cannot i...g de   
+ pendencies.:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+The conflict is caused by:
+    The user requested python-multipart==0.0.20
+    The user requested python-multipart==0.0.20
+    The user requested python-multipart==0.0.22
+
+Additionally, some packages in these conflicts have no matching distributions available for your environment:
+    python-multipart
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+
+
+[notice] A new release of 
+pip is available: 25.3 -> 
+26.0.1
+[notice] To update, run: C
+:\Users\eneth\Desktop\ITPM
+-Project-UNI-Bond\backend\
+.venv\Scripts\python.exe 
+-m pip install --upgrade 
+pip
+ERROR: 
+ResolutionImpossible: for 
+help visit https://pip.pyp
+a.io/en/latest/topics/depe
+ndency-resolution/#dealing
+-with-dependency-conflicts

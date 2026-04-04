@@ -11,5 +11,5 @@ class Token(BaseModel):
     
 #this is to store the data we encoded in the token
 class TokenData(BaseModel):
-    id: Optional[int] = None
+    id: Optional[str] = None
     

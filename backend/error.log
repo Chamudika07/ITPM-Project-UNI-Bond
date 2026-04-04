@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from app.main import app
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\app\main.py", line 2, in <module>
+    from app.routers import user , login , post
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\app\routers\user.py", line 3, in <module>
+    from app.db.database import get_db
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\app\db\database.py", line 4, in <module>
+    from app.core.config import settings
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\app\core\config.py", line 16, in <module>
+    settings = Settings()
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\venv\Lib\site-packages\pydantic_settings\main.py", line 242, in __init__
+    super().__init__(**__pydantic_self__.__class__._settings_build_values(sources, init_kwargs))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\SLIIT\3Y2S\ITPM Project\ITPM-Project-UNI-Bond\backend\venv\Lib\site-packages\pydantic\main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 8 validation errors for Settings
+database_hostname
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+database_port
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+database_password
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+database_name
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+database_username
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+secret_key
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+algorithm
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+access_token_expire_minutes
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing

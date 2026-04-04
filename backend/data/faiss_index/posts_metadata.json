@@ -1,0 +1,130 @@
+[
+  {
+    "id": 1,
+    "title": "Java inheritance example is confusing me",
+    "content": "I understand basic classes, but I get confused when a child class overrides a parent method. Can someone explain inheritance and method overriding with a simple Java example for an OOP exam?",
+    "author_name": "Nimal",
+    "created_at": "2026-03-01T09:00:00",
+    "searchable_text": "Title: Java inheritance example is confusing me\nContent: I understand basic classes, but I get confused when a child class overrides a parent method. Can someone explain inheritance and method overriding with a simple Java example for an OOP exam?"
+  },
+  {
+    "id": 2,
+    "title": "Recursion keeps causing stack overflow in my factorial program",
+    "content": "My recursion solution works for small inputs, but when I test larger values I get a stack overflow error. I want to understand the base case and how to stop infinite recursive calls.",
+    "author_name": "Kavindi",
+    "created_at": "2026-03-03T10:15:00",
+    "searchable_text": "Title: Recursion keeps causing stack overflow in my factorial program\nContent: My recursion solution works for small inputs, but when I test larger values I get a stack overflow error. I want to understand the base case and how to stop infinite recursive calls."
+  },
+  {
+    "id": 3,
+    "title": "Need help understanding INNER JOIN and LEFT JOIN",
+    "content": "I am confused about the difference between INNER JOIN and LEFT JOIN in SQL. Please explain with student and course tables because I keep mixing up which rows are returned.",
+    "author_name": "Sahan",
+    "created_at": "2026-03-05T14:30:00",
+    "searchable_text": "Title: Need help understanding INNER JOIN and LEFT JOIN\nContent: I am confused about the difference between INNER JOIN and LEFT JOIN in SQL. Please explain with student and course tables because I keep mixing up which rows are returned."
+  },
+  {
+    "id": 4,
+    "title": "Database normalization for assignment",
+    "content": "Our database assignment asks us to convert an unnormalized table into first, second, and third normal form. I understand partial dependency only a little. Can someone explain normalization in a practical way?",
+    "author_name": "Kavisha",
+    "created_at": "2026-03-06T08:45:00",
+    "searchable_text": "Title: Database normalization for assignment\nContent: Our database assignment asks us to convert an unnormalized table into first, second, and third normal form. I understand partial dependency only a little. Can someone explain normalization in a practical way?"
+  },
+  {
+    "id": 5,
+    "title": "Deadlock conditions in operating systems",
+    "content": "I need a simple explanation of the four deadlock conditions in OS theory. Also, how do resource allocation graphs help to identify deadlocks?",
+    "author_name": "Rashmi",
+    "created_at": "2026-03-08T11:20:00",
+    "searchable_text": "Title: Deadlock conditions in operating systems\nContent: I need a simple explanation of the four deadlock conditions in OS theory. Also, how do resource allocation graphs help to identify deadlocks?"
+  },
+  {
+    "id": 6,
+    "title": "Subnetting question for networking quiz",
+    "content": "How do I calculate subnet masks and number of hosts quickly during an exam? I get stuck when converting CIDR notation like slash 27 and slash 29 into usable host ranges.",
+    "author_name": "Tharindu",
+    "created_at": "2026-03-10T16:10:00",
+    "searchable_text": "Title: Subnetting question for networking quiz\nContent: How do I calculate subnet masks and number of hosts quickly during an exam? I get stuck when converting CIDR notation like slash 27 and slash 29 into usable host ranges."
+  },
+  {
+    "id": 7,
+    "title": "React useState value not updating immediately",
+    "content": "I set state in React and log it right after, but the console still shows the old value. Why is React state asynchronous and what is the correct way to react to updates?",
+    "author_name": "Dinithi",
+    "created_at": "2026-03-12T13:00:00",
+    "searchable_text": "Title: React useState value not updating immediately\nContent: I set state in React and log it right after, but the console still shows the old value. Why is React state asynchronous and what is the correct way to react to updates?"
+  },
+  {
+    "id": 8,
+    "title": "FastAPI JWT authentication help",
+    "content": "I built login with FastAPI but I do not fully understand JWT token creation, token expiry, and protected routes. Can someone explain the authentication flow in a beginner-friendly way?",
+    "author_name": "Pasindu",
+    "created_at": "2026-03-13T09:40:00",
+    "searchable_text": "Title: FastAPI JWT authentication help\nContent: I built login with FastAPI but I do not fully understand JWT token creation, token expiry, and protected routes. Can someone explain the authentication flow in a beginner-friendly way?"
+  },
+  {
+    "id": 9,
+    "title": "Git merge conflict after pulling group project branch",
+    "content": "I pulled the latest changes from our group repository and now I have merge conflicts in two files. What is the safest step-by-step way to resolve Git merge conflicts without losing my work?",
+    "author_name": "Ishara",
+    "created_at": "2026-03-14T18:25:00",
+    "searchable_text": "Title: Git merge conflict after pulling group project branch\nContent: I pulled the latest changes from our group repository and now I have merge conflicts in two files. What is the safest step-by-step way to resolve Git merge conflicts without losing my work?"
+  },
+  {
+    "id": 10,
+    "title": "Machine learning model is overfitting badly",
+    "content": "My training accuracy is very high but validation accuracy is much lower. I think the model is overfitting. Can someone explain regularization, dropout, and better validation practices?",
+    "author_name": "Maleesha",
+    "created_at": "2026-03-16T12:10:00",
+    "searchable_text": "Title: Machine learning model is overfitting badly\nContent: My training accuracy is very high but validation accuracy is much lower. I think the model is overfitting. Can someone explain regularization, dropout, and better validation practices?"
+  },
+  {
+    "id": 11,
+    "title": "Binary search tree insertion logic",
+    "content": "I am practicing data structures and need help understanding how binary search tree insertion works recursively. A diagram or explanation of left and right child placement would help.",
+    "author_name": "Janith",
+    "created_at": "2026-03-18T15:35:00",
+    "searchable_text": "Title: Binary search tree insertion logic\nContent: I am practicing data structures and need help understanding how binary search tree insertion works recursively. A diagram or explanation of left and right child placement would help."
+  },
+  {
+    "id": 12,
+    "title": "Difference between processes and threads",
+    "content": "For my operating systems test I need to compare processes and threads. I want to know the memory, execution, and performance differences in a simple explanation.",
+    "author_name": "Nethmi",
+    "created_at": "2026-03-20T07:50:00",
+    "searchable_text": "Title: Difference between processes and threads\nContent: For my operating systems test I need to compare processes and threads. I want to know the memory, execution, and performance differences in a simple explanation."
+  },
+  {
+    "id": 13,
+    "title": "Dijkstra algorithm shortest path explanation",
+    "content": "I can memorize the Dijkstra steps, but I still do not understand why the smallest temporary distance is chosen each time. Can someone explain it using a weighted graph example?",
+    "author_name": "Chamath",
+    "created_at": "2026-03-22T10:05:00",
+    "searchable_text": "Title: Dijkstra algorithm shortest path explanation\nContent: I can memorize the Dijkstra steps, but I still do not understand why the smallest temporary distance is chosen each time. Can someone explain it using a weighted graph example?"
+  },
+  {
+    "id": 14,
+    "title": "API rate limiting and backend security basics",
+    "content": "Our software engineering lecture mentioned rate limiting, brute force protection, and API abuse prevention. How can we explain these backend security ideas clearly in our presentation?",
+    "author_name": "Vihangi",
+    "created_at": "2026-03-24T17:45:00",
+    "searchable_text": "Title: API rate limiting and backend security basics\nContent: Our software engineering lecture mentioned rate limiting, brute force protection, and API abuse prevention. How can we explain these backend security ideas clearly in our presentation?"
+  },
+  {
+    "id": 15,
+    "title": "Confused about ER diagrams and foreign keys",
+    "content": "I can draw entities and attributes, but I get confused when converting an ER diagram into tables with primary keys and foreign keys. Please explain the mapping process with an example.",
+    "author_name": "Sajini",
+    "created_at": "2026-03-26T11:30:00",
+    "searchable_text": "Title: Confused about ER diagrams and foreign keys\nContent: I can draw entities and attributes, but I get confused when converting an ER diagram into tables with primary keys and foreign keys. Please explain the mapping process with an example."
+  },
+  {
+    "id": 9,
+    "title": "this is my campus project show case. in itpm modul",
+    "content": "this is my campus project show case. in itpm modul",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-04-04T22:05:29.078687+05:30",
+    "searchable_text": "Title: this is my campus project show case. in itpm modul\nContent: this is my campus project show case. in itpm modul"
+  }
+]

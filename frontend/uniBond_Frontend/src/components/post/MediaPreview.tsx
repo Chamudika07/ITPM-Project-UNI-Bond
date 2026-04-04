@@ -11,11 +11,15 @@ export default function MediaPreview({ mediaUrl, mediaType, className = "" }: Pr
 
   if (mediaType === "image") {
     return (
-      <img
-        src={mediaSrc}
-        alt="Media content"
-        className={`w-full max-h-[400px] object-cover rounded-lg ${className}`}
-      />
+      <div className={`overflow-hidden rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] ${className}`}>
+        <div className="flex max-h-[30rem] min-h-[14rem] items-center justify-center p-2">
+          <img
+            src={mediaSrc}
+            alt="Media content"
+            className="max-h-[28rem] w-full object-contain"
+          />
+        </div>
+      </div>
     );
   }
 

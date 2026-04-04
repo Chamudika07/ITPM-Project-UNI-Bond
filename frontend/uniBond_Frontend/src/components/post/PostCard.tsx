@@ -23,12 +23,41 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [showAllComments, setShowAllComments] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const { user } = useAuth();
     const navigate = useNavigate();
     const menuRef = useRef<HTMLDivElement>(null);
     const commentInputRef = useRef<HTMLInputElement>(null);
 
     const mediaSrc = post.mediaUrl ? resolveMediaSrc(post.mediaUrl) : null;
+    const COLLAPSED_CHAR_LIMIT = 360;
+    const COLLAPSED_LINE_LIMIT = 8;
+
+    const buildCollapsedContent = (content: string) => {
+        const trimmed = content.trim();
+        const lines = trimmed.split("\n");
+        let preview = lines.slice(0, COLLAPSED_LINE_LIMIT).join("\n").trim();
+        let isTruncated = lines.length > COLLAPSED_LINE_LIMIT;
+
+        if (preview.length > COLLAPSED_CHAR_LIMIT) {
+            const shortened = preview.slice(0, COLLAPSED_CHAR_LIMIT);
+            const lastSpace = shortened.lastIndexOf(" ");
+            preview = (lastSpace > 220 ? shortened.slice(0, lastSpace) : shortened).trim();
+            isTruncated = true;
+        }
+
+        if (!isTruncated && trimmed.length > preview.length) {
+            isTruncated = true;
+        }
+
+        return {
+            preview: isTruncated ? `${preview}...` : preview,
+            isTruncated,
+        };
+    };
+
+    const { preview: collapsedContent, isTruncated: canExpand } = buildCollapsedContent(post.content || "");
+    const displayedContent = isExpanded ? post.content : collapsedContent;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -139,14 +168,32 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
                 )}
             </div>
 
-            {post.content && <p className="mb-3 whitespace-pre-wrap">{post.content}</p>}
+            {post.content && (
+                <div className="mb-4">
+                    <p className="whitespace-pre-wrap break-words text-[15px] leading-7 text-[var(--text-primary)]">
+                        {displayedContent}
+                    </p>
+                    {canExpand && (
+                        <button
+                            onClick={() => setIsExpanded((current) => !current)}
+                            className="mt-2 text-sm font-semibold text-[var(--accent)] hover:opacity-80"
+                        >
+                            {isExpanded ? "See less" : "See more"}
+                        </button>
+                    )}
+                </div>
+            )}
 
             {mediaSrc && post.mediaType === "image" && (
-                <img
-                    src={mediaSrc}
-                    alt="post media"
-                    className="w-full max-h-[400px] object-cover rounded-lg mb-3"
-                />
+                <div className="mb-3 overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(30,41,59,0.88))]">
+                    <div className="flex max-h-[42rem] min-h-[18rem] items-center justify-center p-2 sm:p-3">
+                        <img
+                            src={mediaSrc}
+                            alt="post media"
+                            className="max-h-[38rem] w-full rounded-[1.15rem] object-contain"
+                        />
+                    </div>
+                </div>
             )}
 
             {mediaSrc && post.mediaType === "video" && renderVideo(mediaSrc)}
@@ -199,17 +246,17 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
                         </button>
                     )}
 
-                    {(showAllComments ? post.comments : [post.comments[post.comments.length - 1]]).map((comment: any) => (
+                    {(showAllComments ? post.comments : [post.comments[post.comments.length - 1]]).map((comment) => (
                         <div key={comment.id} className="flex gap-3">
                             <Avatar 
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.first_name + " " + comment.user.last_name)}&background=random`} 
-                                alt="avatar" 
+                                src={comment.user.avatar}
+                                alt={comment.user.fullName}
                                 size="sm" 
                             />
                             <div className="flex-1 bg-gray-50 rounded-2xl p-3">
-                                <p className="font-semibold text-sm">{comment.user.first_name} {comment.user.last_name}</p>
+                                <p className="font-semibold text-sm">{comment.user.fullName}</p>
                                 <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
-                                <p className="text-xs text-gray-400 mt-1">{formatDateTime(comment.created_at)}</p>
+                                <p className="text-xs text-gray-400 mt-1">{formatDateTime(comment.createdAt)}</p>
                             </div>
                         </div>
                     ))}
