@@ -5,13 +5,16 @@ import "./index.css";
 import App from "@/App";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { ProfessionalCommunicationProvider } from "@/contexts/ProfessionalCommunicationContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Router>
       <ThemeProvider>
         <AuthProvider>
-          <App />
+          <ProfessionalCommunicationProvider>
+            <App />
+          </ProfessionalCommunicationProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

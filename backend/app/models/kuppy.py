@@ -10,6 +10,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -39,7 +40,7 @@ class KuppyRequest(Base):
     __tablename__ = "kuppy_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    student_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    student_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     module_name = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     requested_before = Column(DateTime(timezone=True), nullable=False)
@@ -67,7 +68,7 @@ class KuppyRequestVote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(Integer, ForeignKey("kuppy_requests.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     request = relationship("KuppyRequest", back_populates="votes")
@@ -79,7 +80,7 @@ class KuppyOffer(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(Integer, ForeignKey("kuppy_requests.id", ondelete="CASCADE"), nullable=False, index=True)
-    lecturer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    lecturer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     availability_start = Column(DateTime(timezone=True), nullable=False)
     availability_end = Column(DateTime(timezone=True), nullable=False)
     description = Column(Text, nullable=False)
@@ -94,7 +95,7 @@ class KuppySession(Base):
     __tablename__ = "kuppy_session_events"
 
     id = Column(Integer, primary_key=True, index=True)
-    lecturer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    lecturer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     request_id = Column(Integer, ForeignKey("kuppy_requests.id"), nullable=True, unique=True)
     title = Column(String(255), nullable=False)
     module_name = Column(String(255), nullable=False)
@@ -118,7 +119,7 @@ class KuppyParticipant(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, ForeignKey("kuppy_session_events.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     joined_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     session = relationship("KuppySession", back_populates="participants")

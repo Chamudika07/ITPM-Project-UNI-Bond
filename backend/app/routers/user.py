@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, String
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import undefer
@@ -234,13 +234,17 @@ def is_user_online(user: User, now: datetime | None = None) -> bool:
 
 def touch_user_presence(user: User, db: Session):
     now = datetime.now(timezone.utc)
-    if user.last_seen and user.last_seen >= now - timedelta(seconds=30):
-        return
-
-    user.last_seen = now
-    db.add(user)
+    user_id = str(user.id)
+    (
+        db.query(User)
+        .filter(cast(User.id, String) == user_id)
+        .update({User.last_seen: now}, synchronize_session=False)
+    )
     db.commit()
-    db.refresh(user)
+
+
+def get_user_by_id_text(user_id: str, db: Session) -> User | None:
+    return db.query(User).filter(cast(User.id, String) == user_id).first()
 
 
 def raise_follow_feature_unavailable(db: Session, exc: ProgrammingError):
@@ -269,12 +273,24 @@ def update_presence(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    user_id = str(current_user.id)
     try:
         touch_user_presence(current_user, db)
+        refreshed_user = get_user_by_id_text(user_id, db)
+        if refreshed_user is not None:
+            return build_user_response(refreshed_user)
     except ProgrammingError as exc:
         db.rollback()
         if not is_missing_last_seen_column_error(exc):
+            # Some environments have legacy user ID types. Presence should be best-effort,
+            # so we avoid failing the request when presence persistence is unavailable.
+            safe_user = get_user_by_id_text(user_id, db)
+            if safe_user is not None:
+                return build_user_response(safe_user)
             raise
+    safe_user = get_user_by_id_text(user_id, db)
+    if safe_user is not None:
+        return build_user_response(safe_user)
     return build_user_response(current_user)
 
 

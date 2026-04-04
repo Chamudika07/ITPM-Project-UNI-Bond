@@ -16,3 +16,4 @@ from app.models.task import TaskItem, TaskApplicant
 from app.models.notice_notification import Notice, Notification
 from app.models.interaction import PostLike, PostRepost, PostComment
 from app.models.user_follow import UserFollow
+from app.models.professional_session import ProfessionalSession, ProfessionalSessionRegistration
