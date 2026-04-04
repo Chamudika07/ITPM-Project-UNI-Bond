@@ -185,11 +185,15 @@ export default function PostCard({ post, onLike, onRepost, onComment, onDelete }
             )}
 
             {mediaSrc && post.mediaType === "image" && (
-                <img
-                    src={mediaSrc}
-                    alt="post media"
-                    className="w-full max-h-[440px] object-cover rounded-2xl mb-3 border border-[var(--border-soft)]"
-                />
+                <div className="mb-3 overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[linear-gradient(180deg,rgba(15,23,42,0.92),rgba(30,41,59,0.88))]">
+                    <div className="flex max-h-[42rem] min-h-[18rem] items-center justify-center p-2 sm:p-3">
+                        <img
+                            src={mediaSrc}
+                            alt="post media"
+                            className="max-h-[38rem] w-full rounded-[1.15rem] object-contain"
+                        />
+                    </div>
+                </div>
             )}
 
             {mediaSrc && post.mediaType === "video" && renderVideo(mediaSrc)}

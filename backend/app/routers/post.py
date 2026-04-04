@@ -61,6 +61,18 @@ def _build_search_document(post: Post) -> SearchablePost:
         created_at=post.created_at,
     )
 
+
+def _get_media_kind(upload: UploadFile | None) -> str | None:
+    if upload is None:
+        return None
+
+    content_type = (upload.content_type or "").split(";")[0].strip().lower()
+    if content_type.startswith("image/"):
+        return "image"
+    if content_type.startswith("video/"):
+        return "video"
+    return None
+
 #-- Create Post --#
 @router.post("/", response_model=PostResponse)
 def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -134,7 +146,21 @@ async def create_post_with_ai_moderation(
     Create a study post using the UniBond AI moderation gateway.
     Only allowed submissions are saved and added to the smart search index.
     """
-    moderation_result = await moderate_content(text=content, image=image)
+    media_kind = _get_media_kind(image)
+
+    if media_kind == "video" and not (content or "").strip():
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=(
+                "Video posts currently require a study-related caption. "
+                "Please add text so UniBond can moderate the post safely."
+            ),
+        )
+
+    moderation_result = await moderate_content(
+        text=content,
+        image=image if media_kind == "image" else None,
+    )
 
     if moderation_result.final_status != "allowed":
         raise HTTPException(

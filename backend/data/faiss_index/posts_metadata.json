@@ -118,5 +118,13 @@
     "author_name": "Sajini",
     "created_at": "2026-03-26T11:30:00",
     "searchable_text": "Title: Confused about ER diagrams and foreign keys\nContent: I can draw entities and attributes, but I get confused when converting an ER diagram into tables with primary keys and foreign keys. Please explain the mapping process with an example."
+  },
+  {
+    "id": 9,
+    "title": "this is my campus project show case. in itpm modul",
+    "content": "this is my campus project show case. in itpm modul",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-04-04T22:05:29.078687+05:30",
+    "searchable_text": "Title: this is my campus project show case. in itpm modul\nContent: this is my campus project show case. in itpm modul"
   }
 ]

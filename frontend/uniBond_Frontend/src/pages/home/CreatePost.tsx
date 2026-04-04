@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, Image, Search, Video, X, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ImagePlus, Search, Upload, Video, X } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import { handleCreateModeratedPostWithFile } from "@/controllers/postController";
 import { handleCheckPostModeration } from "@/controllers/moderationController";
@@ -35,11 +35,17 @@ export default function CreatePost() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Pre-select media type from navigation state (e.g. from "Video" shortcut) ──
+  // ── Pre-select media type from navigation state ────────────────────────────
   useEffect(() => {
-    if (location.state?.defaultMediaType === "video" && fileInputRef.current) {
-      // Just open file picker — user can select a video
+    if (!fileInputRef.current) return;
+
+    if (location.state?.defaultMediaType === "video") {
       fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
+      return;
+    }
+
+    if (location.state?.defaultMediaType === "image") {
+      fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
     }
   }, [location.state]);
 
@@ -61,12 +67,6 @@ export default function CreatePost() {
     const validation = validatePickedMediaFile(file);
     if (!validation.ok) {
       setError(validation.error);
-      resetFile();
-      return;
-    }
-
-    if (validation.mediaKind === "video") {
-      setError("AI moderation in the current UniBond study-post flow supports text and images only.");
       resetFile();
       return;
     }
@@ -97,14 +97,17 @@ export default function CreatePost() {
     setSuccessMessage("");
 
     if (!content.trim() && !selectedFile) {
-      setError("Please write something or attach a study image.");
-      return;
-    }
+        setError("Please write something or attach study media.");
+        return;
+      }
 
     try {
       setChecking(true);
       const [moderation, semantic] = await Promise.all([
-        handleCheckPostModeration(content.trim(), selectedFile ?? undefined),
+        handleCheckPostModeration(
+          content.trim(),
+          selectedFile && previewType === "image" ? selectedFile : undefined
+        ),
         content.trim().length >= 3
           ? handleSemanticSearch(content.trim(), 3)
           : Promise.resolve({ query: "", totalResults: 0, results: [] }),
@@ -170,35 +173,37 @@ export default function CreatePost() {
 
         {/* ── File preview (shown after user picks a file) ──────────────── */}
         {previewUrl && (
-          <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+          <div className="relative rounded-2xl overflow-hidden border border-[var(--border-soft)] bg-[var(--surface-muted)]">
             {/* Remove file button */}
             <button
               onClick={resetFile}
-              className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow
-                         hover:bg-red-50 hover:text-red-500 transition-colors"
+              className="absolute top-3 right-3 z-10 rounded-full border border-white/70 bg-[rgba(15,23,42,0.72)] p-1.5 text-white shadow
+                         hover:bg-[rgba(220,38,38,0.85)] transition-colors"
               title="Remove file"
             >
               <X className="w-4 h-4" />
             </button>
 
             {previewType === "image" ? (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-h-72 object-cover"
-              />
+              <div className="flex max-h-[34rem] min-h-[18rem] items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%),linear-gradient(180deg,rgba(15,23,42,0.96),rgba(17,24,39,0.88))] p-3 sm:p-4">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-h-[30rem] w-full rounded-2xl object-contain shadow-[0_18px_45px_rgba(15,23,42,0.28)]"
+                />
+              </div>
             ) : (
               <video
                 src={previewUrl}
                 controls
-                className="w-full max-h-72 rounded-xl"
+                className="w-full max-h-[30rem] rounded-2xl bg-black"
               />
             )}
           </div>
         )}
 
         {/* ── File picker row ────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
+        <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-elevated)] p-3">
           {/* Hidden real file input */}
           <input
             ref={fileInputRef}
@@ -209,38 +214,46 @@ export default function CreatePost() {
             id="post-file-input"
           />
 
-          {/* Image shortcut button */}
-          <label
-            htmlFor="post-file-input"
-            onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                       text-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
-          >
-            <Image className="w-4 h-4" />
-            Photo
-          </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Add to your post</p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Upload a study-related image or video. Videos currently use text moderation, so add a clear academic caption.
+              </p>
+            </div>
 
-          {/* Video shortcut button */}
-          <label
-            htmlFor="post-file-input"
-            onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                       text-purple-600 bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
-          >
-            <Video className="w-4 h-4" />
-            Video
-          </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <label
+                htmlFor="post-file-input"
+                onClick={() => {
+                  if (fileInputRef.current) fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold
+                           text-emerald-700 hover:bg-emerald-100 cursor-pointer transition-colors"
+              >
+                <ImagePlus className="w-4 h-4" />
+                {selectedFile ? "Change Photo" : "Choose Photo"}
+              </label>
 
-          {/* Selected file name pill */}
-          {selectedFile && (
-            <span className="text-xs text-gray-500 truncate max-w-[180px]">
-              📎 {selectedFile.name}
-            </span>
-          )}
+              <label
+                htmlFor="post-file-input"
+                onClick={() => {
+                  if (fileInputRef.current) fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-semibold
+                           text-violet-700 hover:bg-violet-100 cursor-pointer transition-colors"
+              >
+                <Video className="w-4 h-4" />
+                {previewType === "video" ? "Change Video" : "Choose Video"}
+              </label>
+
+              {selectedFile && (
+                <span className="max-w-[220px] truncate rounded-full bg-[var(--surface-muted)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)]">
+                  {selectedFile.name}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Error message ─────────────────────────────────────────────── */}
@@ -273,6 +286,11 @@ export default function CreatePost() {
               )}
             </div>
             <p className="mt-2">{moderationResult.explanation}</p>
+            {previewType === "video" ? (
+              <p className="mt-2 text-xs font-medium opacity-80">
+                Video uploads are currently checked using the caption text because UniBond does not have video AI moderation yet.
+              </p>
+            ) : null}
             {moderationResult.reasons.length > 0 ? (
               <ul className="mt-2 list-disc pl-5">
                 {moderationResult.reasons.map((reason) => (

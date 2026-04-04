@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Image, Video, Plus } from "lucide-react";
+import { Image, Plus, Video } from "lucide-react";
 import Avatar from "@/components/common/Avatar";
 import SectionCard from "@/components/common/SectionCard";
 import { ROUTES } from "@/utils/constants";
