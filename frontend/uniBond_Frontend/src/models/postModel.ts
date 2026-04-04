@@ -1,5 +1,6 @@
 import apiClient from "@/services/api/axiosClient";
-import type { Post } from "@/types/post";
+import type { Post, PostCreateWithModerationResponse } from "@/types/post";
+import { buildUserAvatar, resolveAssetUrl } from "@/utils/userMedia";
 
 // Mapper function
 function mapPostResponse(p: any): Post {
@@ -7,10 +8,10 @@ function mapPostResponse(p: any): Post {
     id: String(p.id),
     authorId: String(p.user_id),
     authorName: p.user ? `${p.user.first_name} ${p.user.last_name}` : `User ${p.user_id}`,
-    authorAvatar: p.user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(p.user.first_name + " " + p.user.last_name)}&background=random` : `https://ui-avatars.com/api/?name=User+${p.user_id}&background=random`,
+    authorAvatar: p.user ? buildUserAvatar(p.user) : buildUserAvatar({ first_name: "User", last_name: String(p.user_id) }),
     authorRole: p.user ? p.user.role : "student",
-    content: p.content,
-    mediaUrl: p.media && p.media.length > 0 ? p.media[0].media_url : undefined,
+    content: p.content || "",
+    mediaUrl: p.media && p.media.length > 0 ? resolveAssetUrl(p.media[0].media_url) : undefined,
     mediaType: p.media && p.media.length > 0 ? p.media[0].media_type : undefined,
     createdAt: p.created_at,
     likes: p.likes_count || 0,
@@ -18,7 +19,19 @@ function mapPostResponse(p: any): Post {
     reposts: p.reposts_count || 0,
     isLikedByUser: p.is_liked_by_user || false,
     isRepostedByUser: p.is_reposted_by_user || false,
-    comments: p.comments || []
+    comments: (p.comments || []).map((comment: any) => ({
+      id: String(comment.id),
+      content: comment.content || "",
+      createdAt: comment.created_at,
+      user: {
+        id: String(comment.user?.id || ""),
+        firstName: comment.user?.first_name || "User",
+        lastName: comment.user?.last_name || "",
+        fullName: `${comment.user?.first_name || "User"} ${comment.user?.last_name || ""}`.trim(),
+        avatar: buildUserAvatar(comment.user || {}),
+        role: comment.user?.role || "student",
+      },
+    })),
   };
 }
 
@@ -68,6 +81,31 @@ export const createPostWithFile = async (
   });
 
   return mapPostResponse(res.data);
+};
+
+export const createModeratedPostWithFile = async (
+  content: string,
+  file?: File
+): Promise<PostCreateWithModerationResponse> => {
+  const formData = new FormData();
+
+  if (content.trim()) {
+    formData.append("content", content.trim());
+  }
+
+  if (file) {
+    formData.append("image", file);
+  }
+
+  const res = await apiClient.post("/api/v1/posts/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return {
+    message: res.data?.message || "Post created successfully.",
+    moderation: res.data?.moderation,
+    post: mapPostResponse(res.data?.post),
+  };
 };
 
 

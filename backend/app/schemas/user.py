@@ -99,6 +99,7 @@ class UserDiscoverResponse(BaseModel):
     role: UserRole
     city: Optional[str]
     country: Optional[str]
+    avatar_path: Optional[str] = None
     is_following: bool = False
 
     class Config:

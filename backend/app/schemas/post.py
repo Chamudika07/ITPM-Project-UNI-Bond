@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
+from app.schemas.moderation import ModerationCheckResponse
 
 #-- Base model schemas for Post and PostMedia --#
 #-- Request schemas --#
@@ -29,6 +30,7 @@ class PostUserResponse(BaseModel):
     first_name: str
     last_name: str
     role: str
+    avatar_path: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -72,3 +74,8 @@ class PostResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class PostCreateWithModerationResponse(BaseModel):
+    message: str
+    moderation: ModerationCheckResponse
+    post: PostResponse

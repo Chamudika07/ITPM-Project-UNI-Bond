@@ -17,3 +17,19 @@ export type SearchResponse = {
   total: number;
   results: SearchResult[];
 };
+
+export type SemanticSearchResult = {
+  rank: number;
+  postId: string;
+  title: string;
+  contentPreview: string;
+  authorName: string;
+  similarityScore: number;
+  createdAt: string;
+};
+
+export type SemanticSearchResponse = {
+  query: string;
+  totalResults: number;
+  results: SemanticSearchResult[];
+};

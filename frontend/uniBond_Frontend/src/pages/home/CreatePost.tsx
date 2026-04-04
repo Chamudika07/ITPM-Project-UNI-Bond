@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Image, Video, X, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ImagePlus, Search, Upload, Video, X } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
-import { handleCreatePostWithFile } from "@/controllers/postController";
+import { handleCreateModeratedPostWithFile } from "@/controllers/postController";
+import { handleCheckPostModeration } from "@/controllers/moderationController";
+import { handleSemanticSearch } from "@/controllers/searchController";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import type { ModerationCheckResponse } from "@/types/moderation";
+import type { SemanticSearchResult } from "@/types/search";
 import {
   ALL_MEDIA_ACCEPT_ATTR,
   IMAGE_ACCEPT_ATTR,
@@ -22,16 +26,26 @@ export default function CreatePost() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
+  const [checking, setChecking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [moderationResult, setModerationResult] = useState<ModerationCheckResponse | null>(null);
+  const [semanticMatches, setSemanticMatches] = useState<SemanticSearchResult[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Pre-select media type from navigation state (e.g. from "Video" shortcut) ──
+  // ── Pre-select media type from navigation state ────────────────────────────
   useEffect(() => {
-    if (location.state?.defaultMediaType === "video" && fileInputRef.current) {
-      // Just open file picker — user can select a video
+    if (!fileInputRef.current) return;
+
+    if (location.state?.defaultMediaType === "video") {
       fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
+      return;
+    }
+
+    if (location.state?.defaultMediaType === "image") {
+      fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
     }
   }, [location.state]);
 
@@ -64,6 +78,8 @@ export default function CreatePost() {
     setSelectedFile(file);
     setPreviewUrl(objectUrl);
     setPreviewType(validation.mediaKind);
+    setModerationResult(null);
+    setSemanticMatches([]);
   };
 
   const resetFile = () => {
@@ -71,19 +87,54 @@ export default function CreatePost() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setPreviewType(null);
+    setModerationResult(null);
+    setSemanticMatches([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const runAiChecks = async () => {
+    setError("");
+    setSuccessMessage("");
+
+    if (!content.trim() && !selectedFile) {
+        setError("Please write something or attach study media.");
+        return;
+      }
+
+    try {
+      setChecking(true);
+      const [moderation, semantic] = await Promise.all([
+        handleCheckPostModeration(
+          content.trim(),
+          selectedFile && previewType === "image" ? selectedFile : undefined
+        ),
+        content.trim().length >= 3
+          ? handleSemanticSearch(content.trim(), 3)
+          : Promise.resolve({ query: "", totalResults: 0, results: [] }),
+      ]);
+
+      setModerationResult(moderation);
+      setSemanticMatches(semantic.results);
+    } catch (err) {
+      const axiosError = err as any;
+      const detail = axiosError?.response?.data?.detail;
+      setError(typeof detail === "string" ? detail : (err instanceof Error ? err.message : "Failed to run AI checks."));
+    } finally {
+      setChecking(false);
+    }
   };
 
   // ── Form submit ────────────────────────────────────────────────────────────
   const submitPost = async () => {
     setError("");
+    setSuccessMessage("");
 
     if (!content.trim() && !selectedFile) {
       setError("Please write something or attach a file.");
       return;
     }
 
-    const res = await handleCreatePostWithFile(
+    const res = await handleCreateModeratedPostWithFile(
       content.trim(),
       selectedFile ?? undefined,
       setLoading,
@@ -91,7 +142,12 @@ export default function CreatePost() {
     );
 
     if (res) {
-      navigate(ROUTES.HOME);
+      setSuccessMessage(res.message);
+      setModerationResult(res.moderation);
+      setContent("");
+      resetFile();
+      setSemanticMatches([]);
+      setTimeout(() => navigate(ROUTES.HOME), 900);
     }
   };
 
@@ -102,9 +158,13 @@ export default function CreatePost() {
 
         {/* ── Text content ─────────────────────────────────────────────── */}
         <textarea
-          placeholder="What's on your mind?"
+          placeholder="Share a study question, solution, or academic discussion..."
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            setModerationResult(null);
+            setSemanticMatches([]);
+          }}
           rows={4}
           className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -113,35 +173,37 @@ export default function CreatePost() {
 
         {/* ── File preview (shown after user picks a file) ──────────────── */}
         {previewUrl && (
-          <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+          <div className="relative rounded-2xl overflow-hidden border border-[var(--border-soft)] bg-[var(--surface-muted)]">
             {/* Remove file button */}
             <button
               onClick={resetFile}
-              className="absolute top-2 right-2 z-10 bg-white rounded-full p-1 shadow
-                         hover:bg-red-50 hover:text-red-500 transition-colors"
+              className="absolute top-3 right-3 z-10 rounded-full border border-white/70 bg-[rgba(15,23,42,0.72)] p-1.5 text-white shadow
+                         hover:bg-[rgba(220,38,38,0.85)] transition-colors"
               title="Remove file"
             >
               <X className="w-4 h-4" />
             </button>
 
             {previewType === "image" ? (
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-h-72 object-cover"
-              />
+              <div className="flex max-h-[34rem] min-h-[18rem] items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%),linear-gradient(180deg,rgba(15,23,42,0.96),rgba(17,24,39,0.88))] p-3 sm:p-4">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="max-h-[30rem] w-full rounded-2xl object-contain shadow-[0_18px_45px_rgba(15,23,42,0.28)]"
+                />
+              </div>
             ) : (
               <video
                 src={previewUrl}
                 controls
-                className="w-full max-h-72 rounded-xl"
+                className="w-full max-h-[30rem] rounded-2xl bg-black"
               />
             )}
           </div>
         )}
 
         {/* ── File picker row ────────────────────────────────────────────── */}
-        <div className="flex items-center gap-3">
+        <div className="rounded-2xl border border-[var(--border-soft)] bg-[var(--surface-elevated)] p-3">
           {/* Hidden real file input */}
           <input
             ref={fileInputRef}
@@ -152,53 +214,132 @@ export default function CreatePost() {
             id="post-file-input"
           />
 
-          {/* Image shortcut button */}
-          <label
-            htmlFor="post-file-input"
-            onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                       text-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors"
-          >
-            <Image className="w-4 h-4" />
-            Photo
-          </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Add to your post</p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Upload a study-related image or video. Videos currently use text moderation, so add a clear academic caption.
+              </p>
+            </div>
 
-          {/* Video shortcut button */}
-          <label
-            htmlFor="post-file-input"
-            onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
-                       text-purple-600 bg-purple-50 hover:bg-purple-100 cursor-pointer transition-colors"
-          >
-            <Video className="w-4 h-4" />
-            Video
-          </label>
+            <div className="flex flex-wrap items-center gap-3">
+              <label
+                htmlFor="post-file-input"
+                onClick={() => {
+                  if (fileInputRef.current) fileInputRef.current.accept = IMAGE_ACCEPT_ATTR;
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold
+                           text-emerald-700 hover:bg-emerald-100 cursor-pointer transition-colors"
+              >
+                <ImagePlus className="w-4 h-4" />
+                {selectedFile ? "Change Photo" : "Choose Photo"}
+              </label>
 
-          {/* Selected file name pill */}
-          {selectedFile && (
-            <span className="text-xs text-gray-500 truncate max-w-[180px]">
-              📎 {selectedFile.name}
-            </span>
-          )}
+              <label
+                htmlFor="post-file-input"
+                onClick={() => {
+                  if (fileInputRef.current) fileInputRef.current.accept = VIDEO_ACCEPT_ATTR;
+                }}
+                className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-semibold
+                           text-violet-700 hover:bg-violet-100 cursor-pointer transition-colors"
+              >
+                <Video className="w-4 h-4" />
+                {previewType === "video" ? "Change Video" : "Choose Video"}
+              </label>
+
+              {selectedFile && (
+                <span className="max-w-[220px] truncate rounded-full bg-[var(--surface-muted)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)]">
+                  {selectedFile.name}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── Error message ─────────────────────────────────────────────── */}
         {error && (
           <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm">
-            <span className="mt-0.5">⚠️</span>
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex items-start gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-sm">
+            <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
+
+        {moderationResult && (
+          <div className={`rounded-xl border px-4 py-3 text-sm ${
+            moderationResult.final_status === "allowed"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-amber-200 bg-amber-50 text-amber-800"
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold">AI Moderation: {moderationResult.final_status.toUpperCase()}</span>
+              {moderationResult.final_status === "allowed" ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <AlertTriangle className="w-4 h-4" />
+              )}
+            </div>
+            <p className="mt-2">{moderationResult.explanation}</p>
+            {previewType === "video" ? (
+              <p className="mt-2 text-xs font-medium opacity-80">
+                Video uploads are currently checked using the caption text because UniBond does not have video AI moderation yet.
+              </p>
+            ) : null}
+            {moderationResult.reasons.length > 0 ? (
+              <ul className="mt-2 list-disc pl-5">
+                {moderationResult.reasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
+
+        {semanticMatches.length > 0 && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-blue-800">
+              <Search className="w-4 h-4" />
+              Similar study posts already exist
+            </div>
+            <div className="mt-3 space-y-3">
+              {semanticMatches.map((match) => (
+                <div key={match.postId} className="rounded-lg border border-blue-100 bg-white px-3 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{match.title}</p>
+                      <p className="mt-1 text-sm text-gray-600">{match.contentPreview}</p>
+                      <p className="mt-2 text-xs text-gray-500">By {match.authorName}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                      {match.similarityScore.toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* ── Action buttons ────────────────────────────────────────────── */}
         <div className="flex gap-3 pt-1">
           <button
+            onClick={runAiChecks}
+            disabled={checking || loading}
+            className="flex items-center gap-2 bg-slate-700 text-white px-5 py-2 rounded-lg text-sm font-semibold
+                       hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {checking ? "Checking..." : "Check AI"}
+          </button>
+
+          <button
             onClick={submitPost}
-            disabled={loading}
+            disabled={loading || checking || moderationResult?.final_status !== "allowed"}
             className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold
                        hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
@@ -214,7 +355,7 @@ export default function CreatePost() {
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                Post
+                Post with AI Approval
               </>
             )}
           </button>
