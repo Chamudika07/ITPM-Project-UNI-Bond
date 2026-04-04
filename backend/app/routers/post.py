@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File, Form
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 from app.db.database import get_db
 from app.models.post import Post
 from app.schemas.post import (
@@ -24,28 +24,93 @@ from app.utils.file_upload import save_upload_file
 router = APIRouter(prefix="/posts", tags=["Posts"])
 api_router = APIRouter(prefix="/api/v1/posts", tags=["Posts"])
 
-def format_post(post: Post, current_user_id: int) -> PostResponse:
+def _build_avatar_path(first_name: str | None, last_name: str | None, avatar_path: str | None) -> str | None:
+    if avatar_path:
+        return avatar_path
+    if not first_name and not last_name:
+        return None
+    label = "+".join(part for part in [first_name or "", last_name or ""] if part).strip("+")
+    return f"https://ui-avatars.com/api/?name={label or 'UniBond'}&background=e5e7eb&color=374151"
+
+
+def _fetch_user_summary(db: Session, user_id: object) -> dict | None:
+    result = db.execute(
+        text(
+            """
+            SELECT id, first_name, last_name, role, avatar_path
+            FROM users
+            WHERE id::text = :user_id
+            LIMIT 1
+            """
+        ),
+        {"user_id": str(user_id)},
+    ).mappings().first()
+
+    if not result:
+        return None
+
+    return {
+        "id": int(result["id"]) if str(result["id"]).isdigit() else str(result["id"]),
+        "first_name": result["first_name"] or "User",
+        "last_name": result["last_name"] or "",
+        "role": result["role"] if isinstance(result["role"], str) else getattr(result["role"], "value", "student"),
+        "avatar_path": _build_avatar_path(
+            result["first_name"],
+            result["last_name"],
+            result["avatar_path"],
+        ),
+    }
+
+
+def format_post(post: Post, current_user_id: object, db: Session) -> PostResponse:
+    user_summary = _fetch_user_summary(db, post.user_id) or {
+        "id": int(post.user_id) if str(post.user_id).isdigit() else str(post.user_id),
+        "first_name": "UniBond",
+        "last_name": "User",
+        "role": "student",
+        "avatar_path": None,
+    }
+
+    comment_items = []
+    for comment in post.comments:
+        comment_user = _fetch_user_summary(db, comment.user_id) or {
+            "id": int(comment.user_id) if str(comment.user_id).isdigit() else str(comment.user_id),
+            "first_name": "UniBond",
+            "last_name": "User",
+            "role": "student",
+            "avatar_path": None,
+        }
+        comment_items.append(
+            {
+                "id": comment.id,
+                "content": comment.content,
+                "created_at": comment.created_at,
+                "user": comment_user,
+            }
+        )
+
     post_dict = {
         "id": post.id,
         "content": post.content,
         "created_at": post.created_at,
         "user_id": post.user_id,
-        "user": post.user,
+        "user": user_summary,
         "media": post.media,
         "likes_count": len(post.likes),
         "reposts_count": len(post.reposts),
         "comments_count": len(post.comments),
-        "is_liked_by_user": any(like.user_id == current_user_id for like in post.likes),
-        "is_reposted_by_user": any(repost.user_id == current_user_id for repost in post.reposts),
-        "comments": post.comments
+        "is_liked_by_user": any(str(like.user_id) == str(current_user_id) for like in post.likes),
+        "is_reposted_by_user": any(str(repost.user_id) == str(current_user_id) for repost in post.reposts),
+        "comments": comment_items,
     }
     return PostResponse(**post_dict)
 
 
-def _build_search_document(post: Post) -> SearchablePost:
+def _build_search_document(post: Post, db: Session) -> SearchablePost:
+    author_summary = _fetch_user_summary(db, post.user_id)
     author_name = "UniBond user"
-    if post.user:
-        author_name = f"{post.user.first_name} {post.user.last_name}".strip() or author_name
+    if author_summary:
+        author_name = f"{author_summary['first_name']} {author_summary['last_name']}".strip() or author_name
 
     cleaned_content = (post.content or "").strip()
     title = cleaned_content[:80] + ("..." if len(cleaned_content) > 80 else "")
@@ -88,7 +153,7 @@ def create_post(post: PostCreate, db: Session = Depends(get_db), current_user: U
         
     db.commit()
     db.refresh(db_post)
-    return format_post(db_post, current_user.id)
+    return format_post(db_post, current_user.id, db)
 
 
 #-- Create Post with File Upload (multipart/form-data) --#
@@ -128,7 +193,7 @@ async def create_post_with_upload(
         db.commit()
         db.refresh(db_post)
 
-    return format_post(db_post, current_user.id)
+    return format_post(db_post, current_user.id, db)
 
 
 @api_router.post(
@@ -185,12 +250,12 @@ async def create_post_with_ai_moderation(
         db.commit()
         db.refresh(db_post)
 
-    smart_search_service.add_post(_build_search_document(db_post))
+    smart_search_service.add_post(_build_search_document(db_post, db))
 
     return PostCreateWithModerationResponse(
         message="Post created successfully and indexed for smart search.",
         moderation=moderation_result,
-        post=format_post(db_post, current_user.id),
+        post=format_post(db_post, current_user.id, db),
     )
 
 
@@ -198,7 +263,7 @@ async def create_post_with_ai_moderation(
 @router.get("/", response_model=list[PostResponse])
 def get_all_posts(db: Session = Depends(get_db), skip: int = 0, limit: int = 10, current_user: User = Depends(get_current_user)):
     posts = db.query(Post).order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
-    return [format_post(p, current_user.id) for p in posts]
+    return [format_post(p, current_user.id, db) for p in posts]
 
 #-- Get Post by ID --#
 @router.get("/{post_id}", response_model=PostResponse)
@@ -206,7 +271,7 @@ def get_post(post_id: int, db: Session = Depends(get_db), current_user: User = D
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post not found with id {post_id}")
-    return format_post(post, current_user.id)
+    return format_post(post, current_user.id, db)
 
 #-- Get Post by User ID --#
 @router.get("/user/{user_id}", response_model=list[PostResponse])
@@ -220,7 +285,7 @@ def get_posts_by_user(user_id: int, db: Session = Depends(get_db), current_user:
         query = query.filter(Post.user_id == user_id)
         
     posts = query.order_by(Post.created_at.desc()).all()
-    return [format_post(p, current_user.id) for p in posts]
+    return [format_post(p, current_user.id, db) for p in posts]
 
 #-- Update Post --#
 @router.put("/{post_id}", response_model=PostResponse)
@@ -240,7 +305,7 @@ def update_post(post_id: int, post_data: PostCreate, db: Session = Depends(get_d
         
     db.commit()
     db.refresh(post)
-    return format_post(post, current_user.id)
+    return format_post(post, current_user.id, db)
 
 #-- Delete Post --#
 @router.delete("/{post_id}")
@@ -300,4 +365,4 @@ def add_comment(post_id: int, comment: PostCommentCreate, db: Session = Depends(
     db.add(new_comment)
     db.commit()
     db.refresh(post)
-    return format_post(post, current_user.id)
+    return format_post(post, current_user.id, db)
