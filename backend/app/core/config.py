@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     smart_search_content_preview_length: int = 180
     smart_search_index_dir: str = "data/faiss_index"
     smart_search_posts_path: str = "data/search/sample_posts.json"
+    smart_search_runtime_posts_path: str = "data/search/runtime_posts.json"
 
     class Config:
         env_file = ".env"

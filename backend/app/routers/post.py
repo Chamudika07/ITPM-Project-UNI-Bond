@@ -4,14 +4,25 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.db.database import get_db
 from app.models.post import Post
-from app.schemas.post import PostCreate, PostResponse, PostMediaBase, PostInteractionToggleResponse, PostCommentCreate
+from app.schemas.post import (
+    PostCreate,
+    PostCreateWithModerationResponse,
+    PostResponse,
+    PostMediaBase,
+    PostInteractionToggleResponse,
+    PostCommentCreate,
+)
 from app.models.post_media import PostMedia
 from app.models.interaction import PostLike, PostRepost, PostComment
 from app.models.user import User
+from app.schemas.search import SearchablePost
+from app.services.moderation_service import moderate_content
+from app.services.smart_search_service import smart_search_service
 from app.utils.autho import get_current_user
 from app.utils.file_upload import save_upload_file
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
+api_router = APIRouter(prefix="/api/v1/posts", tags=["Posts"])
 
 def format_post(post: Post, current_user_id: int) -> PostResponse:
     post_dict = {
@@ -29,6 +40,26 @@ def format_post(post: Post, current_user_id: int) -> PostResponse:
         "comments": post.comments
     }
     return PostResponse(**post_dict)
+
+
+def _build_search_document(post: Post) -> SearchablePost:
+    author_name = "UniBond user"
+    if post.user:
+        author_name = f"{post.user.first_name} {post.user.last_name}".strip() or author_name
+
+    cleaned_content = (post.content or "").strip()
+    title = cleaned_content[:80] + ("..." if len(cleaned_content) > 80 else "")
+    if not title:
+        title = f"Study post by {author_name}"
+
+    searchable_content = cleaned_content or "Study-related image post."
+    return SearchablePost(
+        id=post.id,
+        title=title,
+        content=searchable_content,
+        author_name=author_name,
+        created_at=post.created_at,
+    )
 
 #-- Create Post --#
 @router.post("/", response_model=PostResponse)
@@ -86,6 +117,55 @@ async def create_post_with_upload(
         db.refresh(db_post)
 
     return format_post(db_post, current_user.id)
+
+
+@api_router.post(
+    "/",
+    response_model=PostCreateWithModerationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_post_with_ai_moderation(
+    content: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Create a study post using the UniBond AI moderation gateway.
+    Only allowed submissions are saved and added to the smart search index.
+    """
+    moderation_result = await moderate_content(text=content, image=image)
+
+    if moderation_result.final_status != "allowed":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Post creation blocked because the content was not approved by moderation.",
+                "moderation": moderation_result.model_dump(mode="json"),
+            },
+        )
+
+    normalized_content = content.strip() if content else None
+    db_post = Post(content=normalized_content or None, user_id=current_user.id)
+    db.add(db_post)
+    db.commit()
+    db.refresh(db_post)
+
+    if image and image.filename:
+        await image.seek(0)
+        media_url, media_type = await save_upload_file(image)
+        db_media = PostMedia(post_id=db_post.id, media_url=media_url, media_type=media_type)
+        db.add(db_media)
+        db.commit()
+        db.refresh(db_post)
+
+    smart_search_service.add_post(_build_search_document(db_post))
+
+    return PostCreateWithModerationResponse(
+        message="Post created successfully and indexed for smart search.",
+        moderation=moderation_result,
+        post=format_post(db_post, current_user.id),
+    )
 
 
 #-- Get All Post --#

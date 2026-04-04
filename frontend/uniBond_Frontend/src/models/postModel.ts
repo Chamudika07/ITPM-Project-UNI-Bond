@@ -1,5 +1,5 @@
 import apiClient from "@/services/api/axiosClient";
-import type { Post } from "@/types/post";
+import type { Post, PostCreateWithModerationResponse } from "@/types/post";
 import { buildUserAvatar, resolveAssetUrl } from "@/utils/userMedia";
 
 // Mapper function
@@ -81,6 +81,31 @@ export const createPostWithFile = async (
   });
 
   return mapPostResponse(res.data);
+};
+
+export const createModeratedPostWithFile = async (
+  content: string,
+  file?: File
+): Promise<PostCreateWithModerationResponse> => {
+  const formData = new FormData();
+
+  if (content.trim()) {
+    formData.append("content", content.trim());
+  }
+
+  if (file) {
+    formData.append("image", file);
+  }
+
+  const res = await apiClient.post("/api/v1/posts/", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return {
+    message: res.data?.message || "Post created successfully.",
+    moderation: res.data?.moderation,
+    post: mapPostResponse(res.data?.post),
+  };
 };
 
 

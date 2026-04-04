@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Image, Video, X, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Image, Search, Video, X, Upload } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
-import { handleCreatePostWithFile } from "@/controllers/postController";
+import { handleCreateModeratedPostWithFile } from "@/controllers/postController";
+import { handleCheckPostModeration } from "@/controllers/moderationController";
+import { handleSemanticSearch } from "@/controllers/searchController";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
+import type { ModerationCheckResponse } from "@/types/moderation";
+import type { SemanticSearchResult } from "@/types/search";
 import {
   ALL_MEDIA_ACCEPT_ATTR,
   IMAGE_ACCEPT_ATTR,
@@ -22,8 +26,12 @@ export default function CreatePost() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
+  const [checking, setChecking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [moderationResult, setModerationResult] = useState<ModerationCheckResponse | null>(null);
+  const [semanticMatches, setSemanticMatches] = useState<SemanticSearchResult[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +65,12 @@ export default function CreatePost() {
       return;
     }
 
+    if (validation.mediaKind === "video") {
+      setError("AI moderation in the current UniBond study-post flow supports text and images only.");
+      resetFile();
+      return;
+    }
+
     // Generate an object URL for preview (browser memory only, not uploaded yet)
     const objectUrl = URL.createObjectURL(file);
 
@@ -64,6 +78,8 @@ export default function CreatePost() {
     setSelectedFile(file);
     setPreviewUrl(objectUrl);
     setPreviewType(validation.mediaKind);
+    setModerationResult(null);
+    setSemanticMatches([]);
   };
 
   const resetFile = () => {
@@ -71,19 +87,51 @@ export default function CreatePost() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setPreviewType(null);
+    setModerationResult(null);
+    setSemanticMatches([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const runAiChecks = async () => {
+    setError("");
+    setSuccessMessage("");
+
+    if (!content.trim() && !selectedFile) {
+      setError("Please write something or attach a study image.");
+      return;
+    }
+
+    try {
+      setChecking(true);
+      const [moderation, semantic] = await Promise.all([
+        handleCheckPostModeration(content.trim(), selectedFile ?? undefined),
+        content.trim().length >= 3
+          ? handleSemanticSearch(content.trim(), 3)
+          : Promise.resolve({ query: "", totalResults: 0, results: [] }),
+      ]);
+
+      setModerationResult(moderation);
+      setSemanticMatches(semantic.results);
+    } catch (err) {
+      const axiosError = err as any;
+      const detail = axiosError?.response?.data?.detail;
+      setError(typeof detail === "string" ? detail : (err instanceof Error ? err.message : "Failed to run AI checks."));
+    } finally {
+      setChecking(false);
+    }
   };
 
   // ── Form submit ────────────────────────────────────────────────────────────
   const submitPost = async () => {
     setError("");
+    setSuccessMessage("");
 
     if (!content.trim() && !selectedFile) {
       setError("Please write something or attach a file.");
       return;
     }
 
-    const res = await handleCreatePostWithFile(
+    const res = await handleCreateModeratedPostWithFile(
       content.trim(),
       selectedFile ?? undefined,
       setLoading,
@@ -91,7 +139,12 @@ export default function CreatePost() {
     );
 
     if (res) {
-      navigate(ROUTES.HOME);
+      setSuccessMessage(res.message);
+      setModerationResult(res.moderation);
+      setContent("");
+      resetFile();
+      setSemanticMatches([]);
+      setTimeout(() => navigate(ROUTES.HOME), 900);
     }
   };
 
@@ -102,9 +155,13 @@ export default function CreatePost() {
 
         {/* ── Text content ─────────────────────────────────────────────── */}
         <textarea
-          placeholder="What's on your mind?"
+          placeholder="Share a study question, solution, or academic discussion..."
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            setModerationResult(null);
+            setSemanticMatches([]);
+          }}
           rows={4}
           className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
@@ -189,16 +246,82 @@ export default function CreatePost() {
         {/* ── Error message ─────────────────────────────────────────────── */}
         {error && (
           <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm">
-            <span className="mt-0.5">⚠️</span>
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex items-start gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-sm">
+            <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+        )}
+
+        {moderationResult && (
+          <div className={`rounded-xl border px-4 py-3 text-sm ${
+            moderationResult.final_status === "allowed"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-amber-200 bg-amber-50 text-amber-800"
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold">AI Moderation: {moderationResult.final_status.toUpperCase()}</span>
+              {moderationResult.final_status === "allowed" ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <AlertTriangle className="w-4 h-4" />
+              )}
+            </div>
+            <p className="mt-2">{moderationResult.explanation}</p>
+            {moderationResult.reasons.length > 0 ? (
+              <ul className="mt-2 list-disc pl-5">
+                {moderationResult.reasons.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
+
+        {semanticMatches.length > 0 && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-blue-800">
+              <Search className="w-4 h-4" />
+              Similar study posts already exist
+            </div>
+            <div className="mt-3 space-y-3">
+              {semanticMatches.map((match) => (
+                <div key={match.postId} className="rounded-lg border border-blue-100 bg-white px-3 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{match.title}</p>
+                      <p className="mt-1 text-sm text-gray-600">{match.contentPreview}</p>
+                      <p className="mt-2 text-xs text-gray-500">By {match.authorName}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                      {match.similarityScore.toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* ── Action buttons ────────────────────────────────────────────── */}
         <div className="flex gap-3 pt-1">
           <button
+            onClick={runAiChecks}
+            disabled={checking || loading}
+            className="flex items-center gap-2 bg-slate-700 text-white px-5 py-2 rounded-lg text-sm font-semibold
+                       hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {checking ? "Checking..." : "Check AI"}
+          </button>
+
+          <button
             onClick={submitPost}
-            disabled={loading}
+            disabled={loading || checking || moderationResult?.final_status !== "allowed"}
             className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold
                        hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
@@ -214,7 +337,7 @@ export default function CreatePost() {
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                Post
+                Post with AI Approval
               </>
             )}
           </button>

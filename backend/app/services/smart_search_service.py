@@ -128,6 +128,21 @@ class SmartSearchService:
         self.ensure_index_ready()
         return self._indexed_posts
 
+    def add_post(self, post: SearchablePost) -> None:
+        self.ensure_index_ready()
+        searchable_text = self.prepare_searchable_text(post)
+        embeddings = self.embedding_service.encode_texts([searchable_text])
+        self.index_service.add_embeddings(embeddings)
+
+        indexed_post = IndexedPostResponse(
+            **post.model_dump(),
+            searchable_text=searchable_text,
+        )
+        self._indexed_posts.append(indexed_post)
+        self.repository.append_runtime_post(post)
+        self._save_metadata(self._indexed_posts)
+        self.index_service.save_index(str(self.index_path))
+
     def prepare_searchable_text(self, post: SearchablePost) -> str:
         title = post.title.strip()
         content = post.content.strip()

@@ -1,3 +1,5 @@
+import type { ModerationCheckResponse } from "@/types/moderation";
+
 export type PostCommentUser = {
   id: string;
   firstName: string;
@@ -30,4 +32,10 @@ export type Post = {
   isRepostedByUser?: boolean;
   comments?: PostComment[];
   createdAt: string;
+};
+
+export type PostCreateWithModerationResponse = {
+  message: string;
+  moderation: ModerationCheckResponse;
+  post: Post;
 };

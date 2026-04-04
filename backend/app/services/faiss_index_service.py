@@ -61,6 +61,30 @@ class FaissIndexService:
         )
         return distances, indices
 
+    def add_embeddings(self, embeddings: np.ndarray) -> int:
+        self._require_faiss()
+
+        if self._index is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Search index is not ready. Rebuild the index first.",
+            )
+
+        if embeddings.ndim != 2 or embeddings.shape[0] == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot add empty embeddings to the FAISS index.",
+            )
+
+        if self._dimension is None or int(embeddings.shape[1]) != self._dimension:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Embedding dimension does not match the current FAISS index.",
+            )
+
+        self._index.add(np.asarray(embeddings, dtype=np.float32))
+        return int(embeddings.shape[0])
+
     def get_size(self) -> int:
         if self._index is None:
             return 0
