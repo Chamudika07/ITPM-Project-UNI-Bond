@@ -13,6 +13,8 @@ export const ROUTES = {
   KUPPY_SESSIONS: "/kuppy-sessions",
   CREATE_POST: "/create-post",
   EDIT_POST: "/edit-post/:id",
+  COURSES: "/courses",
+  CREATE_COURSE: "/create-course",
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;

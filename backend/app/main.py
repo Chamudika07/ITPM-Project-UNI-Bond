@@ -10,6 +10,7 @@ from app.core.runtime import configure_runtime_environment
 configure_runtime_environment()
 
 import app.models  # noqa: F401
+from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
 from app.db.base import Base
 from app.db.database import engine
 from app.routers import (
@@ -80,6 +81,7 @@ app.include_router(ai_text.router)
 app.include_router(ai_image.router)
 app.include_router(moderation.router)
 app.include_router(health.router)
+app.include_router(professional_session.router)
 
 
 @app.get("/")
