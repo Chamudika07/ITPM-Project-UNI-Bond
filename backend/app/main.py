@@ -21,6 +21,7 @@ from app.routers import (
     health,
     kuppy,
     login,
+    moderation,
     notice_notification,
     post,
     search,
@@ -69,6 +70,7 @@ app.include_router(admin.router)
 app.include_router(search.router)
 app.include_router(ai_text.router)
 app.include_router(ai_image.router)
+app.include_router(moderation.router)
 app.include_router(health.router)
 
 
