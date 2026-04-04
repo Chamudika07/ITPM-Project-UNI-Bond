@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import undefer
@@ -398,12 +398,11 @@ def discover_users(
         query = query.filter(User.id != exclude_user_id)
 
     if exclude_followed:
-        followed_subquery = (
-            db.query(UserFollow.following_id)
-            .filter(UserFollow.follower_id == current_user.id)
-            .subquery()
+        followed_select = (
+            select(UserFollow.following_id)
+            .where(UserFollow.follower_id == current_user.id)
         )
-        query = query.filter(User.id.not_in(followed_subquery))
+        query = query.filter(User.id.not_in(followed_select))
 
     users = (
         query
@@ -423,10 +422,9 @@ def get_online_users(
     now = datetime.now(timezone.utc)
     online_cutoff = now - timedelta(minutes=2)
 
-    followed_subquery = (
-        db.query(UserFollow.following_id)
-        .filter(UserFollow.follower_id == current_user.id)
-        .subquery()
+    followed_select = (
+        select(UserFollow.following_id)
+        .where(UserFollow.follower_id == current_user.id)
     )
 
     try:
@@ -437,7 +435,7 @@ def get_online_users(
             .filter(User.access_status == AccessStatus.active)
             .filter(User.last_seen.is_not(None))
             .filter(User.last_seen >= online_cutoff)
-            .order_by(User.id.in_(followed_subquery).desc(), User.last_seen.desc(), User.id.desc())
+            .order_by(User.id.in_(followed_select).desc(), User.last_seen.desc(), User.id.desc())
             .limit(limit)
             .all()
         )

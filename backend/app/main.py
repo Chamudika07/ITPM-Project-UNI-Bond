@@ -28,11 +28,17 @@ from app.routers import (
     task,
     user,
 )
+from app.services.smart_search_service import smart_search_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    try:
+        smart_search_service.ensure_index_ready()
+    except Exception:
+        # Keep API startup resilient; semantic search can still rebuild lazily on demand.
+        pass
     yield
 
 
@@ -68,6 +74,7 @@ app.include_router(task.router)
 app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
+app.include_router(search.semantic_router)
 app.include_router(ai_text.router)
 app.include_router(ai_image.router)
 app.include_router(moderation.router)

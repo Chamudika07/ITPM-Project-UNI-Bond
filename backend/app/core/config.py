@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     ai_image_max_file_size_bytes: int = 10 * 1024 * 1024
     ai_image_top_k: int = 5
     ai_image_confidence_threshold: float = 0.45
+    smart_search_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    smart_search_default_top_k: int = 5
+    smart_search_max_top_k: int = 10
+    smart_search_min_query_length: int = 3
+    smart_search_min_similarity: float = 0.2
+    smart_search_content_preview_length: int = 180
+    smart_search_index_dir: str = "data/faiss_index"
+    smart_search_posts_path: str = "data/search/sample_posts.json"
 
     class Config:
         env_file = ".env"
