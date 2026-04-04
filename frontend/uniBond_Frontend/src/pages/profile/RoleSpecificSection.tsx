@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { handleGetTasks, handleSubmitTaskWork } from "@/controllers/taskController";
 import type { Task } from "@/types/task";
 
-export default function RoleSpecificSection({ user }: { user: User }) {
+export default function RoleSpecificSection({ user, isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);

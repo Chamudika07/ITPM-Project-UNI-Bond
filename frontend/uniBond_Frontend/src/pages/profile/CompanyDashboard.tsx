@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { CompanyUser, User } from "@/types/user";
+import { CompanyUser } from "@/types/user";
 import { handleGetTasks, handleDeleteTask, handleUpdateApplication } from "@/controllers/taskController";
-import { mockGetTopStudents } from "@/services/mock/mockApi";
+
 import type { Task } from "@/types/task";
-import { Briefcase, CheckCircle, Edit2, Trash2, Users, ChevronDown, Plus, Eye, Check, X, Star, CheckSquare } from "lucide-react";
+import { Briefcase, CheckCircle, Edit2, Trash2, Users, ChevronDown, Plus, Eye, Check, X, CheckSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CompanyDashboard({ user }: { user: CompanyUser }) {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [topStudents, setTopStudents] = useState<(User & {rating: number})[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   
@@ -19,7 +19,7 @@ export default function CompanyDashboard({ user }: { user: CompanyUser }) {
 
   useEffect(() => {
     fetchMyTasks();
-    fetchTopStudents();
+    fetchMyTasks();
   }, [user.id]);
 
   const fetchMyTasks = async () => {
@@ -29,10 +29,6 @@ export default function CompanyDashboard({ user }: { user: CompanyUser }) {
     setLoading(false);
   };
 
-  const fetchTopStudents = async () => {
-    const students = await mockGetTopStudents();
-    setTopStudents(students);
-  };
 
   const onDelete = async (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
@@ -230,30 +226,7 @@ export default function CompanyDashboard({ user }: { user: CompanyUser }) {
             </div>
 
             <div className="space-y-8">
-               {/* Top 10 Ranked Students Widget */}
-               <div className="bg-gray-300 border border-gray-400/40 rounded-3xl p-6 shadow-sm">
-                 <h3 className="font-extrabold text-xl text-black flex items-center gap-2 mb-4">
-                    <Star className="w-5 h-5 text-black fill-black" />
-                    Top 10 Rated Students
-                 </h3>
-                 <div className="space-y-3">
-                   {topStudents.map((stu, i) => (
-                     <div key={stu.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-400/40 hover:border-black transition cursor-pointer" onClick={() => navigate(`/profile/${stu.id}`)}>
-                        <div className="flex items-center gap-3">
-                           <span className="font-bold text-gray-400 w-4">{i + 1}</span>
-                           <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(stu.firstname)}&background=000&color=fff`} className="w-8 h-8 rounded-full" alt="" />
-                           <div>
-                              <p className="font-bold text-black text-sm">{stu.firstname} {stu.lastname}</p>
-                              <p className="text-xs text-gray-700">{('education' in stu) ? stu.education : 'Student'}</p>
-                           </div>
-                        </div>
-                        <div className="font-black text-sm bg-gray-100 px-2 py-1 rounded border border-gray-200 text-black flex gap-1 items-center">
-                           {stu.rating.toFixed(1)} <Star className="w-3 h-3 fill-black text-black"/>
-                        </div>
-                     </div>
-                   ))}
-                 </div>
-               </div>
+               {/* Top 10 Ranked Students temp removed until backend API built */}
             </div>
           </div>
         </>

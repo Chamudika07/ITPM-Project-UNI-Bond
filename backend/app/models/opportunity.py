@@ -55,7 +55,7 @@ class TaskStatus(str, enum.Enum):
 
 
 class Task(Base):
-    __tablename__ = "tasks"
+    __tablename__ = "opportunity_tasks"
 
     id = Column(Integer, primary_key=True, index=True)
     opportunity_id = Column(Integer, ForeignKey("opportunities.id"), nullable=False, index=True)
@@ -100,7 +100,7 @@ class TaskSubmission(Base):
     __tablename__ = "task_submissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False, index=True)
+    task_id = Column(Integer, ForeignKey("opportunity_tasks.id"), nullable=False, index=True)
     student_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     submission_text = Column(Text, nullable=True)
     submission_url = Column(String(500), nullable=True)
@@ -123,7 +123,7 @@ class NotificationType(str, enum.Enum):
 
 
 class Notification(Base):
-    __tablename__ = "notifications"
+    __tablename__ = "opportunity_notifications"
 
     id = Column(Integer, primary_key=True, index=True)
     recipient_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -131,7 +131,7 @@ class Notification(Base):
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
     related_opportunity_id = Column(Integer, ForeignKey("opportunities.id"), nullable=True)
-    related_task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    related_task_id = Column(Integer, ForeignKey("opportunity_tasks.id"), nullable=True)
     related_application_id = Column(Integer, ForeignKey("task_applications.id"), nullable=True)
     is_read = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

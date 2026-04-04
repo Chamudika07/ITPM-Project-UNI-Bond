@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuthHook";
 import { handleCreateTask } from "@/controllers/taskController";
 import SectionCard from "@/components/common/SectionCard";
 import TaskForm, { TaskFormData } from "@/components/tasks/TaskForm";
+import type { CompanyUser } from "@/types/user";
 
 export default function CreateTask() {
   const { user } = useAuth();
@@ -21,9 +22,10 @@ export default function CreateTask() {
   const handleSubmit = async (data: TaskFormData) => {
     try {
       setLoading(true);
+      const companyUser = user as CompanyUser;
       await handleCreateTask({
         companyId: user.id || "c1",
-        companyName: "companyName" in user ? user.companyName : "Unknown Company",
+        companyName: companyUser.companyName || `${companyUser.firstname} ${companyUser.lastname}`.trim(),
         ...data,
         status: data.status || "open"
       });

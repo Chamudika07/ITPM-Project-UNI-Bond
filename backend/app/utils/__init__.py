@@ -1,1 +1,1 @@
-# Utilities module
+"""Utility helpers for the backend."""

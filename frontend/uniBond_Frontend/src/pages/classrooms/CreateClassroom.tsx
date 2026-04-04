@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthHook";
 import { handleCreateClassroom } from "@/controllers/classroomController";
 import SectionCard from "@/components/common/SectionCard";
-import { Users } from "lucide-react";
+import { Users, AlertCircle } from "lucide-react";
+import { validateClassroomForm } from "@/utils/validators";
 
 export default function CreateClassroom() {
   const { user } = useAuth();
@@ -13,6 +14,7 @@ export default function CreateClassroom() {
   const [maxStudents, setMaxStudents] = useState<number>(30);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; description?: string; maxStudents?: string }>({});
 
   if (!user || user.role !== "tech_lead") {
     return (
@@ -24,8 +26,10 @@ export default function CreateClassroom() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description || maxStudents < 1) {
-      setError("Please fill all fields correctly.");
+    const validation = validateClassroomForm(title, description, maxStudents);
+    setFieldErrors(validation.errors);
+    if (!validation.isValid) {
+      setError(validation.error ?? "Please correct the highlighted fields.");
       return;
     }
     
@@ -43,43 +47,58 @@ export default function CreateClassroom() {
 
   return (
     <SectionCard title="Create Classroom">
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-4 border rounded-xl bg-white shadow-sm">
-        <div className="flex items-center gap-3 mb-6 border-b pb-4">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
+      <form onSubmit={handleSubmit} className="panel-surface space-y-4 max-w-lg mx-auto p-5 rounded-[1.75rem]">
+        <div className="flex items-center gap-3 mb-6 border-b border-[var(--border-soft)] pb-4">
+          <div className="p-3 bg-[var(--brand-soft)] text-[var(--brand)] rounded-full">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">New Classroom</h2>
-            <p className="text-sm text-gray-500">Host your own professional session.</p>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">New Classroom</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Create a polished learning space with clear expectations for students.</p>
           </div>
         </div>
 
-        {error && <div className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</div>}
+        {error && <div className="status-error"><AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />{error}</div>}
 
         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-           <input className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Advanced System Design" />
+           <label className="field-label mb-1">Title</label>
+           <input className={`field-shell ${fieldErrors.title ? "field-shell-error" : ""}`} value={title} onChange={(e) => {
+            setTitle(e.target.value);
+            setFieldErrors((current) => ({ ...current, title: undefined }));
+            setError("");
+           }} placeholder="e.g. Advanced System Design" />
+           {fieldErrors.title ? <p className="field-error mt-1">{fieldErrors.title}</p> : null}
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="field-label mb-1">Description</label>
           <textarea 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`field-shell ${fieldErrors.description ? "field-shell-error" : ""}`}
             rows={4}
             value={description} 
-            onChange={(e) => setDescription(e.target.value)} 
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setFieldErrors((current) => ({ ...current, description: undefined }));
+              setError("");
+            }}
             placeholder="Detailed course description..." 
           />
+          {fieldErrors.description ? <p className="field-error mt-1">{fieldErrors.description}</p> : <p className="field-hint mt-1">Describe the topic, learning outcome, and who should join.</p>}
         </div>
 
         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Students</label>
-           <input type="number" min="1" max="500" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" value={maxStudents} onChange={(e) => setMaxStudents(parseInt(e.target.value))} />
+           <label className="field-label mb-1">Maximum Students</label>
+           <input type="number" min="1" max="500" className={`field-shell ${fieldErrors.maxStudents ? "field-shell-error" : ""}`} value={maxStudents} onChange={(e) => {
+            setMaxStudents(parseInt(e.target.value, 10));
+            setFieldErrors((current) => ({ ...current, maxStudents: undefined }));
+            setError("");
+           }} />
+           {fieldErrors.maxStudents ? <p className="field-error mt-1">{fieldErrors.maxStudents}</p> : null}
         </div>
 
         <div className="pt-4 flex justify-end gap-3">
-          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
-          <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+          <button type="button" onClick={() => navigate(-1)} className="btn-secondary px-4 py-2">Cancel</button>
+          <button type="submit" disabled={loading} className="btn-primary px-5 py-2 disabled:opacity-50">
             {loading ? "Creating..." : "Create Classroom"}
           </button>
         </div>

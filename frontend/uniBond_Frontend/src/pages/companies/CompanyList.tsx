@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuthHook";
-import { mockGetCompanies, Company } from "@/services/mock/mockCompanyApi";
-
+import { handleGetCompanies, type CompanyProfile } from "@/controllers/companyController";
 import { Building, MapPin, Globe, ArrowRight } from "lucide-react";
 
 export default function CompanyList() {
   const { user } = useAuth();
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    mockGetCompanies().then(res => {
-      setCompanies(res);
-      setLoading(false);
-    });
+    handleGetCompanies()
+      .then((response) => setCompanies(response))
+      .finally(() => setLoading(false));
   }, []);
 
   return (

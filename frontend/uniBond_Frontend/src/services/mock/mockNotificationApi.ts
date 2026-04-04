@@ -1,41 +1,54 @@
-import type { Notification } from "@/types/notification";
+import type { Notification, NotificationSummary } from "@/types/notification";
 
-const getNotifications = (): Notification[] => {
-  const stored = localStorage.getItem('mock_notifications');
-  if (stored) return JSON.parse(stored);
-  return []; 
-};
-
-const saveNotifications = (n: Notification[]) => {
-  localStorage.setItem('mock_notifications', JSON.stringify(n));
-};
-
-export const mockGetNotifications = (userId?: string): Promise<Notification[]> => {
-  let notifs = getNotifications();
-  if (userId) {
-    notifs = notifs.filter(n => !n.userId || n.userId === userId);
-  }
-  return Promise.resolve(notifs);
-};
-
-export const mockAddNotification = async (notification: Omit<Notification, "id" | "createdAt" | "isRead">): Promise<void> => {
-  const allInfo = getNotifications();
-  allInfo.unshift({
-    ...notification,
-    id: "not-" + Date.now().toString(),
+const notifications: Notification[] = [
+  {
+    id: "not1",
+    userId: "1",
+    type: "like",
+    message: "Chamudika liked your post",
     isRead: false,
-    createdAt: new Date().toISOString()
-  });
-  saveNotifications(allInfo);
+    createdAt: new Date().toISOString(),
+    relatedId: "1",
+  },
+  {
+    id: "not2",
+    userId: "1",
+    type: "comment",
+    message: "Dr. Nimal commented on your post",
+    isRead: true,
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    relatedId: "2",
+  },
+];
+
+export const mockGetNotifications = (options?: { unreadOnly?: boolean }): Promise<Notification[]> => {
+  const data = options?.unreadOnly ? notifications.filter((n) => !n.isRead) : notifications;
+  return Promise.resolve(data);
 };
 
-export const mockMarkAsRead = (notificationId: string): Promise<void> => {
+export const mockGetNotificationSummary = (): Promise<NotificationSummary> => {
+  return Promise.resolve({
+    totalCount: notifications.length,
+    unreadCount: notifications.filter((n) => !n.isRead).length,
+  });
+};
+
+export const mockMarkAsRead = (notificationId: string): Promise<Notification> => {
   return new Promise((resolve, reject) => {
-    const notifs = getNotifications();
-    const notif = notifs.find((n) => n.id === notificationId);
+    const notif = notifications.find((n) => n.id === notificationId);
     if (!notif) return reject(new Error("Notification not found"));
     notif.isRead = true;
-    saveNotifications(notifs);
-    resolve();
+    resolve(notif);
+  });
+};
+
+export const mockMarkAllAsRead = (): Promise<NotificationSummary> => {
+  notifications.forEach((notification) => {
+    notification.isRead = true;
+  });
+
+  return Promise.resolve({
+    totalCount: notifications.length,
+    unreadCount: 0,
   });
 };

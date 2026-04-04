@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { validateSearch } from "@/utils/validators";
 
 type Props = {
@@ -8,10 +8,19 @@ type Props = {
   className?: string;
 };
 
-export default function SearchBar({ placeholder = "Search posts, users, groups...", className = "" }: Props) {
-  const [query, setQuery] = useState("");
-  const [error, setError] = useState("");
+export default function SearchBar({ placeholder = "Search people, posts, groups, tasks, and notices...", className = "" }: Props) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get("q") || "";
+  const [query, setQuery] = useState(urlQuery);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (location.pathname === "/search") {
+      setQuery(urlQuery);
+    }
+  }, [location.pathname, urlQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,19 +35,42 @@ export default function SearchBar({ placeholder = "Search posts, users, groups..
     navigate(`/search?q=${encodeURIComponent(query.trim())}`);
   };
 
+  const handleClear = () => {
+    setQuery("");
+    setError("");
+    if (location.pathname === "/search") {
+      navigate("/search");
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
         <input
-          type="text"
+          type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (error) setError("");
+          }}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2 bg-gray-300 border border-gray-400/40 rounded-lg text-black placeholder-gray-700 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-transparent"
+          className="field-shell w-full"
+          style={{ paddingLeft: "2.9rem", paddingRight: "3.2rem", paddingTop: "0.9rem", paddingBottom: "0.9rem" }}
+          aria-label="Search UniBond"
         />
+        {query ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)]"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && <p className="field-error mt-1.5 ml-1">{error}</p>}
     </form>
   );
 }

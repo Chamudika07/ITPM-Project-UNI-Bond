@@ -13,23 +13,33 @@ type Props = {
     options: Option[];
     className?: string;
     label?: string;
+    error?: string;
+    hint?: string;
+    required?: boolean;
 };
 
-export default function Select({ id, name, value, onChange, options, className, label }: Props) {
+export default function Select({ id, name, value, onChange, options, className, label, error, hint, required }: Props) {
+    const fieldId = id ?? name;
+
     return (
-        <div className="mb-3">
-            {label && <label htmlFor={id} className="block text-sm">{label}</label>}
+        <div className="space-y-1.5">
+            {label && <label htmlFor={fieldId} className="field-label">{label}{required ? " *" : ""}</label>}
             <select
-                id={id}
+                id={fieldId}
                 name={name}
                 value={value}
                 onChange={onChange}
-                className={className || "border p-2 w-full rounded"}
+                required={required}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${fieldId}-error` : hint ? `${fieldId}-hint` : undefined}
+                className={className || `field-shell ${error ? "field-shell-error" : ""}`}
             >
                 {options.map(option => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
             </select>
+            {error ? <p id={`${fieldId}-error`} className="field-error">{error}</p> : null}
+            {!error && hint ? <p id={`${fieldId}-hint`} className="field-hint">{hint}</p> : null}
         </div>
     );
 }

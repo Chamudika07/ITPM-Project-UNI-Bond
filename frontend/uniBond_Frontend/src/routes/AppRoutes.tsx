@@ -9,6 +9,7 @@ import GroupDetails from "@/pages/groups/GroupDetails";
 import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
+import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
 import CreateClassroom from "@/pages/classrooms/CreateClassroom";
 import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
@@ -21,6 +22,7 @@ import CompanyDetails from "@/pages/companies/CompanyDetails";
 import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
+import EditPost from "@/pages/home/EditPost";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import AdminRoute from "@/routes/AdminRoute";
@@ -113,7 +115,27 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path={ROUTES.PROFESSIONAL_COMMUNICATION}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfessionalCommunication />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.PROFILE}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PROFILE_USER}
         element={
           <ProtectedRoute>
             <MainLayout>
@@ -238,6 +260,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <CreatePost />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.EDIT_POST}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditPost />
             </MainLayout>
           </ProtectedRoute>
         }
