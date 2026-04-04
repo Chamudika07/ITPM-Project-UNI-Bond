@@ -4,18 +4,23 @@ import type { Notification } from "@/types/notification";
 import SectionCard from "@/components/common/SectionCard";
 import EmptyState from "@/components/common/EmptyState";
 import { Bell, Heart, MessageSquare, GraduationCap, Users } from "lucide-react";
+import { useAuth } from "@/hooks/useAuthHook";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
+    if (!user) return;
     setLoading(true);
-    const data = await handleGetNotifications();
+    const data = await handleGetNotifications(user.id);
     setNotifications(data);
     setLoading(false);
   };
