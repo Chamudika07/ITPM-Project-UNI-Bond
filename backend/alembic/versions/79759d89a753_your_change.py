@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -20,14 +21,64 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    kuppy_request_status = sa.Enum("open", "scheduled", "completed", name="kuppyrequeststatus")
-    kuppy_offer_status = sa.Enum("open", "selected", "withdrawn", name="kuppyofferstatus")
-    kuppy_session_status = sa.Enum("scheduled", "live", "completed", "cancelled", name="kuppysessionstatus")
+    kuppy_request_status = postgresql.ENUM(
+        "open",
+        "scheduled",
+        "completed",
+        name="kuppyrequeststatus",
+        create_type=False,
+    )
+    kuppy_offer_status = postgresql.ENUM(
+        "open",
+        "selected",
+        "withdrawn",
+        name="kuppyofferstatus",
+        create_type=False,
+    )
+    kuppy_session_status = postgresql.ENUM(
+        "scheduled",
+        "live",
+        "completed",
+        "cancelled",
+        name="kuppysessionstatus",
+        create_type=False,
+    )
 
-    bind = op.get_bind()
-    kuppy_request_status.create(bind, checkfirst=True)
-    kuppy_offer_status.create(bind, checkfirst=True)
-    kuppy_session_status.create(bind, checkfirst=True)
+    # Create enum types idempotently so partially initialized databases
+    # don't fail with "type already exists".
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kuppyrequeststatus') THEN
+                CREATE TYPE kuppyrequeststatus AS ENUM ('open', 'scheduled', 'completed');
+            END IF;
+        END
+        $$;
+        """
+    )
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kuppyofferstatus') THEN
+                CREATE TYPE kuppyofferstatus AS ENUM ('open', 'selected', 'withdrawn');
+            END IF;
+        END
+        $$;
+        """
+    )
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kuppysessionstatus') THEN
+                CREATE TYPE kuppysessionstatus AS ENUM ('scheduled', 'live', 'completed', 'cancelled');
+            END IF;
+        END
+        $$;
+        """
+    )
 
     op.drop_table("kuppy_participants")
     op.drop_table("kuppy_sessions")

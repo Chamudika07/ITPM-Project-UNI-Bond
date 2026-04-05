@@ -1,9 +1,7 @@
 from sqlalchemy import Column, String, DateTime, Enum, Integer
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, deferred
 from sqlalchemy.sql import func
 import enum
-import uuid
 from app.db.base import Base
 
 
@@ -24,7 +22,7 @@ class AccessStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     user_code = Column(String(20), unique=True, nullable=True, index=True)  # e.g. STD0001
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
