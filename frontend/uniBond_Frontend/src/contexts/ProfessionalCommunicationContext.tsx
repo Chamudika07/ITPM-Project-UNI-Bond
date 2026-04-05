@@ -1,4 +1,11 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
 import apiClient from "@/services/api/axiosClient";
 
 export type Session = {
@@ -28,17 +35,35 @@ export type Attendee = {
 type ProfessionalCommunicationContextType = {
   sessions: Session[];
   attendees: Attendee[];
-  addSession: (session: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => Promise<{ ok: boolean; message: string }>;
-  updateSession: (id: string, updatedSession: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => Promise<{ ok: boolean; message: string }>;
+  addSession: (
+    session: Omit<
+      Session,
+      "id" | "availableSeats" | "registeredCount" | "isRegistered"
+    >,
+  ) => Promise<{ ok: boolean; message: string }>;
+  updateSession: (
+    id: string,
+    updatedSession: Omit<
+      Session,
+      "id" | "availableSeats" | "registeredCount" | "isRegistered"
+    >,
+  ) => Promise<{ ok: boolean; message: string }>;
   deleteSession: (id: string) => Promise<{ ok: boolean; message: string }>;
-  registerStudent: (sessionId: string, studentId: string, studentName: string, studentEmail: string) => Promise<{ ok: boolean; message: string }>;
+  registerStudent: (
+    sessionId: string,
+    studentId: string,
+    studentName: string,
+    studentEmail: string,
+  ) => Promise<{ ok: boolean; message: string }>;
   getAttendeesForSession: (sessionId: string) => Attendee[];
   isStudentRegistered: (sessionId: string, studentId: string) => boolean;
   getAvailableSeats: (sessionId: string) => number;
   refreshSessions: () => Promise<void>;
 };
 
-const ProfessionalCommunicationContext = createContext<ProfessionalCommunicationContextType | undefined>(undefined);
+const ProfessionalCommunicationContext = createContext<
+  ProfessionalCommunicationContextType | undefined
+>(undefined);
 
 type ApiSession = {
   id: number;
@@ -85,7 +110,12 @@ const getApiErrorMessage = (error: any, fallback: string): string => {
     return data;
   }
 
-  if (data && typeof data === "object" && "message" in data && typeof data.message === "string") {
+  if (
+    data &&
+    typeof data === "object" &&
+    "message" in data &&
+    typeof data.message === "string"
+  ) {
     return data.message;
   }
 
@@ -99,7 +129,11 @@ const getApiErrorMessage = (error: any, fallback: string): string => {
         if (typeof item === "string") return item;
         if (item && typeof item === "object" && "msg" in item) {
           const loc = Array.isArray((item as { loc?: unknown }).loc)
-            ? String((item as { loc: unknown[] }).loc[(item as { loc: unknown[] }).loc.length - 1])
+            ? String(
+                (item as { loc: unknown[] }).loc[
+                  (item as { loc: unknown[] }).loc.length - 1
+                ],
+              )
             : "";
           const msg = String((item as { msg: unknown }).msg);
           return loc ? `${loc}: ${msg}` : msg;
@@ -123,13 +157,19 @@ const getApiErrorMessage = (error: any, fallback: string): string => {
   return fallback;
 };
 
-export function ProfessionalCommunicationProvider({ children }: { children: ReactNode }) {
+export function ProfessionalCommunicationProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
 
   const refreshSessions = useCallback(async () => {
     try {
-      const response = await apiClient.get<ApiSession[]>("/professional-sessions");
+      const response = await apiClient.get<ApiSession[]>(
+        "/professional-sessions",
+      );
       setSessions(response.data.map(toSession));
     } catch (error) {
       console.error("Failed to load professional sessions", error);
@@ -141,7 +181,12 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
     void refreshSessions();
   }, [refreshSessions]);
 
-  const addSession = async (sessionData: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => {
+  const addSession = async (
+    sessionData: Omit<
+      Session,
+      "id" | "availableSeats" | "registeredCount" | "isRegistered"
+    >,
+  ) => {
     try {
       await apiClient.post("/professional-sessions", {
         title: sessionData.title,
@@ -155,11 +200,20 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
       await refreshSessions();
       return { ok: true, message: "Session created." };
     } catch (error: any) {
-      return { ok: false, message: getApiErrorMessage(error, "Failed to create session.") };
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, "Failed to create session."),
+      };
     }
   };
 
-  const updateSession = async (id: string, updatedSession: Omit<Session, "id" | "availableSeats" | "registeredCount" | "isRegistered">) => {
+  const updateSession = async (
+    id: string,
+    updatedSession: Omit<
+      Session,
+      "id" | "availableSeats" | "registeredCount" | "isRegistered"
+    >,
+  ) => {
     try {
       await apiClient.put(`/professional-sessions/${id}`, {
         title: updatedSession.title,
@@ -173,7 +227,10 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
       await refreshSessions();
       return { ok: true, message: "Session updated." };
     } catch (error: any) {
-      return { ok: false, message: getApiErrorMessage(error, "Failed to update session.") };
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, "Failed to update session."),
+      };
     }
   };
 
@@ -184,29 +241,42 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
       setAttendees((prev) => prev.filter((a) => a.sessionId !== id));
       return { ok: true, message: "Session deleted." };
     } catch (error: any) {
-      return { ok: false, message: getApiErrorMessage(error, "Failed to delete session.") };
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, "Failed to delete session."),
+      };
     }
   };
 
-  const registerStudent = async (sessionId: string, _studentId: string, _studentName: string, _studentEmail: string) => {
+  const registerStudent = async (
+    sessionId: string,
+    _studentId: string,
+    _studentName: string,
+    _studentEmail: string,
+  ) => {
     try {
       await apiClient.post(`/professional-sessions/${sessionId}/register`);
       await refreshSessions();
       return { ok: true, message: "Registered successfully." };
     } catch (error: any) {
-      return { ok: false, message: getApiErrorMessage(error, "Failed to register for session.") };
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, "Failed to register for session."),
+      };
     }
   };
 
   const getAttendeesForSession = (sessionId: string) => {
-    return attendees.filter(a => a.sessionId === sessionId);
+    return attendees.filter((a) => a.sessionId === sessionId);
   };
 
   const isStudentRegistered = (sessionId: string, studentId: string) => {
     const session = sessions.find((s) => s.id === sessionId);
     if (!session) return false;
     if (session.isRegistered) return true;
-    return attendees.some(a => a.sessionId === sessionId && a.studentId === studentId);
+    return attendees.some(
+      (a) => a.sessionId === sessionId && a.studentId === studentId,
+    );
   };
 
   const getAvailableSeats = (sessionId: string) => {
@@ -227,7 +297,7 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
         getAttendeesForSession,
         isStudentRegistered,
         getAvailableSeats,
-        refreshSessions
+        refreshSessions,
       }}
     >
       {children}
@@ -238,7 +308,9 @@ export function ProfessionalCommunicationProvider({ children }: { children: Reac
 export function useProfessionalCommunication() {
   const context = useContext(ProfessionalCommunicationContext);
   if (context === undefined) {
-    throw new Error("useProfessionalCommunication must be used within a ProfessionalCommunicationProvider");
+    throw new Error(
+      "useProfessionalCommunication must be used within a ProfessionalCommunicationProvider",
+    );
   }
   return context;
 }
