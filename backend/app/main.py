@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
+from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session, course
 from app.db.base import Base
 from app.db.database import engine
 import app.models  # noqa: F401
@@ -48,6 +48,7 @@ app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
 app.include_router(professional_session.router)
+app.include_router(course.router)
 
 
 @app.get("/")

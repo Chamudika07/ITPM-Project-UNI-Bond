@@ -14,7 +14,7 @@ export const ROUTES = {
   CREATE_POST: "/create-post",
   EDIT_POST: "/edit-post/:id",
   COURSES: "/courses",
-  CREATE_COURSE: "/create-course",
+  CREATE_COURSE: "/courses/create",
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;

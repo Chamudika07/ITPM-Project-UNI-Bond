@@ -6,6 +6,7 @@ import App from "@/App";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProfessionalCommunicationProvider } from "@/contexts/ProfessionalCommunicationContext";
+import { CourseProvider } from "@/contexts/CourseContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <AuthProvider>
           <ProfessionalCommunicationProvider>
-            <App />
+            <CourseProvider>
+              <App />
+            </CourseProvider>
           </ProfessionalCommunicationProvider>
         </AuthProvider>
       </ThemeProvider>
