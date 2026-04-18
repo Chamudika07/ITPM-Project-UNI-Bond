@@ -14,4 +14,4 @@ class PostMedia(Base):
 
     
     #--relationship --#
-    post = relationship("Post", back_populates="medias")
+    post = relationship("Post", back_populates="media")

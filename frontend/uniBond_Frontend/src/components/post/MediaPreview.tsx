@@ -1,3 +1,5 @@
+import { resolveMediaSrc } from "@/utils/media";
+
 type Props = {
   mediaUrl: string;
   mediaType: "image" | "video";
@@ -5,13 +7,19 @@ type Props = {
 };
 
 export default function MediaPreview({ mediaUrl, mediaType, className = "" }: Props) {
+  const mediaSrc = resolveMediaSrc(mediaUrl);
+
   if (mediaType === "image") {
     return (
-      <img
-        src={mediaUrl}
-        alt="Media content"
-        className={`w-full max-h-[400px] object-cover rounded-lg ${className}`}
-      />
+      <div className={`overflow-hidden rounded-lg border border-[var(--border-soft)] bg-[var(--surface-muted)] ${className}`}>
+        <div className="flex max-h-[30rem] min-h-[14rem] items-center justify-center p-2">
+          <img
+            src={mediaSrc}
+            alt="Media content"
+            className="max-h-[28rem] w-full object-contain"
+          />
+        </div>
+      </div>
     );
   }
 
@@ -21,7 +29,7 @@ export default function MediaPreview({ mediaUrl, mediaType, className = "" }: Pr
         controls
         className={`w-full rounded-lg ${className}`}
       >
-        <source src={mediaUrl} />
+        <source src={mediaSrc} />
         Your browser does not support the video tag.
       </video>
     );

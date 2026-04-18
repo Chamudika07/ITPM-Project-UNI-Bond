@@ -1,0 +1,37 @@
+[
+  {
+    "id": 9,
+    "title": "this is my campus project show case. in itpm modul",
+    "content": "this is my campus project show case. in itpm modul",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-04-04T22:05:29.078687+05:30"
+  },
+  {
+    "id": 1,
+    "title": "Machine Learning------\r\nclassification\r\nRegression\r\nClustering\r\n\ud83d\udc40\ud83d\udc40",
+    "content": "Machine Learning------\r\nclassification\r\nRegression\r\nClustering\r\n\ud83d\udc40\ud83d\udc40",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-04-05T13:47:06.413880+05:30"
+  },
+  {
+    "id": 2,
+    "title": "these is our paf module project.",
+    "content": "these is our paf module project.",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-04-05T13:49:38.577351+05:30"
+  },
+  {
+    "id": 3,
+    "title": "tese is .env files.",
+    "content": "tese is .env files.",
+    "author_name": "pavithra senavirathra",
+    "created_at": "2026-04-05T14:00:32.452675+05:30"
+  },
+  {
+    "id": 4,
+    "title": "if you know about how to used alembic with fastApi",
+    "content": "if you know about how to used alembic with fastApi",
+    "author_name": "pavithra senavirathra",
+    "created_at": "2026-04-05T14:02:09.507435+05:30"
+  }
+]
