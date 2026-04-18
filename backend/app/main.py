@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-from app.core.runtime import configure_runtime_environment
+from app.core.runtime import configure_runtime_environment, cleanup_runtime_environment
 
 configure_runtime_environment()
 
@@ -40,7 +40,10 @@ async def lifespan(app: FastAPI):
     except Exception:
         # Keep API startup resilient; semantic search can still rebuild lazily on demand.
         pass
-    yield
+    try:
+        yield
+    finally:
+        cleanup_runtime_environment()
 
 
 app = FastAPI(title="Uni Bond", lifespan=lifespan)
