@@ -24,9 +24,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
       
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 text-white flex flex-col shrink-0 min-h-[60px] md:min-h-screen">
-        <div className="p-4 flex items-center gap-3 border-b border-slate-700">
-           <Shield className="w-8 h-8 text-blue-400" />
+      <aside className="w-full md:w-64 bg-gray-300 text-black flex flex-col shrink-0 min-h-[60px] md:min-h-screen">
+        <div className="p-4 flex items-center gap-3 border-b border-gray-400/40">
+           <Shield className="w-8 h-8 text-black" />
            <div>
               <h1 className="font-bold text-lg tracking-wide hidden md:block">Admin Panel</h1>
               <h1 className="font-bold tracking-wide md:hidden">Admin</h1>
@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <button 
                   key={idx}
                   onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition font-medium ${isActive ? 'bg-black/15 text-black font-bold shadow-md' : 'text-gray-700 hover:bg-gray-400/50 hover:text-black'}`}
                 >
                   {item.icon}
                   {item.label}
@@ -50,14 +50,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Mobile Nav Top Scroll */}
-        <nav className="md:hidden flex overflow-x-auto px-4 py-2 gap-2 bg-slate-800">
+        <nav className="md:hidden flex overflow-x-auto px-4 py-2 gap-2 bg-gray-300">
            {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
               return (
                 <button 
                   key={idx}
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm shrink-0 whitespace-nowrap ${isActive ? 'bg-blue-600 text-white' : 'text-slate-300'}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm shrink-0 whitespace-nowrap ${isActive ? 'bg-black/15 text-black font-bold' : 'text-gray-700'}`}
                 >
                   {item.icon}
                   {item.label}
@@ -66,17 +66,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
            })}
         </nav>
         
-        <div className="p-4 border-t border-slate-700 hidden md:block">
+        <div className="p-4 border-t border-gray-400/40 hidden md:block">
            <div className="flex items-center gap-3 mb-4">
-               <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center font-bold">
+               <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold">
                   {user?.firstname?.[0] || 'A'}
                </div>
                <div className="truncate">
                   <p className="font-semibold text-sm truncate">{user?.firstname} {user?.lastname}</p>
-                  <p className="text-xs text-slate-400 capitalize truncate">{user?.role}</p>
+                  <p className="text-xs text-gray-700 capitalize truncate">{user?.role}</p>
                </div>
            </div>
-           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600 hover:text-white py-2 rounded-lg text-slate-300 transition text-sm font-semibold">
+           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-gray-400/60 hover:bg-red-50 hover:text-red-700 py-2 rounded-lg text-black transition text-sm font-semibold">
               <LogOut className="w-4 h-4" /> Sign Out
            </button>
         </div>

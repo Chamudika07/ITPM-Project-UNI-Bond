@@ -56,6 +56,24 @@ def _build_session_response(session: ProfessionalSession, current_user: User) ->
     )
 
 
+@router.get("/my-sessions", response_model=list[ProfessionalSessionResponse])
+def get_my_registered_sessions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != UserRole.student:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students can view registered sessions")
+
+    sessions = (
+        db.query(ProfessionalSession)
+        .join(ProfessionalSession.registrations)
+        .options(joinedload(ProfessionalSession.registrations))
+        .filter(ProfessionalSessionRegistration.student_id == current_user.id)
+        .order_by(ProfessionalSession.session_date.asc(), ProfessionalSession.session_time.asc())
+        .all()
+    )
+    return [_build_session_response(session, current_user) for session in sessions]
+
 @router.get("", response_model=list[ProfessionalSessionResponse])
 def list_professional_sessions(
     db: Session = Depends(get_db),

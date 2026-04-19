@@ -1,4 +1,4 @@
-import { MessageSquare, Briefcase, Coffee, User, Building2 } from "lucide-react";
+import { MessageSquare, Briefcase, Coffee, User, Building2, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
@@ -37,6 +37,12 @@ export default function LeftSidebar() {
       icon: Coffee,
       label: "Kuppy Sessions",
       description: "Join networking sessions",
+    },
+    {
+      to: ROUTES.COURSES,
+      icon: BookOpen,
+      label: "New Courses",
+      description: "Browse courses for students",
     },
   ];
 
