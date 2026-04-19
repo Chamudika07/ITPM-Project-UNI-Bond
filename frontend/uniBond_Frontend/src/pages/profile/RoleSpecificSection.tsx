@@ -6,10 +6,9 @@ import { ROUTES } from "@/utils/constants";
 import { handleGetTasks, handleSubmitTaskWork } from "@/controllers/taskController";
 import type { Task } from "@/types/task";
 
-export default function RoleSpecificSection({ user, isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
+export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
   
   // Application details
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -18,11 +17,9 @@ export default function RoleSpecificSection({ user, isOwnProfile = true }: { use
 
   const fetchStudentTasks = async () => {
     if (user.role !== 'student') return;
-    setLoading(true);
     const allTasks = await handleGetTasks();
     const myTasks = allTasks.filter(t => t.applicants.some(a => a.studentId === user.id));
     setTasks(myTasks);
-    setLoading(false);
   };
 
   useEffect(() => {

@@ -104,7 +104,7 @@ export const handleDeleteApplication = async (taskId: string): Promise<Task> => 
   return mapTask(response.data);
 };
 
-export const handleUpdateApplication = async (taskId: string, appId: string, payload: { status: 'accepted' | 'rejected' }): Promise<Task> => {
+export const handleUpdateApplication = async (_taskId: string, appId: string, payload: { status: 'accepted' | 'rejected' }): Promise<Task> => {
   const response = await apiClient.patch(`/opportunities/applications/${appId}`, payload);
   return mapTask(response.data);
 };
