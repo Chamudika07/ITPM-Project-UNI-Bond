@@ -35,12 +35,18 @@ class ImageModerationResult(BaseModel):
     filename: str
     content_type: str
     predicted_label: str
+    detected_subject: str
     confidence: float = Field(..., ge=0.0, le=1.0)
     confidence_percentage: str
     confidence_level: ConfidenceLevel
+    academic_relevance: Literal[
+        "study_related", "possibly_study_related", "not_study_related", "uncertain"
+    ]
     status: ModerationStatus
     is_allowed: bool
     explanation: str
+    moderation_reason: str
+    upload_guidance: list[str] = Field(default_factory=list)
     top_predictions: list[ModerationPredictionCandidate] = Field(default_factory=list)
 
 
@@ -74,12 +80,18 @@ class ModerationCheckResponse(BaseModel):
                     "filename": "party_photo.jpg",
                     "content_type": "image/jpeg",
                     "predicted_label": "party scene",
+                    "detected_subject": "Party Scene",
                     "confidence": 0.85,
                     "confidence_percentage": "85.00%",
                     "confidence_level": "high",
+                    "academic_relevance": "not_study_related",
                     "status": "review",
                     "is_allowed": False,
                     "explanation": "The image does not look clearly academic, so it should be reviewed before publishing.",
+                    "moderation_reason": "The image appears to focus on a social scene instead of study material.",
+                    "upload_guidance": [
+                        "Upload a clearer academic image such as notes, a laptop, a whiteboard, a slide, or lab work."
+                    ],
                     "top_predictions": [
                         {
                             "label": "party scene",

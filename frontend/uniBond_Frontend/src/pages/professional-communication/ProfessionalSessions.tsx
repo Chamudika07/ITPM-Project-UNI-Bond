@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Calendar, Clock, User, Edit, Trash2, Mail, Rocket, Target, Star } from "lucide-react";
+import { Search, Plus, Calendar, Clock, User, Edit, Trash2, Mail, Rocket, Star } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";

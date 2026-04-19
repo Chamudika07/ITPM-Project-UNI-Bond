@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Search, Plus, Calendar, DollarSign, Edit, Trash2, CheckCircle2, Star, Users, GraduationCap, PlayCircle } from "lucide-react";
+import { BookOpen, Search, Plus, Calendar, DollarSign, Edit, Trash2, CheckCircle2, Users, GraduationCap } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";

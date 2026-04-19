@@ -10,6 +10,8 @@ import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
 import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
+import CreateProfessionalSession from "@/pages/professional-communication/CreateProfessionalSession";
+import SessionDetails from "@/pages/professional-communication/SessionDetails";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
 import CreateClassroom from "@/pages/classrooms/CreateClassroom";
 import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
@@ -25,6 +27,7 @@ import CreatePost from "@/pages/home/CreatePost";
 import EditPost from "@/pages/home/EditPost";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
 import AdminRoute from "@/routes/AdminRoute";
 import AdminLayout from "@/components/layout/AdminLayout";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -49,6 +52,14 @@ export default function AppRoutes() {
         element={
           <PublicRoute>
             <Register />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path={ROUTES.FORGOT_PASSWORD}
+        element={
+          <PublicRoute>
+            <ForgotPassword />
           </PublicRoute>
         }
       />
@@ -120,6 +131,36 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <ProfessionalCommunication />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.CREATE_PROFESSIONAL_SESSION}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateProfessionalSession />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SessionDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/edit/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateProfessionalSession />
             </MainLayout>
           </ProtectedRoute>
         }
