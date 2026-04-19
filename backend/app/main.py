@@ -1,12 +1,27 @@
+import app.models  # noqa: F401
+import os
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session, course
+
 from app.db.base import Base
 from app.db.database import engine
-import app.models  # noqa: F401
-import os
+from app.routers import (
+    admin,
+    classroom,
+    course,
+    group,
+    kuppy,
+    login,
+    notice_notification,
+    post,
+    professional_session,
+    search,
+    task,
+    user,
+)
 
 
 @asynccontextmanager

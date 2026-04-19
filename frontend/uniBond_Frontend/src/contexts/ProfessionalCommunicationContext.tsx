@@ -7,6 +7,7 @@ import {
   useCallback,
 } from "react";
 import apiClient from "@/services/api/axiosClient";
+import { useAuth } from "@/hooks/useAuthHook";
 
 export type Session = {
   id: string;
@@ -162,10 +163,16 @@ export function ProfessionalCommunicationProvider({
 }: {
   children: ReactNode;
 }) {
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
 
   const refreshSessions = useCallback(async () => {
+    if (!user) {
+      setSessions([]);
+      return;
+    }
+
     try {
       const response = await apiClient.get<ApiSession[]>(
         "/professional-sessions",
@@ -175,11 +182,17 @@ export function ProfessionalCommunicationProvider({
       console.error("Failed to load professional sessions", error);
       setSessions([]);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
+    if (!user) {
+      setSessions([]);
+      setAttendees([]);
+      return;
+    }
+
     void refreshSessions();
-  }, [refreshSessions]);
+  }, [refreshSessions, user]);
 
   const addSession = async (
     sessionData: Omit<
