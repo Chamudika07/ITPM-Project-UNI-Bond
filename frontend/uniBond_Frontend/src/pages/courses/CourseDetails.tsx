@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, User, Calendar, DollarSign, CheckCircle2, Lock, Bot, ShieldCheck, FileText, Video, Loader2, Upload, AlertCircle, Edit } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, DollarSign, CheckCircle2, Lock, Bot, ShieldCheck, FileText, Video, Loader2, Upload, AlertCircle, Edit } from "lucide-react";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
 import { useCourseContext } from "@/contexts/CourseContext";

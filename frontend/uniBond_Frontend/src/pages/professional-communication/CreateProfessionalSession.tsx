@@ -20,6 +20,7 @@ export default function CreateProfessionalSession() {
     date: "",
     time: "",
     link: "",
+    seatCount: "30",
     tags: "",
   });
   
@@ -35,6 +36,7 @@ export default function CreateProfessionalSession() {
         date: existingSession.date,
         time: existingSession.time,
         link: existingSession.link,
+        seatCount: String(existingSession.seatCount),
         tags: existingSession.tags.join(", "),
       });
     }
@@ -108,6 +110,7 @@ export default function CreateProfessionalSession() {
         date: formData.date,
         time: formData.time,
         link: formData.link.trim(),
+        seatCount: 30,
         tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
         speaker: isEditMode && existingSession 
           ? existingSession.speaker 
@@ -118,9 +121,9 @@ export default function CreateProfessionalSession() {
       };
 
       if (isEditMode && id) {
-        updateSession(id, sessionData);
+        void updateSession(id, sessionData);
       } else {
-        addSession(sessionData);
+        void addSession(sessionData);
       }
 
       setIsSubmitting(false);
