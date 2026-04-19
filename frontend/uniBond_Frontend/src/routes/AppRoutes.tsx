@@ -2,18 +2,37 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import MainLayout from "@/components/layout/MainLayout";
-import Home from "@/views/Home";
-import SearchResults from "@/views/SearchResults";
-import Groups from "@/views/Groups";
-import Notices from "@/views/Notices";
-import Notifications from "@/views/Notifications";
-import Profile from "@/views/Profile";
-import ProfessionalCommunication from "@/views/ProfessionalCommunication";
-import CompanyTasks from "@/views/CompanyTasks";
-import KuppySessions from "@/views/KuppySessions";
-import CreatePost from "@/views/CreatePost";
-import Login from "@/views/Login";
-import Register from "@/views/Register";
+import Home from "@/pages/home/Home";
+import SearchResults from "@/pages/search/SearchResults";
+import Groups from "@/pages/groups/Groups";
+import GroupDetails from "@/pages/groups/GroupDetails";
+import Notices from "@/pages/notices/Notices";
+import Notifications from "@/pages/notifications/Notifications";
+import Profile from "@/pages/profile/Profile";
+import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
+import CreateProfessionalSession from "@/pages/professional-communication/CreateProfessionalSession";
+import SessionDetails from "@/pages/professional-communication/SessionDetails";
+import ClassroomList from "@/pages/classrooms/ClassroomList";
+import CreateClassroom from "@/pages/classrooms/CreateClassroom";
+import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
+import TaskList from "@/pages/tasks/TaskList";
+import CreateTask from "@/pages/tasks/CreateTask";
+import TaskDetails from "@/pages/tasks/TaskDetails";
+import EditTask from "@/pages/tasks/EditTask";
+import CompanyList from "@/pages/companies/CompanyList";
+import CompanyDetails from "@/pages/companies/CompanyDetails";
+import KuppySessions from "@/pages/kuppy/KuppySessions";
+import CreateKuppy from "@/pages/kuppy/CreateKuppy";
+import CreatePost from "@/pages/home/CreatePost";
+import EditPost from "@/pages/home/EditPost";
+import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import AdminRoute from "@/routes/AdminRoute";
+import AdminLayout from "@/components/layout/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminContent from "@/pages/admin/AdminContent";
 import { ROUTES } from "@/utils/constants";
 
 export default function AppRoutes() {
@@ -33,6 +52,14 @@ export default function AppRoutes() {
         element={
           <PublicRoute>
             <Register />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path={ROUTES.FORGOT_PASSWORD}
+        element={
+          <PublicRoute>
+            <ForgotPassword />
           </PublicRoute>
         }
       />
@@ -69,6 +96,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/groups/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <GroupDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.NOTICES}
         element={
           <ProtectedRoute>
@@ -89,16 +126,6 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path={ROUTES.PROFILE}
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <Profile />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path={ROUTES.PROFESSIONAL_COMMUNICATION}
         element={
           <ProtectedRoute>
@@ -109,11 +136,141 @@ export default function AppRoutes() {
         }
       />
       <Route
-        path={ROUTES.COMPANY_TASKS}
+        path={ROUTES.CREATE_PROFESSIONAL_SESSION}
         element={
           <ProtectedRoute>
             <MainLayout>
-              <CompanyTasks />
+              <CreateProfessionalSession />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SessionDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/edit/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateProfessionalSession />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PROFILE}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PROFILE_USER}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/classrooms"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ClassroomList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/classrooms/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateClassroom />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/classrooms/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ClassroomDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TaskList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateTask />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TaskDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks/:id/edit"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditTask />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CompanyDetails />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -129,6 +286,16 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/kuppy/create"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateKuppy />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path={ROUTES.CREATE_POST}
         element={
           <ProtectedRoute>
@@ -138,12 +305,51 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path={ROUTES.EDIT_POST}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EditPost />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Redirect root to home */}
-      <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/content"
+        element={
+          <AdminRoute>
+            <AdminLayout>
+              <AdminContent />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
 
-      {/* Catch all */}
-      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+      {/* Catch all - redirect unknown routes to home */}
+      <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
     </Routes>
   );
 }

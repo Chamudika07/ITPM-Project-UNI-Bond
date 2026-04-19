@@ -8,10 +8,11 @@ type Props = {
   onLike: (postId: string) => void;
   onRepost: (postId: string) => void;
   onComment: (postId: string, commentText: string) => void;
+  onDelete?: (postId: string) => void;
   loading?: boolean;
 };
 
-export default function PostList({ posts, onLike, onRepost, onComment, loading }: Props) {
+export default function PostList({ posts, onLike, onRepost, onComment, onDelete, loading }: Props) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -58,6 +59,7 @@ export default function PostList({ posts, onLike, onRepost, onComment, loading }
           onLike={onLike}
           onRepost={onRepost}
           onComment={onComment}
+          onDelete={onDelete}
         />
       ))}
     </div>
