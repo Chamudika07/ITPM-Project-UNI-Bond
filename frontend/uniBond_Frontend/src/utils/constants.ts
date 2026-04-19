@@ -14,7 +14,6 @@ export const ROUTES = {
   CREATE_POST: "/create-post",
   EDIT_POST: "/edit-post/:id",
   COURSES: "/courses",
-  CREATE_COURSE: "/courses/create",
   CREATE_COURSE: "/create-course",
   CREATE_PROFESSIONAL_SESSION: "/professional-communication/create",
   LOGIN: "/login",
