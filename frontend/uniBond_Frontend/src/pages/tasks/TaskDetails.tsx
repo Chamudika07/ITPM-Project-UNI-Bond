@@ -111,21 +111,6 @@ export default function TaskDetails() {
     await fetchTaskInfo();
   };
 
-  const handleOpenEditApp = () => {
-    if (myApplication) {
-      setAppForm({
-        portfolioUrl: myApplication.portfolioUrl || "",
-        coverLetter: myApplication.coverLetter || "",
-        email: myApplication.email || ""
-      });
-      setFormError("");
-      setIsEditingApp(true);
-      setShowAppForm(true);
-    }
-  };
-
-
-
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-2">

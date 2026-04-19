@@ -49,7 +49,6 @@ const StudentDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'submitted' | 'applications' | 'notifications'>('overview');
-  const [readNotifications, setReadNotifications] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchDashboardData();
@@ -72,7 +71,17 @@ const StudentDashboard: React.FC = () => {
   const handleMarkAsRead = async (notificationId: number) => {
     try {
       await notificationService.markAsRead(notificationId);
-      setReadNotifications((prev) => new Set(prev).add(notificationId));
+      setDashboardData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          notifications: prev.notifications.map((notification) =>
+            notification.id === notificationId
+              ? { ...notification, is_read: true }
+              : notification,
+          ),
+        };
+      });
     } catch (err) {
       console.error('Failed to mark notification as read', err);
     }
@@ -81,9 +90,16 @@ const StudentDashboard: React.FC = () => {
   const handleMarkAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setReadNotifications(
-        new Set(dashboardData?.notifications.map((n) => n.id) || [])
-      );
+      setDashboardData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          notifications: prev.notifications.map((notification) => ({
+            ...notification,
+            is_read: true,
+          })),
+        };
+      });
     } catch (err) {
       console.error('Failed to mark all notifications as read', err);
     }

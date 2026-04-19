@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardService, opportunityService } from '../controllers/opportunityController';
+import { dashboardService } from '../controllers/opportunityController';
 import '../styles/CompanyDashboard.css';
 
 interface DashboardStats {
@@ -28,27 +28,10 @@ interface Application {
   cover_letter?: string;
 }
 
-interface CompanyProfileData {
-  id: number;
-  company_id: number;
-  company_name: string;
-  company_description?: string;
-  industry?: string;
-  website?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  logo_url?: string;
-  established_year?: number;
-  total_employees?: number;
-}
-
 const CompanyDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [profile, setProfile] = useState<CompanyProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'opportunities' | 'applications' | 'profile'>('overview');

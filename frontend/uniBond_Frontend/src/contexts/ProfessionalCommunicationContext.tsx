@@ -158,7 +158,6 @@ const getApiErrorMessage = (error: any, fallback: string): string => {
   return fallback;
 };
 
-export function ProfessionalCommunicationProvider({ children }: { children: ReactNode }) {
 export function ProfessionalCommunicationProvider({
   children,
 }: {
