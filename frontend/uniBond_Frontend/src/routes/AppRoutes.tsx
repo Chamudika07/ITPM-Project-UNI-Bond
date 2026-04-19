@@ -25,6 +25,10 @@ import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
 import EditPost from "@/pages/home/EditPost";
+import CourseList from "@/pages/courses/CourseList";
+import CreateCourse from "@/pages/courses/CreateCourse";
+import CourseDetails from "@/pages/courses/CourseDetails";
+import CourseContentView from "@/pages/courses/CourseContentView";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
@@ -311,6 +315,56 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <EditPost />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.COURSES}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.CREATE_COURSE}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCourse />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/:id`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/edit/:id`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCourse />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/:id/watch`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseContentView />
             </MainLayout>
           </ProtectedRoute>
         }

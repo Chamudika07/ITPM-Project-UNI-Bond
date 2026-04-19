@@ -1,3 +1,5 @@
+import app.models  # noqa: F401
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -11,6 +13,7 @@ configure_runtime_environment()
 
 import app.models  # noqa: F401
 from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
+
 from app.db.base import Base
 from app.db.database import engine
 from app.routers import (
@@ -25,6 +28,14 @@ from app.routers import (
     moderation,
     notice_notification,
     post,
+    classroom,
+    course,
+    group,
+    kuppy,
+    login,
+    notice_notification,
+    post,
+    professional_session,
     search,
     task,
     user,
@@ -85,6 +96,7 @@ app.include_router(ai_image.router)
 app.include_router(moderation.router)
 app.include_router(health.router)
 app.include_router(professional_session.router)
+app.include_router(course.router)
 
 
 @app.get("/")

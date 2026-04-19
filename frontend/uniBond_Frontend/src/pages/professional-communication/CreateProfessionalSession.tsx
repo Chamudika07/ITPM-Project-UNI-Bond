@@ -111,6 +111,7 @@ export default function CreateProfessionalSession() {
         time: formData.time,
         link: formData.link.trim(),
         seatCount: 30,
+        seatCount: Number(formData.seatCount) || 30,
         tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
         speaker: isEditMode && existingSession 
           ? existingSession.speaker 

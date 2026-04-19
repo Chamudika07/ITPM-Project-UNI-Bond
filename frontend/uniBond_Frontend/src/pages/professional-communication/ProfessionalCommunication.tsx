@@ -1,5 +1,17 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { MessageSquare, BriefcaseBusiness, GraduationCap, ShieldCheck, Video, Calendar, Clock, Users, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  MessageSquare,
+  BriefcaseBusiness,
+  GraduationCap,
+  ShieldCheck,
+  Video,
+  Calendar,
+  Clock,
+  Users,
+  Plus,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import DiscoverUsersList from "@/components/user/DiscoverUsersList";
 import { handleGetDiscoverUsers } from "@/controllers/userController";
@@ -26,7 +38,10 @@ export default function ProfessionalCommunication() {
     getAvailableSeats,
   } = useProfessionalCommunication();
 
-  const [data, setData] = useState<ProfessionalBuckets>({ mentors: [], industry: [] });
+  const [data, setData] = useState<ProfessionalBuckets>({
+    mentors: [],
+    industry: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -128,7 +143,13 @@ export default function ProfessionalCommunication() {
     e.preventDefault();
     setFormError("");
 
-    if (!sessionForm.title.trim() || !sessionForm.description.trim() || !sessionForm.date || !sessionForm.time || !sessionForm.link.trim()) {
+    if (
+      !sessionForm.title.trim() ||
+      !sessionForm.description.trim() ||
+      !sessionForm.date ||
+      !sessionForm.time ||
+      !sessionForm.link.trim()
+    ) {
       setFormError("Please fill all required fields.");
       return;
     }
@@ -139,7 +160,9 @@ export default function ProfessionalCommunication() {
     }
 
     if (sessionForm.description.trim().length < MIN_DESCRIPTION_LENGTH) {
-      setFormError(`Description must be at least ${MIN_DESCRIPTION_LENGTH} characters.`);
+      setFormError(
+        `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters.`,
+      );
       return;
     }
 
@@ -161,7 +184,10 @@ export default function ProfessionalCommunication() {
       time: sessionForm.time,
       link: sessionForm.link.trim(),
       seatCount: Math.floor(seats),
-      tags: sessionForm.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: sessionForm.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
       speaker: `${user?.firstname ?? "Tech"} ${user?.lastname ?? "Lead"}`,
       creatorId: user?.id || "",
     };
@@ -186,7 +212,12 @@ export default function ProfessionalCommunication() {
       return;
     }
 
-    const result = await registerStudent(sessionId, studentId, studentName, studentEmail);
+    const result = await registerStudent(
+      sessionId,
+      studentId,
+      studentName,
+      studentEmail,
+    );
     showToast(result.message);
   };
 
@@ -197,10 +228,13 @@ export default function ProfessionalCommunication() {
           <div className="mb-4 inline-flex rounded-2xl bg-white/10 p-3 backdrop-blur">
             <MessageSquare className="h-7 w-7" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Professional Communication</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            Professional Communication
+          </h1>
           <p className="mt-3 text-sm leading-6 text-slate-200">
-            Connect with lecturers, companies, and technical leaders already on UniBond. Open a profile,
-            follow relevant people, and build your professional network from one place.
+            Connect with lecturers, companies, and technical leaders already on
+            UniBond. Open a profile, follow relevant people, and build your
+            professional network from one place.
           </p>
           {isTechLead && (
             <button
@@ -225,7 +259,9 @@ export default function ProfessionalCommunication() {
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
             <p className="text-2xl font-black">{totalPeople}</p>
-            <p className="mt-1 text-sm text-slate-200">Professional profiles available</p>
+            <p className="mt-1 text-sm text-slate-200">
+              Professional profiles available
+            </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
             <p className="text-2xl font-black">{data.mentors.length}</p>
@@ -233,7 +269,9 @@ export default function ProfessionalCommunication() {
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
             <p className="text-2xl font-black">{data.industry.length}</p>
-            <p className="mt-1 text-sm text-slate-200">Industry professionals</p>
+            <p className="mt-1 text-sm text-slate-200">
+              Industry professionals
+            </p>
           </div>
         </div>
       </div>
@@ -245,83 +283,130 @@ export default function ProfessionalCommunication() {
       )}
 
       {isTechLead && showCreateForm && (
-        <SectionCard title={editingSessionId ? "Edit Session" : "Create New Session"}>
-          <form onSubmit={handleCreateSession} className="grid gap-4 md:grid-cols-2">
+        <SectionCard
+          title={editingSessionId ? "Edit Session" : "Create New Session"}
+        >
+          <form
+            onSubmit={handleCreateSession}
+            className="grid gap-4 md:grid-cols-2"
+          >
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Title</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Title
+              </label>
               <input
                 type="text"
                 value={sessionForm.title}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, title: e.target.value }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Description</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Description
+              </label>
               <textarea
                 rows={3}
                 value={sessionForm.description}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
-              <p className={`mt-1 text-xs ${sessionForm.description.trim().length < MIN_DESCRIPTION_LENGTH ? "text-red-600" : "text-emerald-600"}`}>
-                Minimum {MIN_DESCRIPTION_LENGTH} characters ({sessionForm.description.trim().length}/{MIN_DESCRIPTION_LENGTH})
+              <p
+                className={`mt-1 text-xs ${sessionForm.description.trim().length < MIN_DESCRIPTION_LENGTH ? "text-red-600" : "text-emerald-600"}`}
+              >
+                Minimum {MIN_DESCRIPTION_LENGTH} characters (
+                {sessionForm.description.trim().length}/{MIN_DESCRIPTION_LENGTH}
+                )
               </p>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Date</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Date
+              </label>
               <input
                 type="date"
                 value={sessionForm.date}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, date: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, date: e.target.value }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Time</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Time
+              </label>
               <input
                 type="time"
                 value={sessionForm.time}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, time: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, time: e.target.value }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Seat Count</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Seat Count
+              </label>
               <input
                 type="number"
                 min={1}
                 value={sessionForm.seatCount}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, seatCount: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({
+                    ...prev,
+                    seatCount: e.target.value,
+                  }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Zoom Link</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Zoom Link
+              </label>
               <input
                 type="url"
                 value={sessionForm.link}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, link: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, link: e.target.value }))
+                }
                 placeholder="https://zoom.us/j/..."
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium text-slate-700">Tags (optional, comma separated)</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Tags (optional, comma separated)
+              </label>
               <input
                 type="text"
                 value={sessionForm.tags}
-                onChange={(e) => setSessionForm((prev) => ({ ...prev, tags: e.target.value }))}
+                onChange={(e) =>
+                  setSessionForm((prev) => ({ ...prev, tags: e.target.value }))
+                }
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>
-            {formError && <p className="md:col-span-2 text-sm font-medium text-red-600">{formError}</p>}
+            {formError && (
+              <p className="md:col-span-2 text-sm font-medium text-red-600">
+                {formError}
+              </p>
+            )}
             <div className="md:col-span-2 flex justify-end">
               <button
                 type="submit"
@@ -336,29 +421,55 @@ export default function ProfessionalCommunication() {
 
       <SectionCard title="Live Professional Sessions">
         {orderedSessions.length === 0 ? (
-          <p className="text-sm text-slate-500">No sessions yet. {isTechLead ? "Use Create Session to add the first one." : "Please check back later."}</p>
+          <p className="text-sm text-slate-500">
+            No sessions yet.{" "}
+            {isTechLead
+              ? "Use Create Session to add the first one."
+              : "Please check back later."}
+          </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
             {orderedSessions.map((session) => {
               const availableSeats = getAvailableSeats(session.id);
-              const registered = studentId ? isStudentRegistered(session.id, studentId) : false;
+              const registered = studentId
+                ? isStudentRegistered(session.id, studentId)
+                : false;
               const registeredCount = session.registeredCount;
-              const canRegister = isStudent && !registered && availableSeats > 0;
+              const canRegister =
+                isStudent && !registered && availableSeats > 0;
 
               return (
-                <article key={session.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900">{session.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{session.description}</p>
+                <article
+                  key={session.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {session.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {session.description}
+                  </p>
 
                   <div className="mt-4 grid gap-2 text-sm text-slate-700">
-                    <p className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-blue-600" /> Seats: {availableSeats} available / {session.seatCount} total</p>
-                    <p className="inline-flex items-center gap-2"><Calendar className="h-4 w-4 text-blue-600" /> {session.date}</p>
-                    <p className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-blue-600" /> {session.time}</p>
+                    <p className="inline-flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-600" /> Seats:{" "}
+                      {availableSeats} available / {session.seatCount} total
+                    </p>
+                    <p className="inline-flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-600" />{" "}
+                      {session.date}
+                    </p>
+                    <p className="inline-flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" /> {session.time}
+                    </p>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     {session.tags.map((tag) => (
-                      <span key={`${session.id}-${tag}`} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      <span
+                        key={`${session.id}-${tag}`}
+                        className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -367,7 +478,9 @@ export default function ProfessionalCommunication() {
                   <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3">
                     {isTechLead ? (
                       <div className="space-y-2 text-sm">
-                        <p className="font-medium text-slate-700">Registered students: {registeredCount}</p>
+                        <p className="font-medium text-slate-700">
+                          Registered students: {registeredCount}
+                        </p>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
@@ -396,7 +509,9 @@ export default function ProfessionalCommunication() {
                       </div>
                     ) : registered ? (
                       <div className="space-y-2 text-sm">
-                        <p className="font-medium text-emerald-700">You are registered for this session.</p>
+                        <p className="font-medium text-emerald-700">
+                          You are registered for this session.
+                        </p>
                         <a
                           href={session.link}
                           target="_blank"
@@ -409,7 +524,9 @@ export default function ProfessionalCommunication() {
                       </div>
                     ) : (
                       <div className="space-y-2 text-sm">
-                        <p className="font-medium text-slate-600">Zoom link is visible only after registration.</p>
+                        <p className="font-medium text-slate-600">
+                          Zoom link is visible only after registration.
+                        </p>
                         {isStudent ? (
                           <button
                             type="button"
@@ -418,10 +535,14 @@ export default function ProfessionalCommunication() {
                             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                           >
                             <Users className="h-4 w-4" />
-                            {availableSeats > 0 ? "Register Session" : "Session Full"}
+                            {availableSeats > 0
+                              ? "Register Session"
+                              : "Session Full"}
                           </button>
                         ) : (
-                          <p className="font-medium text-slate-600">Only students can register sessions.</p>
+                          <p className="font-medium text-slate-600">
+                            Only students can register sessions.
+                          </p>
                         )}
                       </div>
                     )}
@@ -445,21 +566,31 @@ export default function ProfessionalCommunication() {
             <div className="mb-4 flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
               <BriefcaseBusiness className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <p>
-                Explore company representatives and tech leads who can open doors to tasks, partnerships,
-                internships, and professional guidance.
+                Explore company representatives and tech leads who can open
+                doors to tasks, partnerships, internships, and professional
+                guidance.
               </p>
             </div>
-            <DiscoverUsersList users={data.industry} loading={loading} error={error} />
+            <DiscoverUsersList
+              users={data.industry}
+              loading={loading}
+              error={error}
+            />
           </SectionCard>
 
           <SectionCard title="Academic Mentors">
             <div className="mb-4 flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
               <GraduationCap className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
               <p>
-                Find lecturers you can follow for guidance, subject expertise, and stronger academic-professional connections.
+                Find lecturers you can follow for guidance, subject expertise,
+                and stronger academic-professional connections.
               </p>
             </div>
-            <DiscoverUsersList users={data.mentors} loading={loading} error={error} />
+            <DiscoverUsersList
+              users={data.mentors}
+              loading={loading}
+              error={error}
+            />
           </SectionCard>
         </div>
 
@@ -467,16 +598,31 @@ export default function ProfessionalCommunication() {
           <SectionCard title="How It Works">
             <div className="space-y-4 text-sm text-slate-600">
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">1. Open a profile</p>
-                <p className="mt-1">Click any person card to see their UniBond profile and recent activity.</p>
+                <p className="font-semibold text-slate-900">
+                  1. Open a profile
+                </p>
+                <p className="mt-1">
+                  Click any person card to see their UniBond profile and recent
+                  activity.
+                </p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">2. Follow professionals</p>
-                <p className="mt-1">Use the follow action on profile pages to stay updated with people relevant to your goals.</p>
+                <p className="font-semibold text-slate-900">
+                  2. Follow professionals
+                </p>
+                <p className="mt-1">
+                  Use the follow action on profile pages to stay updated with
+                  people relevant to your goals.
+                </p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="font-semibold text-slate-900">3. Build connections</p>
-                <p className="mt-1">Use tasks, posts, and profile interactions together to grow real academic and industry links.</p>
+                <p className="font-semibold text-slate-900">
+                  3. Build connections
+                </p>
+                <p className="mt-1">
+                  Use tasks, posts, and profile interactions together to grow
+                  real academic and industry links.
+                </p>
               </div>
             </div>
           </SectionCard>
@@ -486,13 +632,22 @@ export default function ProfessionalCommunication() {
               <div className="flex items-start gap-3 rounded-2xl bg-emerald-50 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                 <div>
-                  <p className="font-semibold text-slate-900">Already connected</p>
-                  <p className="mt-1">This screen now uses `/users/discover` with role filters, plus existing profile and follow APIs.</p>
+                  <p className="font-semibold text-slate-900">
+                    Already connected
+                  </p>
+                  <p className="mt-1">
+                    This screen now uses `/users/discover` with role filters,
+                    plus existing profile and follow APIs.
+                  </p>
                 </div>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="font-semibold text-slate-900">Backend status</p>
-                <p className="mt-1">A new dedicated backend module was not needed because the user discovery and follow system already covered this feature cleanly.</p>
+                <p className="mt-1">
+                  A new dedicated backend module was not needed because the user
+                  discovery and follow system already covered this feature
+                  cleanly.
+                </p>
               </div>
             </div>
           </SectionCard>
