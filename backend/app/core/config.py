@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-
+from typing import Optional
 
 class Settings(BaseSettings):
     database_hostname: str
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int
-
+    debug: Optional[bool] = False
     hf_token: str | None = None
     ai_text_model_name: str = "typeform/distilbert-base-uncased-mnli"
     ai_text_study_label: str = "study related academic discussion"
@@ -30,7 +30,6 @@ class Settings(BaseSettings):
     smart_search_index_dir: str = "data/faiss_index"
     smart_search_posts_path: str = "data/search/sample_posts.json"
     smart_search_runtime_posts_path: str = "data/search/runtime_posts.json"
-
     class Config:
         env_file = ".env"
 
