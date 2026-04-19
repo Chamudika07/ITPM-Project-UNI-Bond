@@ -105,6 +105,16 @@ export default function Login() {
                 />
             </div>
 
+            <div className="mt-3 flex justify-end">
+                <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
+                    className="text-sm font-semibold text-[var(--accent)] hover:underline"
+                >
+                    Forgot password?
+                </button>
+            </div>
+
             {error && <p className="status-error mt-4">{error}</p>}
 
             <button onClick={onSubmit} disabled={loading} className="btn-primary px-5 py-3 mt-5 w-full disabled:opacity-50 disabled:transform-none">

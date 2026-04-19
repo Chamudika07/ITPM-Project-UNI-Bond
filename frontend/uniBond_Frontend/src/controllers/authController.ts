@@ -1,4 +1,4 @@
-import { registerUser, loginUser } from "@/models/authModel";
+import { forgotPassword, registerUser, loginUser } from "@/models/authModel";
 import type { User } from "@/types/user"
 
 const extractApiErrorMessage = (err: unknown): string => {
@@ -49,6 +49,25 @@ export const handleLogin = async (
         setLoading(true);
         setError("");
         return await loginUser(email, password);
+    } catch (err: unknown) {
+        setError(extractApiErrorMessage(err));
+    } finally {
+        setLoading(false);
+    }
+};
+
+export const handleForgotPassword = async (
+    email: string,
+    mobile: string,
+    newPassword: string,
+    confirmPassword: string,
+    setLoading: (v: boolean) => void,
+    setError: (msg: string) => void
+) => {
+    try {
+        setLoading(true);
+        setError("");
+        return await forgotPassword(email, mobile, newPassword, confirmPassword);
     } catch (err: unknown) {
         setError(extractApiErrorMessage(err));
     } finally {

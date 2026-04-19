@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, select
+from sqlalchemy import or_, cast, String
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import undefer
@@ -207,6 +208,7 @@ def build_user_discover_response(user: User, current_user: User, db: Session) ->
         role=user.role,
         city=user.city,
         country=user.country,
+        avatar_path=user.avatar_path,
         is_following=is_following_user(current_user.id, user.id, db),
     )
 
@@ -234,13 +236,17 @@ def is_user_online(user: User, now: datetime | None = None) -> bool:
 
 def touch_user_presence(user: User, db: Session):
     now = datetime.now(timezone.utc)
-    if user.last_seen and user.last_seen >= now - timedelta(seconds=30):
-        return
-
-    user.last_seen = now
-    db.add(user)
+    user_id = str(user.id)
+    (
+        db.query(User)
+        .filter(cast(User.id, String) == user_id)
+        .update({User.last_seen: now}, synchronize_session=False)
+    )
     db.commit()
-    db.refresh(user)
+
+
+def get_user_by_id_text(user_id: str, db: Session) -> User | None:
+    return db.query(User).filter(cast(User.id, String) == user_id).first()
 
 
 def raise_follow_feature_unavailable(db: Session, exc: ProgrammingError):
@@ -269,12 +275,24 @@ def update_presence(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    user_id = str(current_user.id)
     try:
         touch_user_presence(current_user, db)
+        refreshed_user = get_user_by_id_text(user_id, db)
+        if refreshed_user is not None:
+            return build_user_response(refreshed_user)
     except ProgrammingError as exc:
         db.rollback()
         if not is_missing_last_seen_column_error(exc):
+            # Some environments have legacy user ID types. Presence should be best-effort,
+            # so we avoid failing the request when presence persistence is unavailable.
+            safe_user = get_user_by_id_text(user_id, db)
+            if safe_user is not None:
+                return build_user_response(safe_user)
             raise
+    safe_user = get_user_by_id_text(user_id, db)
+    if safe_user is not None:
+        return build_user_response(safe_user)
     return build_user_response(current_user)
 
 
@@ -397,12 +415,11 @@ def discover_users(
         query = query.filter(User.id != exclude_user_id)
 
     if exclude_followed:
-        followed_subquery = (
-            db.query(UserFollow.following_id)
-            .filter(UserFollow.follower_id == current_user.id)
-            .subquery()
+        followed_select = (
+            select(UserFollow.following_id)
+            .where(UserFollow.follower_id == current_user.id)
         )
-        query = query.filter(User.id.not_in(followed_subquery))
+        query = query.filter(User.id.not_in(followed_select))
 
     users = (
         query
@@ -422,10 +439,9 @@ def get_online_users(
     now = datetime.now(timezone.utc)
     online_cutoff = now - timedelta(minutes=2)
 
-    followed_subquery = (
-        db.query(UserFollow.following_id)
-        .filter(UserFollow.follower_id == current_user.id)
-        .subquery()
+    followed_select = (
+        select(UserFollow.following_id)
+        .where(UserFollow.follower_id == current_user.id)
     )
 
     try:
@@ -436,7 +452,7 @@ def get_online_users(
             .filter(User.access_status == AccessStatus.active)
             .filter(User.last_seen.is_not(None))
             .filter(User.last_seen >= online_cutoff)
-            .order_by(User.id.in_(followed_subquery).desc(), User.last_seen.desc(), User.id.desc())
+            .order_by(User.id.in_(followed_select).desc(), User.last_seen.desc(), User.id.desc())
             .limit(limit)
             .all()
         )
