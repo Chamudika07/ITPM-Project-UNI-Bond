@@ -2,6 +2,7 @@
 venv/
 env/
 .venv/
+node_modules/
 
 # Environment variables
 .env
@@ -9,8 +10,12 @@ env/
 
 backend/venv/
 backend/.venv/
+backend/node_modules/
 *.env
-**/__Pycache__/
+**/__pycache__/
 **/*.pyc
+**/*.pyo
+**/.pytest_cache/
+dist/
 uploads/
 **/uploads/
