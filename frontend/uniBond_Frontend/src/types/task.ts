@@ -8,6 +8,8 @@ export interface TaskApplication {
   coverLetter?: string;
   status: 'pending' | 'accepted' | 'rejected';
   appliedAt: string;
+  submissionUrl?: string;
+  submittedAt?: string;
 }
 
 export interface Task {

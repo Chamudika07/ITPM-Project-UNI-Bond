@@ -16,6 +16,9 @@ export default function CourseContentView() {
   const course = courses.find(c => c.id === id);
   const regStatus = course ? getRegistrationStatus(course.id, studentId) : undefined;
   const isUnlocked = isLecturer || regStatus?.status === "approved";
+  const pdfLinks = course
+    ? ((course.pdfUrls && course.pdfUrls.length > 0 ? course.pdfUrls : [course.pdfUrl]).filter(Boolean))
+    : [];
 
   if (!course) {
     return (
@@ -82,15 +85,17 @@ export default function CourseContentView() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <a
-            href={course.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-xl transition-colors border border-blue-200"
-          >
-            <Download className="h-4 w-4 shrink-0" />
-            <span className="shrink-0">Download PDF Notes</span>
-          </a>
+          {pdfLinks.length > 0 && (
+            <a
+              href={pdfLinks[0]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-xl transition-colors border border-blue-200"
+            >
+              <Download className="h-4 w-4 shrink-0" />
+              <span className="shrink-0">Download PDF Notes ({pdfLinks.length})</span>
+            </a>
+          )}
         </div>
       </div>
 
@@ -150,14 +155,19 @@ export default function CourseContentView() {
              <p className="text-blue-100 text-sm mb-6 opacity-90 leading-relaxed">
                 Make sure to download the PDF presentation slides to follow along with the video lecture.
              </p>
-             <a
-               href={course.pdfUrl}
-               target="_blank"
-               rel="noopener noreferrer"
-               className="w-full flex items-center justify-center gap-2 bg-white text-indigo-700 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 transition-colors"
-             >
-               <Download className="h-5 w-5" /> Open Document
-             </a>
+             <div className="space-y-2">
+               {pdfLinks.map((link, index) => (
+                 <a
+                   key={`${course.id}-pdf-${index}`}
+                   href={link}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="w-full flex items-center justify-center gap-2 bg-white text-indigo-700 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 transition-colors"
+                 >
+                   <Download className="h-5 w-5" /> Open PDF {index + 1}
+                 </a>
+               ))}
+             </div>
            </div>
         </div>
 

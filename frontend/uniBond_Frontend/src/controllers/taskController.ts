@@ -1,4 +1,5 @@
 import apiClient from "@/services/api/axiosClient";
+
 import type { Task, TaskApplication } from "@/types/task";
 
 export type TaskUpsertPayload = Omit<Task, "id" | "createdAt" | "applicants">;
@@ -100,5 +101,19 @@ export const handleApplyTask = async (
 
 export const handleDeleteApplication = async (taskId: string): Promise<Task> => {
   const response = await apiClient.delete(`/tasks/${taskId}/apply`);
+  return mapTask(response.data);
+};
+
+export const handleUpdateApplication = async (taskId: string, appId: string, payload: { status: 'accepted' | 'rejected' }): Promise<Task> => {
+  const response = await apiClient.patch(`/opportunities/applications/${appId}`, payload);
+  return mapTask(response.data);
+};
+
+export const handleSubmitTaskWork = async (taskId: string, appId: string, submissionUrl: string): Promise<Task> => {
+  const response = await apiClient.post(`/opportunities/submissions`, {
+    task_id: taskId,
+    application_id: appId,
+    submission_url: submissionUrl
+  });
   return mapTask(response.data);
 };

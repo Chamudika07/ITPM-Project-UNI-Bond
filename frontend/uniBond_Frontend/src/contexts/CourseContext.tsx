@@ -8,6 +8,7 @@ export type Course = {
   dateAdded: string;
   price: number;
   pdfUrl: string;
+  pdfUrls: string[];
   videoUrl: string;
   creatorId: string;
 };
@@ -36,6 +37,18 @@ const CourseContext = createContext<CourseContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY_COURSES = "uniBond_courses";
 const LOCAL_STORAGE_KEY_COURSE_REG = "uniBond_course_registrations";
 
+const normalizeCourse = (course: Course): Course => {
+  const normalizedPdfUrls = Array.isArray((course as { pdfUrls?: string[] }).pdfUrls)
+    ? (course as { pdfUrls: string[] }).pdfUrls.filter(Boolean)
+    : (course.pdfUrl ? [course.pdfUrl] : []);
+
+  return {
+    ...course,
+    pdfUrls: normalizedPdfUrls,
+    pdfUrl: normalizedPdfUrls[0] ?? course.pdfUrl ?? "",
+  };
+};
+
 const MOCK_COURSES: Course[] = [
   {
     id: "c1",
@@ -45,6 +58,7 @@ const MOCK_COURSES: Course[] = [
     dateAdded: "2026-03-10",
     price: 49.99,
     pdfUrl: "https://example.com/react-patterns.pdf",
+    pdfUrls: ["https://example.com/react-patterns.pdf"],
     videoUrl: "https://example.com/react-video.mp4",
     creatorId: "mock-lecturer-id"
   },
@@ -56,6 +70,7 @@ const MOCK_COURSES: Course[] = [
     dateAdded: "2026-03-15",
     price: 99.00,
     pdfUrl: "https://example.com/ml-guide.pdf",
+    pdfUrls: ["https://example.com/ml-guide.pdf"],
     videoUrl: "https://example.com/ml-video.mp4",
     creatorId: "mock-lecturer-id"
   }
@@ -65,7 +80,12 @@ export function CourseProvider({ children }: { children: ReactNode }) {
   const [courses, setCourses] = useState<Course[]>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY_COURSES);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { return MOCK_COURSES; }
+      try {
+        const parsed = JSON.parse(saved) as Course[];
+        return parsed.map(normalizeCourse);
+      } catch (e) {
+        return MOCK_COURSES;
+      }
     }
     return MOCK_COURSES;
   });
@@ -87,8 +107,13 @@ export function CourseProvider({ children }: { children: ReactNode }) {
   }, [registrations]);
 
   const addCourse = (courseData: Omit<Course, "id" | "dateAdded">) => {
+    const normalizedPdfUrls = (courseData.pdfUrls ?? []).filter(Boolean);
+    const firstPdfUrl = normalizedPdfUrls[0] ?? courseData.pdfUrl ?? "";
+
     const newCourse: Course = {
       ...courseData,
+      pdfUrls: normalizedPdfUrls.length > 0 ? normalizedPdfUrls : (firstPdfUrl ? [firstPdfUrl] : []),
+      pdfUrl: firstPdfUrl,
       id: "course_" + Date.now().toString(),
       dateAdded: new Date().toISOString().split('T')[0]
     };
@@ -96,7 +121,18 @@ export function CourseProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCourse = (id: string, updatedCourse: Omit<Course, "id" | "dateAdded">) => {
-    setCourses(prev => prev.map(c => c.id === id ? { ...updatedCourse, id, dateAdded: c.dateAdded } : c));
+    const normalizedPdfUrls = (updatedCourse.pdfUrls ?? []).filter(Boolean);
+    const firstPdfUrl = normalizedPdfUrls[0] ?? updatedCourse.pdfUrl ?? "";
+
+    setCourses(prev => prev.map(c => c.id === id
+      ? {
+          ...updatedCourse,
+          pdfUrls: normalizedPdfUrls.length > 0 ? normalizedPdfUrls : (firstPdfUrl ? [firstPdfUrl] : []),
+          pdfUrl: firstPdfUrl,
+          id,
+          dateAdded: c.dateAdded,
+        }
+      : c));
   };
 
   const deleteCourse = (id: string) => {

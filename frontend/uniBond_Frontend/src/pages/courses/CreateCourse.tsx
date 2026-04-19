@@ -19,12 +19,14 @@ export default function CreateCourse() {
     description: "",
     price: "",
     pdfUrl: "",
+    pdfUrlsText: "",
     videoUrl: "",
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (isEditMode && existingCourse) {
@@ -32,11 +34,21 @@ export default function CreateCourse() {
         title: existingCourse.title,
         description: existingCourse.description,
         price: existingCourse.price.toString(),
-        pdfUrl: existingCourse.pdfUrl,
+        pdfUrl: existingCourse.pdfUrls?.[0] ?? existingCourse.pdfUrl,
+        pdfUrlsText: existingCourse.pdfUrls?.join("\n") ?? existingCourse.pdfUrl,
         videoUrl: existingCourse.videoUrl,
       });
+      setPdfFiles([]);
     }
   }, [isEditMode, existingCourse]);
+
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Failed to read PDF file"));
+      reader.readAsDataURL(file);
+    });
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -64,10 +76,31 @@ export default function CreateCourse() {
     
     const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
 
-    if (!formData.pdfUrl.trim()) {
-      newErrors.pdfUrl = "PDF Link is required.";
-    } else if (!urlPattern.test(formData.pdfUrl)) {
-      newErrors.pdfUrl = "Please enter a valid URL for the PDF material.";
+    const pdfLinks = formData.pdfUrlsText
+      .split(/\r?\n|,/) 
+      .map((item) => item.trim())
+      .filter(Boolean);
+    const hasPdfUrl = Boolean(formData.pdfUrl.trim());
+    if (hasPdfUrl) {
+      pdfLinks.push(formData.pdfUrl.trim());
+    }
+
+    const hasPdfFile = pdfFiles.length > 0;
+
+    if (pdfLinks.length === 0 && !hasPdfFile) {
+      newErrors.pdfUrl = "Add at least one PDF link or upload one/more PDF files.";
+    }
+
+    if (pdfLinks.some((link) => !urlPattern.test(link))) {
+      newErrors.pdfUrl = "One or more PDF links are invalid URLs.";
+    }
+
+    if (pdfFiles.length > 0) {
+      if (pdfFiles.some((file) => file.type !== "application/pdf")) {
+        newErrors.pdfFile = "Only PDF files are allowed.";
+      } else if (pdfFiles.some((file) => file.size > 10 * 1024 * 1024)) {
+        newErrors.pdfFile = "Each PDF file must be 10MB or less.";
+      }
     }
     
     if (!formData.videoUrl.trim()) {
@@ -80,18 +113,30 @@ export default function CreateCourse() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
-    setTimeout(() => {
+
+    try {
+      const linkPdfUrls = formData.pdfUrlsText
+        .split(/\r?\n|,/) 
+        .map((item) => item.trim())
+        .filter(Boolean);
+      if (formData.pdfUrl.trim()) {
+        linkPdfUrls.push(formData.pdfUrl.trim());
+      }
+
+      const uploadedPdfUrls = await Promise.all(pdfFiles.map((file) => fileToDataUrl(file)));
+      const allPdfUrls = [...new Set([...linkPdfUrls, ...uploadedPdfUrls])];
+
       const courseData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        pdfUrl: formData.pdfUrl.trim(),
+        pdfUrl: allPdfUrls[0] ?? "",
+        pdfUrls: allPdfUrls,
         videoUrl: formData.videoUrl.trim(),
         instructorName: isEditMode && existingCourse 
           ? existingCourse.instructorName 
@@ -110,7 +155,10 @@ export default function CreateCourse() {
       setIsSubmitting(false);
       setShowSuccess(true);
       setTimeout(() => navigate(ROUTES.COURSES), 2000);
-    }, 800);
+    } catch {
+      setIsSubmitting(false);
+      setErrors((prev) => ({ ...prev, pdfFile: "Failed to process uploaded PDF." }));
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -118,6 +166,14 @@ export default function CreateCourse() {
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user types
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
+  };
+
+  const handlePdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? []);
+    setPdfFiles(selected);
+    if (errors.pdfFile || errors.pdfUrl) {
+      setErrors((prev) => ({ ...prev, pdfFile: "", pdfUrl: "" }));
+    }
   };
 
   if (showSuccess) {
@@ -241,7 +297,7 @@ export default function CreateCourse() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="pdfUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                    PDF Document Link <span className="text-red-500">*</span>
+                    PDF Document Links
                   </label>
                   <div className="relative">
                     <FileText className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -251,13 +307,38 @@ export default function CreateCourse() {
                       name="pdfUrl"
                       value={formData.pdfUrl}
                       onChange={handleChange}
-                      placeholder="https://drive.google.com/..."
+                      placeholder="https://drive.google.com/first.pdf"
                       className={`w-full pl-11 pr-4 py-2.5 border rounded-xl focus:outline-none text-sm transition-all ${
                         errors.pdfUrl ? "border-red-300 focus:ring-red-500 bg-red-50" : "border-gray-200 focus:ring-2 focus:ring-indigo-500"
                       }`}
                     />
                   </div>
                   {errors.pdfUrl && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.pdfUrl}</p>}
+
+                  <textarea
+                    id="pdfUrlsText"
+                    name="pdfUrlsText"
+                    rows={4}
+                    value={formData.pdfUrlsText}
+                    onChange={handleChange}
+                    placeholder="Paste more PDF links, one per line"
+                    className="w-full mt-3 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  <label htmlFor="pdfFile" className="block text-sm font-medium text-gray-700 mt-3 mb-1">
+                    Or Upload Lecturer PDFs
+                  </label>
+                  <input
+                    type="file"
+                    id="pdfFile"
+                    name="pdfFile"
+                    accept=".pdf,application/pdf"
+                    multiple
+                    onChange={handlePdfFileChange}
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-white"
+                  />
+                  {pdfFiles.length > 0 && <p className="text-xs mt-1.5 text-gray-600">Selected {pdfFiles.length} PDF file(s)</p>}
+                  {errors.pdfFile && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.pdfFile}</p>}
                 </div>
 
                 <div>

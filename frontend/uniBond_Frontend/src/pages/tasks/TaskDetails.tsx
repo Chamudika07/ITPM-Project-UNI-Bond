@@ -35,6 +35,11 @@ export default function TaskDetails() {
 
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
+  // App Form State
+  const [showAppForm, setShowAppForm] = useState(false);
+  const [isEditingApp, setIsEditingApp] = useState(false);
+  const [appForm, setAppForm] = useState({ portfolioUrl: "", coverLetter: "", email: "" });
+  const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchTaskInfo = async () => {
@@ -67,11 +72,29 @@ export default function TaskDetails() {
     }
   };
 
-  const submitApplication = async () => {
+  const submitApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!appForm.email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)) {
+      setFormError("Please enter a valid email address.");
+      return;
+    }
+    if (appForm.portfolioUrl && !appForm.portfolioUrl.match(/^https?:\/\/.+/)) {
+      setFormError("Portfolio URL must be a valid link starting with http:// or https://");
+      return;
+    }
+    if (appForm.coverLetter.length < 50) {
+      setFormError("Cover letter must be at least 50 characters to stand out.");
+      return;
+    }
+
+    if (!user) return;
     setSubmitting(true);
 
     try {
-      await handleApplyTask(task.id);
+      await handleApplyTask(task.id, appForm);
+      setShowAppForm(false);
       alert("Application submitted successfully.");
       await fetchTaskInfo();
     } catch (error: any) {
@@ -83,11 +106,25 @@ export default function TaskDetails() {
 
   const handleWithdrawApplication = async () => {
     if (!myApplication || !confirm("Withdraw application?")) return;
-
     await handleDeleteApplication(task.id);
     alert("Application withdrawn.");
     await fetchTaskInfo();
   };
+
+  const handleOpenEditApp = () => {
+    if (myApplication) {
+      setAppForm({
+        portfolioUrl: myApplication.portfolioUrl || "",
+        coverLetter: myApplication.coverLetter || "",
+        email: myApplication.email || ""
+      });
+      setFormError("");
+      setIsEditingApp(true);
+      setShowAppForm(true);
+    }
+  };
+
+
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
@@ -317,12 +354,8 @@ export default function TaskDetails() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={submitApplication}
-                    disabled={submitting}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex justify-center items-center gap-2 text-lg"
-                  >
-                    {submitting ? "Applying..." : <>Apply Now <ArrowRight className="w-5 h-5" /></>}
+                  <button onClick={() => {setShowAppForm(true); setFormError(""); setIsEditingApp(false); setAppForm({portfolioUrl:"", coverLetter:"", email:""})}} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex justify-center items-center gap-2 text-lg">
+                    Apply Now <ArrowRight className="w-5 h-5"/>
                   </button>
                 )}
               </div>
@@ -330,6 +363,51 @@ export default function TaskDetails() {
           </SectionCard>
         </div>
       </div>
+      {/* Application Form Modal */}
+      {showAppForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                {isEditingApp ? "Edit Application" : "Apply for Task"}
+              </h3>
+              <button onClick={() => setShowAppForm(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <Trash2 className="w-5 h-5 hidden" />
+                &#x2715;
+              </button>
+            </div>
+            
+            <form onSubmit={submitApplication} className="p-6 space-y-4">
+              {formError && (
+                <div className="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 text-sm font-bold">
+                  {formError}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Contact *</label>
+                <input type="email" required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value={appForm.email} onChange={e => setAppForm({...appForm, email: e.target.value})} placeholder="student@example.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Portfolio / Resume Link</label>
+                <input type="url" className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value={appForm.portfolioUrl} onChange={e => setAppForm({...appForm, portfolioUrl: e.target.value})} placeholder="https://github.com/your-profile" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Cover Letter / Pitch</label>
+                <textarea rows={4} required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value={appForm.coverLetter} onChange={e => setAppForm({...appForm, coverLetter: e.target.value})} placeholder="Why are you a good fit for this task?" />
+              </div>
+              
+              <div className="pt-4 flex gap-3">
+                <button type="button" onClick={() => setShowAppForm(false)} className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">Cancel</button>
+                <button type="submit" disabled={submitting} className="flex-1 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50">
+                  {submitting ? "Sending..." : "Submit Application"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 }

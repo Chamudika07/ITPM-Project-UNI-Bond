@@ -1,5 +1,4 @@
 import apiClient from "@/services/api/axiosClient";
-import { mockGetDiscoverUsers, mockGetUserById } from "@/services/mock/mockUserApi";
 import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 import { buildAvatar, buildUserAvatar, resolveAssetUrl } from "@/utils/userMedia";
 
@@ -100,30 +99,20 @@ export const getDiscoverUsers = async (
   roles?: Role[],
   options?: { excludeFollowed?: boolean; excludeUserId?: string }
 ): Promise<DiscoverUser[]> => {
-  try {
-    const response = await apiClient.get("/users/discover", {
-      params: {
-        limit,
-        roles,
-        exclude_followed: options?.excludeFollowed,
-        exclude_user_id: options?.excludeUserId,
-      },
-    });
-    return response.data.map(mapDiscoverUserResponse);
-  } catch (error) {
-    console.warn("Falling back to mock discover users.", error);
-    return mockGetDiscoverUsers(limit);
-  }
+  const response = await apiClient.get("/users/discover", {
+    params: {
+      limit,
+      roles,
+      exclude_followed: options?.excludeFollowed,
+      exclude_user_id: options?.excludeUserId,
+    },
+  });
+  return response.data.map(mapDiscoverUserResponse);
 };
 
 export const getUserById = async (userId: string): Promise<User> => {
-  try {
-    const response = await apiClient.get(`/users/${userId}`);
-    return mapApiUserToFrontendUser(response.data);
-  } catch (error) {
-    console.warn(`Falling back to mock user ${userId}.`, error);
-    return mockGetUserById(userId);
-  }
+  const response = await apiClient.get(`/users/${userId}`);
+  return mapApiUserToFrontendUser(response.data);
 };
 
 const mapUserSummaryResponse = (data: any): UserSummary => {

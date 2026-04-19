@@ -1,3 +1,5 @@
+import app.models  # noqa: F401
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,10 +9,11 @@ import os
 
 from app.core.runtime import configure_runtime_environment, cleanup_runtime_environment
 
+from app.core.runtime import configure_runtime_environment
 configure_runtime_environment()
-
 import app.models  # noqa: F401
 from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
+
 from app.db.base import Base
 from app.db.database import engine
 from app.routers import (
@@ -25,10 +28,22 @@ from app.routers import (
     moderation,
     notice_notification,
     post,
+    classroom,
+    course,
+    group,
+    kuppy,
+    login,
+    notice_notification,
+    post,
+    professional_session,
     search,
     task,
     user,
+    opportunity,
+    professional_session,
 )
+from app.db.base import Base
+from app.db.database import engine
 from app.services.smart_search_service import smart_search_service
 
 
@@ -46,7 +61,7 @@ async def lifespan(app: FastAPI):
         cleanup_runtime_environment()
 
 
-app = FastAPI(title="Uni Bond", lifespan=lifespan)
+app = FastAPI(title="Uni Bond - University Student Management System", lifespan=lifespan)
 
 # Configure CORS
 origins = [
@@ -79,14 +94,34 @@ app.include_router(task.router)
 app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
+app.include_router(opportunity.router)
 app.include_router(search.semantic_router)
 app.include_router(ai_text.router)
 app.include_router(ai_image.router)
 app.include_router(moderation.router)
 app.include_router(health.router)
 app.include_router(professional_session.router)
+app.include_router(course.router)
 
 
 @app.get("/")
 def root():
-    return {"message": "University Student Management System"}
+    return {
+        "message": "University Student Management System",
+        "version": "1.0.0",
+        "endpoints": {
+            "users": "/users",
+            "posts": "/posts",
+            "opportunities": "/opportunities",
+            "tasks": "/opportunities/tasks",
+            "applications": "/opportunities/applications",
+            "submissions": "/opportunities/submissions",
+            "notifications": "/opportunities/notifications",
+            "dashboard": "/opportunities/dashboard"
+        }
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
