@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import EmptyState from "@/components/common/EmptyState";
-import { handleSearchAll } from "@/controllers/searchController";
+import { handleSearchAll, handleSemanticSearch } from "@/controllers/searchController";
 import { validateSearch } from "@/utils/validators";
-import type { SearchResponse, SearchResult, SearchResultType } from "@/types/search";
+import type { SearchResponse, SearchResult, SearchResultType, SemanticSearchResponse } from "@/types/search";
 
 const FILTER_OPTIONS: Array<{ label: string; value: "all" | "study" | SearchResultType }> = [
   { label: "All", value: "all" },
@@ -51,6 +51,7 @@ export default function SearchResults() {
   const activeFilter = (searchParams.get("type") || "all") as "all" | "study" | SearchResultType;
 
   const [searchResponse, setSearchResponse] = useState<SearchResponse>({ query: "", total: 0, results: [] });
+  const [semanticResponse, setSemanticResponse] = useState<SemanticSearchResponse>({ query: "", totalResults: 0, results: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,6 +59,7 @@ export default function SearchResults() {
     const performSearch = async () => {
       if (!query) {
         setSearchResponse({ query: "", total: 0, results: [] });
+        setSemanticResponse({ query: "", totalResults: 0, results: [] });
         setError("");
         return;
       }
@@ -65,6 +67,7 @@ export default function SearchResults() {
       const validation = validateSearch(query);
       if (!validation.isValid) {
         setSearchResponse({ query: "", total: 0, results: [] });
+        setSemanticResponse({ query: "", totalResults: 0, results: [] });
         setError(validation.error!);
         return;
       }
@@ -72,10 +75,17 @@ export default function SearchResults() {
       try {
         setLoading(true);
         setError("");
-        const response = await handleSearchAll(query, { limit: 10 });
+        const [response, semantic] = await Promise.all([
+          handleSearchAll(query, { limit: 10 }),
+          query.trim().length >= 3
+            ? handleSemanticSearch(query, 5)
+            : Promise.resolve({ query: "", totalResults: 0, results: [] }),
+        ]);
         setSearchResponse(response);
+        setSemanticResponse(semantic);
       } catch (err) {
         console.error("Search failed", err);
+        setSemanticResponse({ query: "", totalResults: 0, results: [] });
         setError("We couldn't complete your search right now. Please try again.");
       } finally {
         setLoading(false);
@@ -168,6 +178,48 @@ export default function SearchResults() {
       </div>
 
       <SectionCard title={`${filteredResults.length} matching result${filteredResults.length === 1 ? "" : "s"}`}>
+        {!loading && semanticResponse.results.length > 0 ? (
+          <div className="mb-6 rounded-2xl border border-[var(--brand)]/20 bg-[var(--brand-soft)] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">Smart Search</p>
+                <h3 className="mt-1 text-lg font-bold text-[var(--text-primary)]">
+                  Similar study discussions
+                </h3>
+              </div>
+              <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[var(--brand)]">
+                {semanticResponse.totalResults} semantic matches
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {semanticResponse.results.map((result) => (
+                <div
+                  key={`semantic-${result.postId}`}
+                  className="rounded-2xl border border-white/70 bg-white/80 p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">
+                        #{result.rank} {result.title}
+                      </p>
+                      <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                        {result.contentPreview}
+                      </p>
+                      <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                        {result.authorName}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-bold text-[var(--brand)]">
+                      {result.similarityScore.toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {loading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (

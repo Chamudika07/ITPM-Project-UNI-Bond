@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import and_, cast, or_, String
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -10,11 +10,20 @@ from app.models.notice_notification import Notice
 from app.models.post import Post
 from app.models.task import TaskItem
 from app.models.user import User
-from app.schemas.search import SearchResponse, SearchResultResponse
+from app.schemas.search import (
+    IndexedPostResponse,
+    SearchIndexRebuildResponse,
+    SearchResponse,
+    SearchResultResponse,
+    SmartSearchRequest,
+    SmartSearchResponse,
+)
+from app.services.smart_search_service import smart_search_service
 from app.utils.autho import get_current_user
 
 
 router = APIRouter(prefix="/search", tags=["Search"])
+semantic_router = APIRouter(prefix="/api/v1/search", tags=["Smart Search"])
 
 STUDY_KEYWORDS = {
     "study",
@@ -260,3 +269,21 @@ def search_all(
     results.sort(key=lambda result: _score_result(query_lower, result))
 
     return SearchResponse(query=normalized_query, total=len(results), results=results)
+
+
+@semantic_router.post("/query", response_model=SmartSearchResponse)
+def semantic_search(payload: SmartSearchRequest) -> SmartSearchResponse:
+    """Run semantic search against indexed UniBond study posts."""
+    return smart_search_service.search(query=payload.query, top_k=payload.top_k)
+
+
+@semantic_router.post("/rebuild-index", response_model=SearchIndexRebuildResponse)
+def rebuild_search_index() -> SearchIndexRebuildResponse:
+    """Rebuild the local FAISS index from the sample post dataset."""
+    return smart_search_service.rebuild_index()
+
+
+@semantic_router.get("/posts", response_model=list[IndexedPostResponse])
+def get_indexed_posts() -> list[IndexedPostResponse]:
+    """Return the posts currently used by the MVP smart search index."""
+    return smart_search_service.get_indexed_posts()

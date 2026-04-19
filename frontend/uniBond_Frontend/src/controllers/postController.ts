@@ -1,5 +1,6 @@
 import {
   createPost,
+  createModeratedPostWithFile,
   createPostWithFile,
   getPosts,
   getUserPosts,
@@ -9,7 +10,7 @@ import {
   deletePost,
   updatePost,
 } from "@/models/postModel";
-import type { Post } from "@/types/post";
+import type { Post, PostCreateWithModerationResponse } from "@/types/post";
 
 export const handleCreatePost = async (
   postData: Omit<Post, "id" | "likes" | "commentsCount" | "reposts" | "createdAt" | "isLikedByUser" | "isRepostedByUser" | "comments">,
@@ -47,6 +48,28 @@ export const handleCreatePostWithFile = async (
     const axiosError = error as any;
     const detail = axiosError?.response?.data?.detail;
     const message = typeof detail === "string" ? detail : (error instanceof Error ? error.message : "Failed to create post");
+    setError(message);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+};
+
+export const handleCreateModeratedPostWithFile = async (
+  content: string,
+  file: File | undefined,
+  setLoading: (value: boolean) => void,
+  setError: (value: string) => void
+): Promise<PostCreateWithModerationResponse | null> => {
+  try {
+    setLoading(true);
+    return await createModeratedPostWithFile(content, file);
+  } catch (error: unknown) {
+    const axiosError = error as any;
+    const detail = axiosError?.response?.data?.detail;
+    const message =
+      detail?.message ||
+      (typeof detail === "string" ? detail : (error instanceof Error ? error.message : "Failed to create moderated post"));
     setError(message);
     return null;
   } finally {

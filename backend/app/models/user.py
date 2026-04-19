@@ -22,6 +22,7 @@ class AccessStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
+    id = Column(Integer, primary_key=True, index=True)
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     user_code = Column(String(20), unique=True, nullable=True, index=True)  # e.g. STD0001
     first_name = Column(String(100), nullable=False)

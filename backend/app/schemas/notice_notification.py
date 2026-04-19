@@ -35,3 +35,8 @@ class NotificationResponse(NotificationBase):
 
     class Config:
         from_attributes = True
+
+
+class NotificationSummaryResponse(BaseModel):
+    total_count: int
+    unread_count: int

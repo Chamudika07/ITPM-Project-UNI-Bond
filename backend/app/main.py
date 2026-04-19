@@ -5,11 +5,29 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import os
+
+from app.core.runtime import configure_runtime_environment, cleanup_runtime_environment
+
+configure_runtime_environment()
+
+import app.models  # noqa: F401
+from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
 
 from app.db.base import Base
 from app.db.database import engine
 from app.routers import (
     admin,
+    ai_image,
+    ai_text,
+    classroom,
+    group,
+    health,
+    kuppy,
+    login,
+    moderation,
+    notice_notification,
+    post,
     classroom,
     course,
     group,
@@ -22,12 +40,21 @@ from app.routers import (
     task,
     user,
 )
+from app.services.smart_search_service import smart_search_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    yield
+    try:
+        smart_search_service.ensure_index_ready()
+    except Exception:
+        # Keep API startup resilient; semantic search can still rebuild lazily on demand.
+        pass
+    try:
+        yield
+    finally:
+        cleanup_runtime_environment()
 
 
 app = FastAPI(title="Uni Bond", lifespan=lifespan)
@@ -55,6 +82,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(user.router)
 app.include_router(login.router)
 app.include_router(post.router)
+app.include_router(post.api_router)
 app.include_router(group.router)
 app.include_router(kuppy.router)
 app.include_router(classroom.router)
@@ -62,6 +90,11 @@ app.include_router(task.router)
 app.include_router(notice_notification.router)
 app.include_router(admin.router)
 app.include_router(search.router)
+app.include_router(search.semantic_router)
+app.include_router(ai_text.router)
+app.include_router(ai_image.router)
+app.include_router(moderation.router)
+app.include_router(health.router)
 app.include_router(professional_session.router)
 app.include_router(course.router)
 

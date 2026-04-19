@@ -43,6 +43,22 @@ export const loginUser = async (email: string, password: string) => {
   return res.data;
 };
 
+export const forgotPassword = async (
+  email: string,
+  mobile: string,
+  newPassword: string,
+  confirmPassword: string
+) => {
+  const res = await apiClient.post("/users/forgot-password", {
+    email: email.trim().toLowerCase(),
+    mobile: mobile.trim(),
+    new_password: newPassword,
+    confirm_password: confirmPassword,
+  });
+
+  return res.data as { message: string };
+};
+
 export const uploadCV = async (userId: string, file: File) => {
   const fd = new FormData();
   fd.append("file", file);
