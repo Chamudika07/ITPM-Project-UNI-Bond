@@ -1,12 +1,21 @@
+import app.models  # noqa: F401
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+
+from app.core.runtime import configure_runtime_environment, cleanup_runtime_environment
+
 from app.core.runtime import configure_runtime_environment
 configure_runtime_environment()
 import app.models  # noqa: F401
+from app.routers import user, login, post, group, kuppy, classroom, task, notice_notification, admin, search, professional_session
+
+from app.db.base import Base
+from app.db.database import engine
 from app.routers import (
     admin,
     ai_image,
@@ -19,6 +28,14 @@ from app.routers import (
     moderation,
     notice_notification,
     post,
+    classroom,
+    course,
+    group,
+    kuppy,
+    login,
+    notice_notification,
+    post,
+    professional_session,
     search,
     task,
     user,
@@ -38,7 +55,10 @@ async def lifespan(app: FastAPI):
     except Exception:
         # Keep API startup resilient; semantic search can still rebuild lazily on demand.
         pass
-    yield
+    try:
+        yield
+    finally:
+        cleanup_runtime_environment()
 
 
 app = FastAPI(title="Uni Bond - University Student Management System", lifespan=lifespan)
@@ -81,6 +101,7 @@ app.include_router(ai_image.router)
 app.include_router(moderation.router)
 app.include_router(health.router)
 app.include_router(professional_session.router)
+app.include_router(course.router)
 
 
 @app.get("/")

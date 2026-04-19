@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { User } from "@/types/user";
 import { BookOpen, Users, PlusCircle, Briefcase, CheckCircle, Upload, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/utils/constants";
 import { handleGetTasks, handleSubmitTaskWork } from "@/controllers/taskController";
 import type { Task } from "@/types/task";
 
@@ -130,7 +131,7 @@ export default function RoleSpecificSection({ user, isOwnProfile = true }: { use
     title = "Best Courses";
     icon = <BookOpen className="w-5 h-5 text-blue-600" />;
     btnLabel = "Create Course";
-    linkTarget = "/courses/create";
+    linkTarget = ROUTES.CREATE_COURSE;
   } else if (user.role === "tech_lead") {
     title = "Featured Classrooms";
     icon = <Users className="w-5 h-5 text-blue-600" />;

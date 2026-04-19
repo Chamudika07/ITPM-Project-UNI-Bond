@@ -10,6 +10,8 @@ import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
 import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
+import CreateProfessionalSession from "@/pages/professional-communication/CreateProfessionalSession";
+import SessionDetails from "@/pages/professional-communication/SessionDetails";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
 import CreateClassroom from "@/pages/classrooms/CreateClassroom";
 import ClassroomDetails from "@/pages/classrooms/ClassroomDetails";
@@ -23,8 +25,13 @@ import KuppySessions from "@/pages/kuppy/KuppySessions";
 import CreateKuppy from "@/pages/kuppy/CreateKuppy";
 import CreatePost from "@/pages/home/CreatePost";
 import EditPost from "@/pages/home/EditPost";
+import CourseList from "@/pages/courses/CourseList";
+import CreateCourse from "@/pages/courses/CreateCourse";
+import CourseDetails from "@/pages/courses/CourseDetails";
+import CourseContentView from "@/pages/courses/CourseContentView";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
 import AdminRoute from "@/routes/AdminRoute";
 import AdminLayout from "@/components/layout/AdminLayout";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -49,6 +56,14 @@ export default function AppRoutes() {
         element={
           <PublicRoute>
             <Register />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path={ROUTES.FORGOT_PASSWORD}
+        element={
+          <PublicRoute>
+            <ForgotPassword />
           </PublicRoute>
         }
       />
@@ -120,6 +135,36 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <ProfessionalCommunication />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.CREATE_PROFESSIONAL_SESSION}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateProfessionalSession />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SessionDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/professional-communication/edit/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateProfessionalSession />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -270,6 +315,56 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <EditPost />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.COURSES}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseList />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.CREATE_COURSE}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCourse />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/:id`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseDetails />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/edit/:id`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCourse />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${ROUTES.COURSES}/:id/watch`}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CourseContentView />
             </MainLayout>
           </ProtectedRoute>
         }

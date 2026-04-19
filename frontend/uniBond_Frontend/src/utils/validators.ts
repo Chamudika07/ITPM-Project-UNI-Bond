@@ -83,6 +83,41 @@ export const validateLogin = (
   return createResult(errors);
 };
 
+export const validateForgotPassword = (
+  email: string,
+  mobile: string,
+  newPassword: string,
+  confirmPassword: string
+): ValidationResult<"email" | "mobile" | "newPassword" | "confirmPassword"> => {
+  const errors: Partial<Record<"email" | "mobile" | "newPassword" | "confirmPassword", string>> = {};
+
+  if (!email.trim()) {
+    errors.email = "Email is required.";
+  } else if (!validateEmail(email)) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  if (!mobile.trim()) {
+    errors.mobile = "Registered mobile number is required.";
+  } else if (!validateMobile(mobile)) {
+    errors.mobile = "Mobile must be 10 digits and start with 0.";
+  }
+
+  if (!newPassword.trim()) {
+    errors.newPassword = "New password is required.";
+  } else if (newPassword.trim().length < 8) {
+    errors.newPassword = "Password must be at least 8 characters.";
+  }
+
+  if (!confirmPassword.trim()) {
+    errors.confirmPassword = "Please confirm your new password.";
+  } else if (confirmPassword !== newPassword) {
+    errors.confirmPassword = "Passwords do not match.";
+  }
+
+  return createResult(errors);
+};
+
 export const validateRegisterForm = (
   form: RegisterFormValues,
   role: Role
