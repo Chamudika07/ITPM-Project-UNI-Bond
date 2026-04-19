@@ -93,17 +93,36 @@ async def moderate_image_upload(file: UploadFile) -> ImageModerationResponse:
         confidence=top_prediction.confidence,
         top_predictions=top_predictions,
     )
+    academic_relevance = _derive_academic_relevance(
+        moderation_status=moderation_status,
+        top_predictions=top_predictions,
+        confidence=top_prediction.confidence,
+    )
 
     return ImageModerationResponse(
         filename=filename,
         content_type=content_type,
         predicted_label=top_prediction.label,
+        detected_subject=_to_display_label(top_prediction.label),
         confidence=_format_confidence(top_prediction.confidence),
         confidence_percentage=_format_confidence_percentage(top_prediction.confidence),
         confidence_level=_get_confidence_level(top_prediction.confidence),
+        academic_relevance=academic_relevance,
         moderation_status=moderation_status,
         is_allowed=moderation_status == "allowed",
         explanation=explanation,
+        moderation_reason=_build_moderation_reason(
+            predicted_label=top_prediction.label,
+            confidence=top_prediction.confidence,
+            moderation_status=moderation_status,
+            top_predictions=top_predictions,
+        ),
+        upload_guidance=_build_upload_guidance(
+            predicted_label=top_prediction.label,
+            moderation_status=moderation_status,
+            confidence=top_prediction.confidence,
+            top_predictions=top_predictions,
+        ),
         top_predictions=[
             ImagePredictionCandidate(
                 label=prediction.label,
@@ -203,6 +222,11 @@ def _normalize_label(label: str) -> str:
     return label.replace("_", " ").strip().lower()
 
 
+def _to_display_label(label: str) -> str:
+    normalized = _normalize_label(label)
+    return " ".join(word.capitalize() for word in normalized.split())
+
+
 def _format_confidence(value: float) -> float:
     return round(float(value), 2)
 
@@ -217,3 +241,118 @@ def _get_confidence_level(value: float) -> str:
     if value >= 0.45:
         return "medium"
     return "low"
+
+
+def _derive_academic_relevance(
+    moderation_status: str,
+    top_predictions: list[ImagePredictionCandidate],
+    confidence: float,
+) -> str:
+    normalized_labels = [_normalize_label(prediction.label) for prediction in top_predictions]
+
+    if _find_keyword_match(normalized_labels, UNRELATED_KEYWORDS):
+        return "not_study_related"
+
+    if _find_keyword_match(normalized_labels, STUDY_RELATED_KEYWORDS):
+        if moderation_status == "allowed":
+            return "study_related"
+        return "possibly_study_related"
+
+    if confidence < settings.ai_image_confidence_threshold:
+        return "uncertain"
+
+    return "not_study_related" if moderation_status == "review" else "study_related"
+
+
+def _build_moderation_reason(
+    predicted_label: str,
+    confidence: float,
+    moderation_status: str,
+    top_predictions: list[ImagePredictionCandidate],
+) -> str:
+    normalized_labels = [_normalize_label(prediction.label) for prediction in top_predictions]
+    matched_unrelated = _find_keyword_match(normalized_labels, UNRELATED_KEYWORDS)
+    if matched_unrelated:
+        return (
+            f"The AI mainly detected '{matched_unrelated}' ({_format_confidence_percentage(confidence)} confidence), "
+            "which looks more like personal, social, or unrelated content than study material."
+        )
+
+    matched_study = _find_keyword_match(normalized_labels, STUDY_RELATED_KEYWORDS)
+    if matched_study and moderation_status == "allowed":
+        return (
+            f"The AI mainly detected '{matched_study}' and it matches common study-related objects or environments."
+        )
+
+    if matched_study:
+        return (
+            f"The AI noticed a study-related signal such as '{matched_study}', "
+            "but the confidence is still too weak for automatic approval."
+        )
+
+    matched_review = _find_keyword_match(normalized_labels, REVIEW_KEYWORDS)
+    if matched_review:
+        return (
+            f"The AI mainly detected '{matched_review}', which is an everyday object that can appear in both academic and non-academic photos."
+        )
+
+    if moderation_status == "review" and confidence < settings.ai_image_confidence_threshold:
+        return (
+            f"The AI prediction '{predicted_label}' is too uncertain at {_format_confidence_percentage(confidence)}, "
+            "so the image cannot be auto-approved."
+        )
+
+    return (
+        f"The AI mainly detected '{predicted_label}', but that alone does not clearly prove the image is study-related."
+    )
+
+
+def _build_upload_guidance(
+    predicted_label: str,
+    moderation_status: str,
+    confidence: float,
+    top_predictions: list[ImagePredictionCandidate],
+) -> list[str]:
+    normalized_labels = [_normalize_label(prediction.label) for prediction in top_predictions]
+    guidance: list[str] = []
+
+    if moderation_status == "allowed":
+        guidance.append(
+            "This image can be used because it clearly appears related to study or coursework."
+        )
+        return guidance
+
+    if _find_keyword_match(normalized_labels, UNRELATED_KEYWORDS):
+        guidance.append(
+            "Upload an image that clearly shows academic context, such as notes, textbooks, a laptop, a whiteboard, slides, diagrams, or lab activity."
+        )
+        guidance.append(
+            "Avoid personal selfies, fashion photos, party scenes, pets, landscapes, or other social content unless the academic subject is clearly visible."
+        )
+        return guidance
+
+    if confidence < settings.ai_image_confidence_threshold:
+        guidance.append(
+            "Try a clearer or closer image where the academic object is easier to recognize."
+        )
+        guidance.append(
+            "Make sure books, notes, screens, assignments, charts, or classroom elements take up more of the frame."
+        )
+        return guidance
+
+    if _find_keyword_match(normalized_labels, REVIEW_KEYWORDS):
+        guidance.append(
+            "Add stronger study context to the photo, such as open notes, a classroom slide, an assignment, or lab equipment."
+        )
+        guidance.append(
+            "If the image is academic, avoid uploading a cropped photo that only shows a generic everyday object."
+        )
+        return guidance
+
+    guidance.append(
+        f"The current image looks more like '{predicted_label}' than obvious study content."
+    )
+    guidance.append(
+        "Upload a photo where the educational subject is the main focus so it can be approved more confidently."
+    )
+    return guidance

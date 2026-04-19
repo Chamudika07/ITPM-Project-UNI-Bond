@@ -58,6 +58,15 @@ export default function CreatePost() {
 
   if (!user) return null;
 
+  const imageResult = moderationResult?.image_result ?? null;
+  const textResult = moderationResult?.text_result ?? null;
+  const moderationTone =
+    moderationResult?.final_status === "allowed"
+      ? "border-emerald-300 bg-emerald-50 text-emerald-950"
+      : moderationResult?.final_status === "rejected"
+        ? "border-red-300 bg-red-50 text-red-950"
+        : "border-amber-300 bg-amber-50 text-amber-950";
+
   // ── File picker handler ────────────────────────────────────────────────────
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -272,11 +281,7 @@ export default function CreatePost() {
         )}
 
         {moderationResult && (
-          <div className={`rounded-xl border px-4 py-3 text-sm ${
-            moderationResult.final_status === "allowed"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-amber-200 bg-amber-50 text-amber-800"
-          }`}>
+          <div className={`space-y-4 rounded-xl border px-4 py-3 text-sm ${moderationTone}`}>
             <div className="flex items-center justify-between gap-3">
               <span className="font-semibold">AI Moderation: {moderationResult.final_status.toUpperCase()}</span>
               {moderationResult.final_status === "allowed" ? (
@@ -287,7 +292,7 @@ export default function CreatePost() {
             </div>
             <p className="mt-2">{moderationResult.explanation}</p>
             {previewType === "video" ? (
-              <p className="mt-2 text-xs font-medium opacity-80">
+              <p className="mt-2 text-xs font-medium text-inherit/80">
                 Video uploads are currently checked using the caption text because UniBond does not have video AI moderation yet.
               </p>
             ) : null}
@@ -297,6 +302,87 @@ export default function CreatePost() {
                   <li key={reason}>{reason}</li>
                 ))}
               </ul>
+            ) : null}
+
+            {imageResult ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                      Image Analysis
+                    </p>
+                    <p className="mt-1 text-base font-semibold text-slate-900">
+                      Detected as: {imageResult.detected_subject}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="rounded-full border border-slate-300 bg-slate-900 px-2.5 py-1 text-white">
+                      Confidence {imageResult.confidence_percentage}
+                    </span>
+                    <span className="rounded-full border border-slate-300 bg-slate-900 px-2.5 py-1 text-white">
+                      Level {imageResult.confidence_level.toUpperCase()}
+                    </span>
+                    <span className="rounded-full border border-slate-300 bg-slate-900 px-2.5 py-1 text-white capitalize">
+                      {imageResult.academic_relevance.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="font-semibold text-slate-900">Why this image was flagged</p>
+                    <p className="mt-1 leading-6 text-slate-800">{imageResult.moderation_reason}</p>
+                    <p className="mt-1 leading-6 text-slate-700">{imageResult.explanation}</p>
+                  </div>
+
+                  {imageResult.upload_guidance.length > 0 ? (
+                    <div>
+                      <p className="font-semibold text-slate-900">What to upload instead</p>
+                      <ul className="mt-1 list-disc pl-5 leading-6 text-slate-800">
+                        {imageResult.upload_guidance.map((tip) => (
+                          <li key={tip}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+
+                  {imageResult.top_predictions.length > 0 ? (
+                    <div>
+                      <p className="font-semibold text-slate-900">Top AI matches</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {imageResult.top_predictions.map((prediction) => (
+                          <span
+                            key={`${prediction.label}-${prediction.confidence_percentage}`}
+                            className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800"
+                          >
+                            {prediction.label} ({prediction.confidence_percentage})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
+            {textResult ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
+                  Text Analysis
+                </p>
+                <p className="mt-1 leading-6 text-slate-800">{textResult.explanation}</p>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold">
+                  <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-slate-800">
+                    Label {textResult.predicted_label.replace(/_/g, " ")}
+                  </span>
+                  <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-slate-800">
+                    Confidence {textResult.confidence_percentage}
+                  </span>
+                  <span className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-slate-800">
+                    Level {textResult.confidence_level.toUpperCase()}
+                  </span>
+                </div>
+              </div>
             ) : null}
           </div>
         )}

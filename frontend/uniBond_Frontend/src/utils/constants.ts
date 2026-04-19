@@ -17,4 +17,5 @@ export const ROUTES = {
   CREATE_COURSE: "/create-course",
   LOGIN: "/login",
   REGISTER: "/register",
+  FORGOT_PASSWORD: "/forgot-password",
 } as const;

@@ -105,12 +105,16 @@ async def _build_image_result(image: UploadFile) -> ImageModerationResult:
         filename=result.filename,
         content_type=result.content_type,
         predicted_label=result.predicted_label,
+        detected_subject=result.detected_subject,
         confidence=result.confidence,
         confidence_percentage=result.confidence_percentage,
         confidence_level=result.confidence_level,
+        academic_relevance=result.academic_relevance,
         status=result.moderation_status,
         is_allowed=result.moderation_status == "allowed",
-        explanation=_build_image_explanation(result),
+        explanation=result.explanation,
+        moderation_reason=result.moderation_reason,
+        upload_guidance=result.upload_guidance,
         top_predictions=[
             _serialize_prediction(candidate) for candidate in result.top_predictions
         ],
@@ -174,11 +178,3 @@ def _build_text_explanation(
         "The text may be off-topic or promotional, but the confidence is not high enough for an automatic rejection."
     )
 
-
-def _build_image_explanation(result: ImageModerationResult | object) -> str:
-    explanation = getattr(result, "explanation", "")
-    if getattr(result, "moderation_status", getattr(result, "status", None)) == "allowed":
-        return "The image looks suitable for a study-focused post."
-    if getattr(result, "moderation_status", getattr(result, "status", None)) == "review":
-        return "The image is not clearly academic, so it should be reviewed before publishing."
-    return explanation or "The image should be rejected based on the moderation result."
