@@ -11,6 +11,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  UserMinus,
 } from "lucide-react";
 import SectionCard from "@/components/common/SectionCard";
 import DiscoverUsersList from "@/components/user/DiscoverUsersList";
@@ -34,6 +35,7 @@ export default function ProfessionalCommunication() {
     updateSession,
     deleteSession,
     registerStudent,
+    unregisterStudent,
     isStudentRegistered,
     getAvailableSeats,
   } = useProfessionalCommunication();
@@ -218,6 +220,12 @@ export default function ProfessionalCommunication() {
       studentName,
       studentEmail,
     );
+    showToast(result.message);
+  };
+
+  const handleUnregister = async (sessionId: string) => {
+    if (!window.confirm("Are you sure you want to unregister from this session?")) return;
+    const result = await unregisterStudent(sessionId);
     showToast(result.message);
   };
 
@@ -508,19 +516,29 @@ export default function ProfessionalCommunication() {
                         </a>
                       </div>
                     ) : registered ? (
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-4 text-sm">
                         <p className="font-medium text-emerald-700">
                           You are registered for this session.
                         </p>
-                        <a
-                          href={session.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-800"
-                        >
-                          <Video className="h-4 w-4" />
-                          Join Zoom Session
-                        </a>
+                        <div className="flex flex-col gap-3">
+                          <a
+                            href={session.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-800"
+                          >
+                            <Video className="h-4 w-4" />
+                            Join Zoom Session
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleUnregister(session.id)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 px-4 py-2 font-semibold text-red-600 hover:bg-red-50 sm:w-fit"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                            Leave Session
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2 text-sm">

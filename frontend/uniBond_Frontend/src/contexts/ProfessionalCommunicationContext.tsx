@@ -56,6 +56,9 @@ type ProfessionalCommunicationContextType = {
     studentName: string,
     studentEmail: string,
   ) => Promise<{ ok: boolean; message: string }>;
+  unregisterStudent: (
+    sessionId: string,
+  ) => Promise<{ ok: boolean; message: string }>;
   getAttendeesForSession: (sessionId: string) => Attendee[];
   isStudentRegistered: (sessionId: string, studentId: string) => boolean;
   getAvailableSeats: (sessionId: string) => number;
@@ -278,7 +281,18 @@ export function ProfessionalCommunicationProvider({
       };
     }
   };
-
+  const unregisterStudent = async (sessionId: string) => {
+    try {
+      await apiClient.delete(`/professional-sessions/${sessionId}/register`);
+      await refreshSessions();
+      return { ok: true, message: "Unregistered successfully." };
+    } catch (error: any) {
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, "Failed to unregister."),
+      };
+    }
+  };
   const getAttendeesForSession = (sessionId: string) => {
     return attendees.filter((a) => a.sessionId === sessionId);
   };
@@ -307,6 +321,7 @@ export function ProfessionalCommunicationProvider({
         updateSession,
         deleteSession,
         registerStudent,
+        unregisterStudent,
         getAttendeesForSession,
         isStudentRegistered,
         getAvailableSeats,
