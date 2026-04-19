@@ -12,8 +12,10 @@ export default function MainLayout({ children }: Props) {
   const isProfilePage = location.pathname.startsWith('/profile');
   const isWidePage =
     location.pathname.startsWith('/companies') ||
+    location.pathname.startsWith('/courses') ||
     location.pathname.startsWith('/kuppy') ||
     location.pathname.startsWith('/tasks') ||
+    location.pathname.startsWith('/groups') ||
     location.pathname.startsWith('/search') ||
     location.pathname.startsWith('/professional-communication');
 

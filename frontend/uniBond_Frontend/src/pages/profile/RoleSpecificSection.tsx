@@ -128,7 +128,7 @@ export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile 
     title = "Best Courses";
     icon = <BookOpen className="w-5 h-5 text-blue-600" />;
     btnLabel = "Create Course";
-    linkTarget = ROUTES.CREATE_COURSE;
+    linkTarget = "/kuppy/create";
   } else if (user.role === "tech_lead") {
     title = "Featured Classrooms";
     icon = <Users className="w-5 h-5 text-blue-600" />;
