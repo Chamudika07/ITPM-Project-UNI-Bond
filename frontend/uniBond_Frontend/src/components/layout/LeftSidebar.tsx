@@ -82,7 +82,10 @@ export default function LeftSidebar() {
         </h3>
         <div className="space-y-1">
           {menuItems.map(({ to, icon: Icon, label, description }) => {
-            const isActive = location.pathname === to;
+            const isActive =
+              location.pathname === to ||
+              (to === ROUTES.PROFESSIONAL_COMMUNICATION &&
+                location.pathname.startsWith(ROUTES.PROFESSIONAL_COMMUNICATION));
             return (
               <Link
                 key={to}

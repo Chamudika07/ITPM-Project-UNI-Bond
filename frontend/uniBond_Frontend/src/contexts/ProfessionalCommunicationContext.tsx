@@ -35,6 +35,7 @@ export type Attendee = {
 
 type ProfessionalCommunicationContextType = {
   sessions: Session[];
+  registeredSessions: Session[];
   attendees: Attendee[];
   addSession: (
     session: Omit<
@@ -168,28 +169,41 @@ export function ProfessionalCommunicationProvider({
 }) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [registeredSessions, setRegisteredSessions] = useState<Session[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
 
   const refreshSessions = useCallback(async () => {
     if (!user) {
       setSessions([]);
+      setRegisteredSessions([]);
       return;
     }
 
     try {
-      const response = await apiClient.get<ApiSession[]>(
-        "/professional-sessions",
-      );
-      setSessions(response.data.map(toSession));
+      const sessionRequest = apiClient.get<ApiSession[]>("/professional-sessions");
+      const registeredRequest =
+        user.role === "student"
+          ? apiClient.get<ApiSession[]>("/professional-sessions/my-sessions")
+          : Promise.resolve({ data: [] as ApiSession[] });
+
+      const [sessionResponse, registeredResponse] = await Promise.all([
+        sessionRequest,
+        registeredRequest,
+      ]);
+
+      setSessions(sessionResponse.data.map(toSession));
+      setRegisteredSessions(registeredResponse.data.map(toSession));
     } catch (error) {
       console.error("Failed to load professional sessions", error);
       setSessions([]);
+      setRegisteredSessions([]);
     }
   }, [user]);
 
   useEffect(() => {
     if (!user) {
       setSessions([]);
+      setRegisteredSessions([]);
       setAttendees([]);
       return;
     }
@@ -316,6 +330,7 @@ export function ProfessionalCommunicationProvider({
     <ProfessionalCommunicationContext.Provider
       value={{
         sessions,
+        registeredSessions,
         attendees,
         addSession,
         updateSession,

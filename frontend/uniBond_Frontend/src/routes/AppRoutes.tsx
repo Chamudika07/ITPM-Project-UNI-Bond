@@ -10,6 +10,7 @@ import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
 import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
+import RegisteredProfessionalSessions from "@/pages/professional-communication/RegisteredProfessionalSessions";
 import CreateProfessionalSession from "@/pages/professional-communication/CreateProfessionalSession";
 import SessionDetails from "@/pages/professional-communication/SessionDetails";
 import ClassroomList from "@/pages/classrooms/ClassroomList";
@@ -135,6 +136,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <ProfessionalCommunication />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.REGISTERED_PROFESSIONAL_SESSIONS}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <RegisteredProfessionalSessions />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -331,6 +342,16 @@ export default function AppRoutes() {
       />
       <Route
         path={ROUTES.CREATE_COURSE}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CreateCourse />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.CREATE_COURSE_LEGACY}
         element={
           <ProtectedRoute>
             <MainLayout>

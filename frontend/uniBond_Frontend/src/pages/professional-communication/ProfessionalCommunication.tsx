@@ -12,13 +12,16 @@ import {
   Pencil,
   Trash2,
   UserMinus,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import SectionCard from "@/components/common/SectionCard";
 import DiscoverUsersList from "@/components/user/DiscoverUsersList";
 import { handleGetDiscoverUsers } from "@/controllers/userController";
 import type { DiscoverUser } from "@/types/user";
 import { useAuth } from "@/hooks/useAuthHook";
 import { useProfessionalCommunication } from "@/contexts/ProfessionalCommunicationContext";
+import { ROUTES } from "@/utils/constants";
 
 type ProfessionalBuckets = {
   mentors: DiscoverUser[];
@@ -98,6 +101,16 @@ export default function ProfessionalCommunication() {
       return aDate - bDate;
     });
   }, [sessions]);
+
+  const visibleSessions = useMemo(() => {
+    if (!isStudent) {
+      return orderedSessions;
+    }
+
+    return orderedSessions.filter(
+      (session) => !isStudentRegistered(session.id, studentId),
+    );
+  }, [isStudent, isStudentRegistered, orderedSessions, studentId]);
 
   const showToast = (message: string) => {
     setSessionMessage(message);
@@ -232,19 +245,22 @@ export default function ProfessionalCommunication() {
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-900 p-8 text-white shadow-xl">
-        <div className="max-w-3xl">
-          <div className="mb-4 inline-flex rounded-2xl bg-white/10 p-3 backdrop-blur">
-            <MessageSquare className="h-7 w-7" />
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-4 inline-flex rounded-2xl bg-white/10 p-3 backdrop-blur">
+              <MessageSquare className="h-7 w-7" />
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">
+              Professional Communication
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-200">
+              Connect with lecturers, companies, and technical leaders already on
+              UniBond. Open a profile, follow relevant people, and build your
+              professional network from one place.
+            </p>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            Professional Communication
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-slate-200">
-            Connect with lecturers, companies, and technical leaders already on
-            UniBond. Open a profile, follow relevant people, and build your
-            professional network from one place.
-          </p>
-          {isTechLead && (
+
+          {isTechLead ? (
             <button
               type="button"
               onClick={() => {
@@ -256,12 +272,20 @@ export default function ProfessionalCommunication() {
                   return next;
                 });
               }}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-100"
             >
               <Plus className="h-4 w-4" />
               {showCreateForm ? "Close Session Form" : "Create Session"}
             </button>
-          )}
+          ) : isStudent ? (
+            <Link
+              to={ROUTES.REGISTERED_PROFESSIONAL_SESSIONS}
+              className="inline-flex items-center justify-center gap-2 self-start rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+            >
+              Registered Sessions
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : null}
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -428,16 +452,17 @@ export default function ProfessionalCommunication() {
       )}
 
       <SectionCard title="Live Professional Sessions">
-        {orderedSessions.length === 0 ? (
+        {visibleSessions.length === 0 ? (
           <p className="text-sm text-slate-500">
-            No sessions yet.{" "}
             {isTechLead
-              ? "Use Create Session to add the first one."
-              : "Please check back later."}
+              ? "No sessions yet. Use Create Session to add the first one."
+              : isStudent
+                ? "No unregistered live sessions are available right now. Open Registered Sessions to review the sessions you already joined."
+                : "No sessions are available right now. Please check back later."}
           </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {orderedSessions.map((session) => {
+            {visibleSessions.map((session) => {
               const availableSeats = getAvailableSeats(session.id);
               const registered = studentId
                 ? isStudentRegistered(session.id, studentId)
