@@ -1,7 +1,5 @@
 import apiClient from "@/services/api/axiosClient";
 import type { Notification, NotificationSummary } from "@/types/notification";
-import { mockGetNotifications, mockGetNotificationSummary, mockMarkAllAsRead, mockMarkAsRead } from "@/services/mock/mockNotificationApi";
-
 const mapNotificationResponse = (n: any): Notification => ({
   id: String(n.id),
   userId: String(n.user_id),
@@ -18,43 +16,23 @@ const mapNotificationSummaryResponse = (data: any): NotificationSummary => ({
 });
 
 export const getNotifications = async (options?: { unreadOnly?: boolean }): Promise<Notification[]> => {
-  try {
-    const res = await apiClient.get("/notifications", {
-      params: { unread_only: options?.unreadOnly || undefined },
-    });
-    return res.data.map(mapNotificationResponse);
-  } catch (error) {
-    console.warn("Falling back to mock notifications.", error);
-    return mockGetNotifications(options);
-  }
+  const res = await apiClient.get("/notifications", {
+    params: { unread_only: options?.unreadOnly || undefined },
+  });
+  return res.data.map(mapNotificationResponse);
 };
 
 export const getNotificationSummary = async (): Promise<NotificationSummary> => {
-  try {
-    const res = await apiClient.get("/notifications/summary");
-    return mapNotificationSummaryResponse(res.data);
-  } catch (error) {
-    console.warn("Falling back to mock notification summary.", error);
-    return mockGetNotificationSummary();
-  }
+  const res = await apiClient.get("/notifications/summary");
+  return mapNotificationSummaryResponse(res.data);
 };
 
 export const markAsRead = async (notificationId: string): Promise<Notification> => {
-  try {
-    const res = await apiClient.put(`/notifications/${notificationId}/read`);
-    return mapNotificationResponse(res.data);
-  } catch (error) {
-    console.warn(`Falling back to mock markAsRead for notification ${notificationId}.`, error);
-    return mockMarkAsRead(notificationId);
-  }
+  const res = await apiClient.put(`/notifications/${notificationId}/read`);
+  return mapNotificationResponse(res.data);
 };
 
 export const markAllAsRead = async (): Promise<NotificationSummary> => {
-  try {
-    const res = await apiClient.put("/notifications/read-all");
-    return mapNotificationSummaryResponse(res.data);
-  } catch (error) {
-    console.warn("Falling back to mock markAllAsRead.", error);
-    return mockMarkAllAsRead();
-  }
+  const res = await apiClient.put("/notifications/read-all");
+  return mapNotificationSummaryResponse(res.data);
 };
