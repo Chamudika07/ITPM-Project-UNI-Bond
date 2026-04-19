@@ -15,6 +15,7 @@ export default function MainLayout({ children }: Props) {
     location.pathname.startsWith('/courses') ||
     location.pathname.startsWith('/kuppy') ||
     location.pathname.startsWith('/tasks') ||
+    location.pathname.startsWith('/top-rated-students') ||
     location.pathname.startsWith('/groups') ||
     location.pathname.startsWith('/search') ||
     location.pathname.startsWith('/professional-communication');

@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+from pydantic import field_validator
 
 class Settings(BaseSettings):
     database_hostname: str
@@ -30,6 +31,22 @@ class Settings(BaseSettings):
     smart_search_index_dir: str = "data/faiss_index"
     smart_search_posts_path: str = "data/search/sample_posts.json"
     smart_search_runtime_posts_path: str = "data/search/runtime_posts.json"
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def normalize_debug(cls, value):
+        if value is None or isinstance(value, bool):
+            return value
+
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "yes", "on", "debug", "development", "dev"}:
+                return True
+            if normalized in {"0", "false", "no", "off", "release", "production", "prod"}:
+                return False
+
+        return value
+
     class Config:
         env_file = ".env"
 

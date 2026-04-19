@@ -6,10 +6,13 @@ export interface TaskApplication {
   email: string;
   portfolioUrl?: string;
   coverLetter?: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'rejected' | 'submitted' | 'completed';
   appliedAt: string;
   submissionUrl?: string;
   submittedAt?: string;
+  companyRating?: number;
+  companyFeedback?: string;
+  ratedAt?: string;
 }
 
 export interface Task {

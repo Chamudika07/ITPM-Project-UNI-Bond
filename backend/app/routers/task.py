@@ -1,10 +1,20 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import json
 from app.db.database import get_db
 from app.models.task import TaskItem, TaskApplicant
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskApplyRequest
+from app.schemas.task import (
+    TaskApplicationStatusUpdate,
+    TaskApplyRequest,
+    TaskCreate,
+    TaskRatingCreate,
+    TaskResponse,
+    TaskSubmissionCreate,
+    TaskUpdate,
+)
 from app.models.user import User
 from app.utils.autho import get_current_user
 
@@ -65,10 +75,15 @@ def build_task_response(task: TaskItem) -> TaskResponse:
                 "id": applicant.id,
                 "user_id": applicant.user_id,
                 "student_name": f"{applicant_user.first_name} {applicant_user.last_name}".strip() if applicant_user else "Student",
-                "email": applicant_user.email if applicant_user else "",
-                "status": "pending",
-                "portfolio_url": None,
-                "cover_letter": None,
+                "email": applicant.email or (applicant_user.email if applicant_user else ""),
+                "status": applicant.status or "pending",
+                "portfolio_url": applicant.portfolio_url,
+                "cover_letter": applicant.cover_letter,
+                "submission_url": applicant.submission_url,
+                "submitted_at": applicant.submitted_at,
+                "company_rating": applicant.company_rating,
+                "company_feedback": applicant.company_feedback,
+                "rated_at": applicant.rated_at,
                 "applied_at": applicant.applied_at,
             }
         )
@@ -104,6 +119,17 @@ def get_task_or_404(task_id: int, db: Session) -> TaskItem:
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
     return task
+
+
+def get_task_applicant_or_404(task_id: int, applicant_id: int, db: Session) -> TaskApplicant:
+    applicant = (
+        db.query(TaskApplicant)
+        .filter(TaskApplicant.id == applicant_id, TaskApplicant.task_id == task_id)
+        .first()
+    )
+    if not applicant:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
+    return applicant
 
 
 @router.post("/", response_model=TaskResponse)
@@ -190,6 +216,9 @@ def apply_task(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Already applied")
 
     applicant = TaskApplicant(task_id=task_id, user_id=current_user.id)
+    applicant.email = application.email if application else current_user.email
+    applicant.portfolio_url = application.portfolio_url if application else None
+    applicant.cover_letter = application.cover_letter if application else None
     db.add(applicant)
     db.commit()
     db.refresh(task)
@@ -207,6 +236,82 @@ def withdraw_task_application(task_id: int, db: Session = Depends(get_db), curre
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
     db.delete(existing_applicant)
+    db.commit()
+    db.refresh(task)
+    return build_task_response(task)
+
+
+@router.patch("/{task_id}/applications/{applicant_id}", response_model=TaskResponse)
+def update_task_application(
+    task_id: int,
+    applicant_id: int,
+    payload: TaskApplicationStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = get_task_or_404(task_id, db)
+
+    if current_user.role.value not in {"company", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only companies can review applications")
+    if current_user.role.value != "admin" and task.company_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to review this application")
+
+    applicant = get_task_applicant_or_404(task_id, applicant_id, db)
+    applicant.status = payload.status
+    db.commit()
+    db.refresh(task)
+    return build_task_response(task)
+
+
+@router.post("/{task_id}/applications/{applicant_id}/submit", response_model=TaskResponse)
+def submit_task_work(
+    task_id: int,
+    applicant_id: int,
+    payload: TaskSubmissionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = get_task_or_404(task_id, db)
+    applicant = get_task_applicant_or_404(task_id, applicant_id, db)
+
+    if current_user.role.value != "student":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students can submit work")
+    if applicant.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to submit for this task")
+    if applicant.status != "accepted":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This task must be accepted before submission")
+
+    applicant.submission_url = payload.submission_url
+    applicant.submitted_at = datetime.now(timezone.utc)
+    applicant.status = "submitted"
+    db.commit()
+    db.refresh(task)
+    return build_task_response(task)
+
+
+@router.post("/{task_id}/applications/{applicant_id}/rate", response_model=TaskResponse)
+def rate_task_applicant(
+    task_id: int,
+    applicant_id: int,
+    payload: TaskRatingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = get_task_or_404(task_id, db)
+
+    if current_user.role.value not in {"company", "admin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only companies can rate students")
+    if current_user.role.value != "admin" and task.company_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to rate this student")
+
+    applicant = get_task_applicant_or_404(task_id, applicant_id, db)
+    if not applicant.submission_url:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The student must submit work before receiving a rating")
+
+    applicant.company_rating = payload.rating
+    applicant.company_feedback = payload.feedback
+    applicant.rated_at = datetime.now(timezone.utc)
+    applicant.status = "completed"
     db.commit()
     db.refresh(task)
     return build_task_response(task)

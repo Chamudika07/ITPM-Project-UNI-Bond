@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, select
-from sqlalchemy import or_, cast, String
+from sqlalchemy import or_, cast, String, func, desc
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import undefer
 from app.db.database import get_db
 from app.models.user import User, UserRole, AccessStatus
 from app.models.user_follow import UserFollow
+from app.models.task import TaskApplicant
 from app.schemas.user import (
     UserCreate,
     UserResponse,
@@ -18,6 +19,7 @@ from app.schemas.user import (
     FollowStatusResponse,
     UserSummaryResponse,
     OnlineUserResponse,
+    TopRatedStudentResponse,
     UserProfileResponse,
 )
 from app.utils.security import hash_password
@@ -469,6 +471,56 @@ def get_online_users(
             is_online=is_user_online(user, now),
         )
         for user in users
+    ]
+
+
+@router.get("/top-rated-students", response_model=List[TopRatedStudentResponse])
+def get_top_rated_students(
+    limit: int = Query(default=10, ge=1, le=50),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    leaderboard_rows = (
+        db.query(
+            User,
+            func.avg(TaskApplicant.company_rating).label("average_rating"),
+            func.count(TaskApplicant.id).label("review_count"),
+            func.count(TaskApplicant.id).label("completed_task_count"),
+            func.max(TaskApplicant.rated_at).label("latest_rating_at"),
+        )
+        .join(TaskApplicant, TaskApplicant.user_id == User.id)
+        .filter(
+            User.role == UserRole.student,
+            TaskApplicant.company_rating.isnot(None),
+            TaskApplicant.status == "completed",
+        )
+        .group_by(User.id)
+        .order_by(
+            desc("average_rating"),
+            desc("review_count"),
+            desc("latest_rating_at"),
+        )
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        TopRatedStudentResponse(
+            id=user.id,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            role=user.role,
+            city=user.city,
+            country=user.country,
+            school=user.school,
+            avatar_path=user.avatar_path,
+            average_rating=round(float(average_rating or 0), 2),
+            review_count=int(review_count or 0),
+            completed_task_count=int(completed_task_count or 0),
+            latest_rating_at=latest_rating_at,
+        )
+        for user, average_rating, review_count, completed_task_count, latest_rating_at in leaderboard_rows
     ]
 
 

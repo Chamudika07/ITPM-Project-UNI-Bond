@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -179,14 +179,22 @@ class TaskUpdate(BaseModel):
         return self
 
 
+TaskApplicantStatus = Literal["pending", "accepted", "rejected", "submitted", "completed"]
+
+
 class TaskApplicantResponse(BaseModel):
     id: int
     user_id: int
     student_name: str
     email: str
-    status: Literal["pending", "accepted", "rejected"] = "pending"
+    status: TaskApplicantStatus = "pending"
     portfolio_url: str | None = None
     cover_letter: str | None = None
+    submission_url: str | None = None
+    submitted_at: datetime | None = None
+    company_rating: int | None = None
+    company_feedback: str | None = None
+    rated_at: datetime | None = None
     applied_at: datetime
 
     class Config:
@@ -208,3 +216,39 @@ class TaskApplyRequest(BaseModel):
     portfolio_url: str | None = None
     cover_letter: str | None = None
     email: str | None = None
+
+
+class TaskApplicationStatusUpdate(BaseModel):
+    status: Literal["accepted", "rejected"]
+
+
+class TaskSubmissionCreate(BaseModel):
+    submission_url: str
+
+    @field_validator("submission_url")
+    @classmethod
+    def validate_submission_url(cls, value: str) -> str:
+        clean = value.strip()
+        if not clean:
+            raise ValueError("Submission URL is required")
+        return clean
+
+
+class TaskRatingCreate(BaseModel):
+    rating: int
+    feedback: Optional[str] = None
+
+    @field_validator("rating")
+    @classmethod
+    def validate_rating(cls, value: int) -> int:
+        if value < 1 or value > 5:
+            raise ValueError("Rating must be between 1 and 5")
+        return value
+
+    @field_validator("feedback")
+    @classmethod
+    def normalize_feedback(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        clean = value.strip()
+        return clean or None

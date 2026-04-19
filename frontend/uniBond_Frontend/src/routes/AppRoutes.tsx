@@ -9,6 +9,7 @@ import GroupDetails from "@/pages/groups/GroupDetails";
 import Notices from "@/pages/notices/Notices";
 import Notifications from "@/pages/notifications/Notifications";
 import Profile from "@/pages/profile/Profile";
+import TopRatedStudents from "@/pages/students/TopRatedStudents";
 import ProfessionalCommunication from "@/pages/professional-communication/ProfessionalCommunication";
 import RegisteredProfessionalSessions from "@/pages/professional-communication/RegisteredProfessionalSessions";
 import CreateProfessionalSession from "@/pages/professional-communication/CreateProfessionalSession";
@@ -186,6 +187,16 @@ export default function AppRoutes() {
           <ProtectedRoute>
             <MainLayout>
               <Profile />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.TOP_RATED_STUDENTS}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TopRatedStudents />
             </MainLayout>
           </ProtectedRoute>
         }

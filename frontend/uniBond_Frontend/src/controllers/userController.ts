@@ -5,6 +5,7 @@ import {
   getFollowStatus,
   getFollowing,
   getOnlineUsers,
+  getTopRatedStudents,
   getUserById,
   getUserProfile,
   sendPresenceHeartbeat,
@@ -13,7 +14,7 @@ import {
   uploadUserCover,
   updateUserProfile,
 } from "@/models/userModel";
-import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
+import type { DiscoverUser, OnlineContact, Role, TopRatedStudent, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 
 export const handleGetDiscoverUsers = async (
   limit = 5,
@@ -53,6 +54,10 @@ export const handleGetFollowStatus = async (userId: string): Promise<boolean> =>
 
 export const handleGetOnlineUsers = async (limit = 10): Promise<OnlineContact[]> => {
   return getOnlineUsers(limit);
+};
+
+export const handleGetTopRatedStudents = async (limit = 10): Promise<TopRatedStudent[]> => {
+  return getTopRatedStudents(limit);
 };
 
 export const handlePresenceHeartbeat = async (): Promise<void> => {

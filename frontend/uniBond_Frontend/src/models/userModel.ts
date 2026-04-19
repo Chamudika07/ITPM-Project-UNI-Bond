@@ -1,32 +1,41 @@
 import apiClient from "@/services/api/axiosClient";
-import type { DiscoverUser, OnlineContact, Role, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
+import type { DiscoverUser, OnlineContact, Role, TopRatedStudent, User, UserProfileData, UserProfileUpdatePayload, UserSummary } from "@/types/user";
 import { buildAvatar, buildUserAvatar, resolveAssetUrl } from "@/utils/userMedia";
 
 const buildLocation = (city?: string, country?: string) =>
   [city, country].filter(Boolean).join(", ") || undefined;
 
-export const mapApiUserToFrontendUser = (data: any): User => {
+type ApiRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): ApiRecord => (value && typeof value === "object" ? value as ApiRecord : {});
+
+export const mapApiUserToFrontendUser = (rawData: unknown): User => {
+  const data = asRecord(rawData);
   const base = {
     id: String(data.id),
     user_code: data.user_code,
-    firstname: data.first_name || data.firstname || "User",
-    lastname: data.last_name || data.lastname || "",
-    email: data.email || "",
+    firstname: typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "User",
+    lastname: typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "",
+    email: typeof data.email === "string" ? data.email : "",
     password: "",
     role: (data.role || "student") as Role,
-    description: data.description || undefined,
+    description: typeof data.description === "string" ? data.description : undefined,
     avatar:
-      resolveAssetUrl(data.avatar_path || data.avatar) ||
-      buildAvatar(data.first_name || data.firstname || "User", data.last_name || data.lastname || "", data.email || ""),
-    avatar_path: data.avatar_path || undefined,
-    cover: resolveAssetUrl(data.cover_path || data.cover),
-    cover_path: data.cover_path || undefined,
-    city: data.city || "",
-    country: data.country || "",
-    mobile: data.mobile || "",
-    school: data.school || undefined,
-    cv_path: data.cv_path || undefined,
-    access_status: data.access_status || "active",
+      resolveAssetUrl((typeof data.avatar_path === "string" ? data.avatar_path : typeof data.avatar === "string" ? data.avatar : undefined)) ||
+      buildAvatar(
+        typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "User",
+        typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "",
+        typeof data.email === "string" ? data.email : "",
+      ),
+    avatar_path: typeof data.avatar_path === "string" ? data.avatar_path : undefined,
+    cover: resolveAssetUrl(typeof data.cover_path === "string" ? data.cover_path : typeof data.cover === "string" ? data.cover : undefined),
+    cover_path: typeof data.cover_path === "string" ? data.cover_path : undefined,
+    city: typeof data.city === "string" ? data.city : "",
+    country: typeof data.country === "string" ? data.country : "",
+    mobile: typeof data.mobile === "string" ? data.mobile : "",
+    school: typeof data.school === "string" ? data.school : undefined,
+    cv_path: typeof data.cv_path === "string" ? data.cv_path : undefined,
+    access_status: (typeof data.access_status === "string" ? data.access_status : "active") as "active" | "pending" | "suspended",
   };
 
   if (base.role === "student") {
@@ -73,10 +82,11 @@ export const mapApiUserToFrontendUser = (data: any): User => {
   };
 };
 
-const mapDiscoverUserResponse = (data: any): DiscoverUser => {
-  const firstname = data.first_name || data.firstname || "User";
-  const lastname = data.last_name || data.lastname || "";
-  const email = data.email || "";
+const mapDiscoverUserResponse = (rawData: unknown): DiscoverUser => {
+  const data = asRecord(rawData);
+  const firstname = typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "User";
+  const lastname = typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "";
+  const email = typeof data.email === "string" ? data.email : "";
 
   return {
     id: String(data.id),
@@ -115,10 +125,11 @@ export const getUserById = async (userId: string): Promise<User> => {
   return mapApiUserToFrontendUser(response.data);
 };
 
-const mapUserSummaryResponse = (data: any): UserSummary => {
-  const firstname = data.first_name || data.firstname || "User";
-  const lastname = data.last_name || data.lastname || "";
-  const email = data.email || "";
+const mapUserSummaryResponse = (rawData: unknown): UserSummary => {
+  const data = asRecord(rawData);
+  const firstname = typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "User";
+  const lastname = typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "";
+  const email = typeof data.email === "string" ? data.email : "";
   const avatar =
     resolveAssetUrl(data.avatar_path || data.avatar) ||
     buildAvatar(firstname, lastname, email);
@@ -139,10 +150,11 @@ const mapUserSummaryResponse = (data: any): UserSummary => {
   };
 };
 
-const mapOnlineContactResponse = (data: any): OnlineContact => {
-  const firstname = data.first_name || data.firstname || "User";
-  const lastname = data.last_name || data.lastname || "";
-  const email = data.email || "";
+const mapOnlineContactResponse = (rawData: unknown): OnlineContact => {
+  const data = asRecord(rawData);
+  const firstname = typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "User";
+  const lastname = typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "";
+  const email = typeof data.email === "string" ? data.email : "";
 
   return {
     id: String(data.id),
@@ -162,15 +174,41 @@ const mapOnlineContactResponse = (data: any): OnlineContact => {
   };
 };
 
-const mapUserProfileResponse = (data: any): UserProfileData => {
-  const user = mapApiUserToFrontendUser(data);
+const mapTopRatedStudentResponse = (rawData: unknown): TopRatedStudent => {
+  const data = asRecord(rawData);
+  const firstname = typeof data.first_name === "string" ? data.first_name : typeof data.firstname === "string" ? data.firstname : "Student";
+  const lastname = typeof data.last_name === "string" ? data.last_name : typeof data.lastname === "string" ? data.lastname : "";
+  const email = typeof data.email === "string" ? data.email : "";
+
+  return {
+    id: String(data.id),
+    firstname,
+    lastname,
+    fullName: `${firstname} ${lastname}`.trim(),
+    email,
+    avatar: buildUserAvatar(data),
+    school: data.school || undefined,
+    city: data.city || undefined,
+    country: data.country || undefined,
+    location: buildLocation(data.city, data.country),
+    profilePath: `/profile/${data.id}`,
+    averageRating: Number(data.average_rating || 0),
+    reviewCount: Number(data.review_count || 0),
+    completedTaskCount: Number(data.completed_task_count || 0),
+    latestRatingAt: data.latest_rating_at || undefined,
+  };
+};
+
+const mapUserProfileResponse = (data: unknown): UserProfileData => {
+  const record = asRecord(data);
+  const user = mapApiUserToFrontendUser(record);
 
   return {
     user,
-    followersCount: Number(data.followers_count || 0),
-    followingCount: Number(data.following_count || 0),
-    isFollowing: Boolean(data.is_following),
-    isOwnProfile: Boolean(data.is_own_profile),
+    followersCount: Number(record.followers_count || 0),
+    followingCount: Number(record.following_count || 0),
+    isFollowing: Boolean(record.is_following),
+    isOwnProfile: Boolean(record.is_own_profile),
   };
 };
 
@@ -207,6 +245,11 @@ export const getFollowStatus = async (userId: string): Promise<boolean> => {
 export const getOnlineUsers = async (limit = 10): Promise<OnlineContact[]> => {
   const response = await apiClient.get("/users/online-users", { params: { limit } });
   return response.data.map(mapOnlineContactResponse);
+};
+
+export const getTopRatedStudents = async (limit = 10): Promise<TopRatedStudent[]> => {
+  const response = await apiClient.get("/users/top-rated-students", { params: { limit } });
+  return response.data.map(mapTopRatedStudentResponse);
 };
 
 export const sendPresenceHeartbeat = async (): Promise<void> => {

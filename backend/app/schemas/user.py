@@ -125,6 +125,25 @@ class UserSummaryResponse(BaseModel):
         from_attributes = True
 
 
+class TopRatedStudentResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: EmailStr
+    role: UserRole
+    city: Optional[str]
+    country: Optional[str]
+    school: Optional[str]
+    avatar_path: Optional[str] = None
+    average_rating: float
+    review_count: int
+    completed_task_count: int
+    latest_rating_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 class OnlineUserResponse(UserSummaryResponse):
     last_seen: Optional[datetime]
     is_online: bool

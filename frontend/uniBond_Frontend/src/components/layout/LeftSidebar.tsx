@@ -1,4 +1,4 @@
-import { MessageSquare, Briefcase, Coffee, User, Building2, BookOpen } from "lucide-react";
+import { MessageSquare, Briefcase, Coffee, User, Building2, BookOpen, Trophy } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ROUTES } from "@/utils/constants";
 import { useAuth } from "@/hooks/useAuthHook";
@@ -25,6 +25,12 @@ export default function LeftSidebar() {
       icon: Briefcase,
       label: "Company and Task",
       description: "Manage company tasks",
+    },
+    {
+      to: ROUTES.TOP_RATED_STUDENTS,
+      icon: Trophy,
+      label: "Top Rating Students",
+      description: "See real student rankings",
     },
     {
       to: "/companies",
@@ -85,7 +91,9 @@ export default function LeftSidebar() {
             const isActive =
               location.pathname === to ||
               (to === ROUTES.PROFESSIONAL_COMMUNICATION &&
-                location.pathname.startsWith(ROUTES.PROFESSIONAL_COMMUNICATION));
+                location.pathname.startsWith(ROUTES.PROFESSIONAL_COMMUNICATION)) ||
+              (to === ROUTES.TOP_RATED_STUDENTS &&
+                location.pathname.startsWith(ROUTES.TOP_RATED_STUDENTS));
             return (
               <Link
                 key={to}

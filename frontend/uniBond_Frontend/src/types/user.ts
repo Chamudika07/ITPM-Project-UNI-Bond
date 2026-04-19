@@ -106,6 +106,24 @@ export interface UserProfileData {
   isOwnProfile: boolean;
 }
 
+export interface TopRatedStudent {
+  id: string;
+  firstname: string;
+  lastname: string;
+  fullName: string;
+  email: string;
+  avatar: string;
+  school?: string;
+  city?: string;
+  country?: string;
+  location?: string;
+  profilePath: string;
+  averageRating: number;
+  reviewCount: number;
+  completedTaskCount: number;
+  latestRatingAt?: string;
+}
+
 export type UserProfileUpdatePayload = {
   firstname: string;
   lastname: string;

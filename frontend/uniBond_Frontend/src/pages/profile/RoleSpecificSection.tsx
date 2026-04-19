@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { User } from "@/types/user";
-import { BookOpen, Users, PlusCircle, Briefcase, CheckCircle, Upload, Eye } from "lucide-react";
+import { BookOpen, Users, PlusCircle, Briefcase, CheckCircle, Upload, Eye, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/utils/constants";
 import { handleGetTasks, handleSubmitTaskWork } from "@/controllers/taskController";
 import type { Task } from "@/types/task";
 
-export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile = true }: { user: User; isOwnProfile?: boolean }) {
+export default function RoleSpecificSection({ user }: { user: User; isOwnProfile?: boolean }) {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   
@@ -15,7 +14,7 @@ export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile 
   const [selectedTaskAndApp, setSelectedTaskAndApp] = useState<{taskId: string, appId: string} | null>(null);
   const [submissionUrl, setSubmissionUrl] = useState("");
 
-  const fetchStudentTasks = async () => {
+  const reloadStudentTasks = async () => {
     if (user.role !== 'student') return;
     const allTasks = await handleGetTasks();
     const myTasks = allTasks.filter(t => t.applicants.some(a => a.studentId === user.id));
@@ -23,7 +22,19 @@ export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile 
   };
 
   useEffect(() => {
-    fetchStudentTasks();
+    if (user.role !== "student") return;
+
+    let isMounted = true;
+
+    void handleGetTasks().then((allTasks) => {
+      if (!isMounted) return;
+      const myTasks = allTasks.filter((task) => task.applicants.some((applicant) => applicant.studentId === user.id));
+      setTasks(myTasks);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [user.id, user.role]);
 
   const handleSubmitting = async (e: React.FormEvent) => {
@@ -34,7 +45,7 @@ export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile 
       alert("Work submitted successfully!");
       setShowSubmitModal(false);
       setSubmissionUrl("");
-      fetchStudentTasks();
+      reloadStudentTasks();
     } catch(err) {
       console.error(err);
     }
@@ -86,7 +97,13 @@ export default function RoleSpecificSection({ user, isOwnProfile: _isOwnProfile 
                  <div key={task.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50 flex justify-between items-center">
                     <div>
                       <h5 className="font-bold text-gray-900 line-through decoration-gray-400">{task.title}</h5>
-                      <p className="text-xs text-green-700 font-bold flex items-center gap-1 mt-1"><CheckCircle className="w-3 h-3"/> Submitted on {new Date(app.submittedAt || Date.now()).toLocaleDateString()}</p>
+                      <p className="text-xs text-green-700 font-bold flex items-center gap-1 mt-1"><CheckCircle className="w-3 h-3"/> Submitted on {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : "N/A"}</p>
+                      {app.companyRating ? (
+                        <p className="text-xs text-amber-700 font-bold flex items-center gap-1 mt-1">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                          Rated {app.companyRating}/5 by company
+                        </p>
+                      ) : null}
                     </div>
                     <a href={app.submissionUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 text-black hover:text-black"><Eye className="w-4 h-4"/></a>
                  </div>
