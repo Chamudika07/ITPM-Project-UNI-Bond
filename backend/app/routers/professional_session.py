@@ -155,6 +155,35 @@ def register_for_session(
     return ProfessionalSessionRegisterResponse(message="Registered successfully")
 
 
+@router.delete("/{session_id}/register", response_model=ProfessionalSessionRegisterResponse)
+def unregister_from_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != UserRole.student:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students can unregister")
+
+    session = (
+        db.query(ProfessionalSession)
+        .options(joinedload(ProfessionalSession.registrations))
+        .filter(ProfessionalSession.id == session_id)
+        .first()
+    )
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    registration = db.query(ProfessionalSessionRegistration).filter_by(session_id=session.id, student_id=current_user.id).first()
+    
+    if not registration:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You are not registered for this session")
+
+    db.delete(registration)
+    db.commit()
+
+    return ProfessionalSessionRegisterResponse(message="Unregistered successfully")
+
+
 @router.put("/{session_id}", response_model=ProfessionalSessionResponse)
 def update_professional_session(
     session_id: int,
