@@ -3,15 +3,21 @@ import { useLocation } from "react-router-dom";
 import OnlineContactsList from "@/components/friend/OnlineContactsList";
 import DiscoverUsersList from "@/components/user/DiscoverUsersList";
 import { handleGetDiscoverUsers, handleGetOnlineUsers } from "@/controllers/userController";
+import { handleGetTasks } from "@/controllers/taskController";
 import type { DiscoverUser, OnlineContact } from "@/types/user";
+import type { Task } from "@/types/task";
+import { useNavigate } from "react-router-dom";
+import { Users } from "lucide-react";
 
 const DISCOVER_LIMIT = 6;
 const ONLINE_LIMIT = 8;
 
 export default function RightSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [onlineContacts, setOnlineContacts] = useState<OnlineContact[]>([]);
   const [discoverUsers, setDiscoverUsers] = useState<DiscoverUser[]>([]);
+  const [topTasks, setTopTasks] = useState<Task[]>([]);
   const [contactsLoading, setContactsLoading] = useState(true);
   const [discoverLoading, setDiscoverLoading] = useState(true);
   const [contactsError, setContactsError] = useState("");
@@ -31,18 +37,21 @@ export default function RightSidebar() {
         setContactsError("");
         setDiscoverError("");
 
-        const [contacts, users] = await Promise.all([
+        const [contacts, users, tasks] = await Promise.all([
           handleGetOnlineUsers(ONLINE_LIMIT),
           handleGetDiscoverUsers(DISCOVER_LIMIT, undefined, {
             excludeFollowed: true,
             excludeUserId: viewedProfileId,
           }),
+          handleGetTasks()
         ]);
 
         if (cancelled) return;
 
         setOnlineContacts(contacts);
         setDiscoverUsers(users.filter((user) => !user.isFollowing));
+        const sorted = tasks.sort((a,b) => b.applicants.length - a.applicants.length).slice(0, 10);
+        setTopTasks(sorted);
       } catch (error) {
         console.error("Failed to load right sidebar data:", error);
         if (cancelled) return;
@@ -92,6 +101,35 @@ export default function RightSidebar() {
           loading={discoverLoading}
           error={discoverError}
         />
+      </div>
+      
+      {/* Top 10 Opportunities */}
+      <div className="panel-surface rounded-2xl p-5">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
+          🔥 Top 10 Opportunities
+        </h3>
+        {discoverLoading ? (
+          <div className="animate-pulse space-y-3 p-2">
+            {[1,2,3].map(i => <div key={i} className="h-10 bg-[var(--surface-muted)] rounded-lg w-full"></div>)}
+          </div>
+        ) : (
+          <div className="space-y-3">
+             {topTasks.map((t, i) => (
+                <div key={t.id} onClick={() => navigate(`/tasks/${t.id}`)} className="bg-[var(--surface-elevated)] p-3 border border-[var(--border-soft)] rounded-xl hover:bg-[var(--surface-muted)] cursor-pointer transition">
+                  <div className="flex gap-2 items-start">
+                     <div className="font-black text-[var(--text-muted)] w-5 block shrink-0">{i+1}</div>
+                     <div className="flex-1">
+                       <h5 className="text-[var(--text-primary)] font-bold text-sm line-clamp-1">{t.title}</h5>
+                       <div className="flex justify-between items-center mt-1">
+                         <span className="text-xs text-[var(--text-secondary)] font-medium">{t.companyName}</span>
+                         <span className="text-xs text-[var(--text-primary)] bg-[var(--surface-muted)] flex items-center gap-1 font-bold px-1.5 py-0.5 rounded border border-[var(--border-soft)]"><Users className="w-3 h-3"/> {t.applicants.length}</span>
+                       </div>
+                     </div>
+                  </div>
+                </div>
+             ))}
+          </div>
+        )}
       </div>
     </div>
   );
