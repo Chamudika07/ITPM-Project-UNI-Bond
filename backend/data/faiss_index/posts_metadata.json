@@ -158,5 +158,13 @@
     "author_name": "pavithra senavirathra",
     "created_at": "2026-04-05T14:02:09.507435+05:30",
     "searchable_text": "Title: if you know about how to used alembic with fastApi\nContent: if you know about how to used alembic with fastApi"
+  },
+  {
+    "id": 5,
+    "title": "Study post by Chamudika Pramoth",
+    "content": "Study-related image post.",
+    "author_name": "Chamudika Pramoth",
+    "created_at": "2026-05-05T12:49:41.383089+05:30",
+    "searchable_text": "Title: Study post by Chamudika Pramoth\nContent: Study-related image post."
   }
 ]
